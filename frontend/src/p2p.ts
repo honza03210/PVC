@@ -172,7 +172,19 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 if (!IceCandidateQueue[event.data.id]){
                     return;
                 }
-                useQueuedCandidates(IceCandidateQueue[event.data.id], peerConnections[event.data.id]);
+                console.log("getAnswerAck");
+                for (const cand of IceCandidateQueue[event.data.id]!.queue) {
+                    if (peerConnections[event.data.id]!.connectionState == "connected"){
+                        console.log("getCandidate ignored - connected");
+                        return;
+                    }
+                    console.log("popped from queue");
+                    if (cand.candidate.candidate == "") return;
+                    await peerConnections[event.data.id]!.addIceCandidate(new RTCIceCandidate(cand.candidate));
+                }
+                IceCandidateQueue[event.data.id]!.popped = true;
+                // break;
+                // useQueuedCandidates(IceCandidateQueue[event.data.id], peerConnections[event.data.id]);
                 break;
             case "PeerJoined":
                 console.log("Peer joined: " + event.data.id);
