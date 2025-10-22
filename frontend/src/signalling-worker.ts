@@ -30,10 +30,7 @@ console.log("lol");
 
     events.forEach((eventName) => {
         signallingSocket.on(eventName, (data: any) => {
-            port!.postMessage({
-                type: eventName,   // the event name
-                message: data      // the payload
-            });
+            port!.postMessage(Object.assign(data, {type: eventName})); // ads event type to the payload
         });
     });
 

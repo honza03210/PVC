@@ -105,36 +105,36 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 appUI.errorMsgLabel.innerHTML = "Error" + event.data.message;
                 break;
             case "listRooms":
-                appUI.roomList.innerHTML = "Rooms: \n" + event.data.message.roomsList;
+                appUI.roomList.innerHTML = "Rooms: \n" + event.data.roomsList;
                 break;
             case "sharedWorkerMessage":
                 console.log("SharedWorker says: " + event.data.message);
                 break;
             case "getCandidate":
-                if (!event.data.message.candidate.candidate) {
+                if (!event.data.candidate.candidate) {
                     return;
                 }
-                if (IceCandidateQueue[event.data.message.id] && IceCandidateQueue[event.data.message.id]!.popped) {
-                    console.log("getCandidate", event.data.message.candidate.candidate);
-                    if (peerConnections[event.data.message.id]!.connectionState == "connected"){
+                if (IceCandidateQueue[event.data.id] && IceCandidateQueue[event.data.id]!.popped) {
+                    console.log("getCandidate", event.data.candidate.candidate);
+                    if (peerConnections[event.data.id]!.connectionState == "connected"){
                         console.log("getCandidate ignored - connected");
                         return;
                     }
-                    peerConnections[event.data.message.id]!.addIceCandidate(new RTCIceCandidate(event.data.message.candidate.candidate)).then(() => {
+                    peerConnections[event.data.id]!.addIceCandidate(new RTCIceCandidate(event.data.candidate.candidate)).then(() => {
                         console.log("candidate add success");
                     });
                     return;
                 }
-                else if (!IceCandidateQueue[event.data.message.id]) {
-                    IceCandidateQueue[event.data.message.id] = {popped: false, queue: []};
+                else if (!IceCandidateQueue[event.data.id]) {
+                    IceCandidateQueue[event.data.id] = {popped: false, queue: []};
                 }
-                IceCandidateQueue[event.data.message.id]!.queue.push(event.data.message.candidate);
-                console.log("getCandidate -- pushed to queue: ", event.data.message.candidate);
+                IceCandidateQueue[event.data.id]!.queue.push(event.data.candidate);
+                console.log("getCandidate -- pushed to queue: ", event.data.candidate);
                 break;
             case "listUsers":
                 console.log("listUsers");
-                for (const userID of event.data.message.userIDs) {
-                    if (userID < event.data.message.selfID && (!(userID in peerConnections || peerConnections[userID]!.connectionState != "connected"))) {
+                for (const userID of event.data.userIDs) {
+                    if (userID < event.data.selfID && (!(userID in peerConnections || peerConnections[userID]!.connectionState != "connected"))) {
                         console.log("found disconnected user");
                         await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true, "DISCONNECTED USER PLACEHOLDER");
                         await createOffer(wWPort, userID, peerConnections, peerConnections[userID]);
@@ -143,42 +143,42 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 break;
             case "getAnswerAck":
                 console.log("getAnswerAck");
-                for (const cand of IceCandidateQueue[event.data.message.id]!.queue) {
-                    if (peerConnections[event.data.message.id]!.connectionState == "connected"){
+                for (const cand of IceCandidateQueue[event.data.id]!.queue) {
+                    if (peerConnections[event.data.id]!.connectionState == "connected"){
                         console.log("getCandidate ignored - connected");
                         return;
                     }
                     console.log("popped from queue");
-                    await peerConnections[event.data.message.id]!.addIceCandidate(new RTCIceCandidate(cand.candidate));
+                    await peerConnections[event.data.id]!.addIceCandidate(new RTCIceCandidate(cand.candidate));
                 }
-                IceCandidateQueue[event.data.message.id]!.popped = true;
+                IceCandidateQueue[event.data.id]!.popped = true;
                 break;
             case "getOffer":
-                console.log("get offer:" + event.data.message.sdp);
-                await pinit(wWPort, event.data.message.id, peerConnections, appUI, wsPositions, false, event.data.username);
-                await createAnswer(wWPort, peerConnections, peerConnections[event.data.message.id], event.data.message.sdp, event.data.message.id);
+                console.log("get offer:" + event.data.sdp);
+                await pinit(wWPort, event.data.id, peerConnections, appUI, wsPositions, false, event.data.username);
+                await createAnswer(wWPort, peerConnections, peerConnections[event.data.id], event.data.sdp, event.data.id);
                 break;
             case "getAnswer":
-                console.log("get answer:" + event.data.message.sdp);
-                if (!peerConnections[event.data.message.id]!.remoteDescription || !peerConnections[event.data.message.id]!.remoteDescription!.type){
+                console.log("get answer:" + event.data.sdp);
+                if (!peerConnections[event.data.id]!.remoteDescription || !peerConnections[event.data.id]!.remoteDescription!.type){
                     console.log("setting remote desc after getting an answer");
-                    await peerConnections[event.data.message.id]!.setRemoteDescription(event.data.message.sdp);
+                    await peerConnections[event.data.id]!.setRemoteDescription(event.data.sdp);
                 }
                 console.log("answerAck sent")
-                wWPort.postMessage({message: {dest: event.data.message.id}, type: "answerAck"});
-                if (!IceCandidateQueue[event.data.message.id]){
+                wWPort.postMessage({message: {dest: event.data.id}, type: "answerAck"});
+                if (!IceCandidateQueue[event.data.id]){
                     return;
                 }
-                useQueuedCandidates(IceCandidateQueue[event.data.message.id], peerConnections[event.data.message.id]);
+                useQueuedCandidates(IceCandidateQueue[event.data.id], peerConnections[event.data.id]);
                 break;
             case "PeerJoined":
-                console.log("Peer joined: " + event.data.message.id);
-                if (peerConnections[event.data.message.id]){
+                console.log("Peer joined: " + event.data.id);
+                if (peerConnections[event.data.id]){
                     console.log("peer already connected");
                     return;
                 }
-                await pinit(wWPort, event.data.message.id, peerConnections, appUI, wsPositions, true, event.data.username);
-                await createOffer(wWPort, event.data.message.id, peerConnections, peerConnections[event.data.message.id]);
+                await pinit(wWPort, event.data.id, peerConnections, appUI, wsPositions, true, event.data.username);
+                await createOffer(wWPort, event.data.id, peerConnections, peerConnections[event.data.id]);
                 break;
 
         }
@@ -218,8 +218,8 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
 
 
                 remoteVideo.id = "remoteVideo-" + id;
-
                 remoteAudio.id = "remoteAudio-" + id;
+
                 remoteAudio.autoplay = true;
                 remoteAudio.muted = false;
 
@@ -240,6 +240,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
 
                 let nameLabel = document.createElement("div");
                 nameLabel.textContent = username;
+                console.log("USERNAMMEEE: " + username);
                 nameLabel.style.textAlign = "center";
                 nameLabel.style.fontSize = "12px";
                 nameLabel.style.color = "green";

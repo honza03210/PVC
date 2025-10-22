@@ -28,6 +28,7 @@ async function startup() {
 
     let joined = false;
 
+    const manualPositions = document.createElement("input")
     const audioButton = document.createElement("button");
 
     audioButton.addEventListener("click", async () => {
