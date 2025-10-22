@@ -1,0 +1,19 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsc && vite build && vite --host",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "host": "tsc && vite build --host"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.1.7"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
+  }
+}

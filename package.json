@@ -1,0 +1,22 @@
+{
+  "name": "p2p-voice-chat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:frontend\"",
+    "dev:server": "npm --workspace server run dev",
+    "dev:frontend": "npm --workspace frontend run dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "server"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
