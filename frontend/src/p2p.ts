@@ -359,7 +359,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     microphone.connect(panNode);
                     panNode.connect(analyser);
                     const dest = audioCtx.createMediaStreamDestination();
-                    microphone.connect(audioCtx.destination);
+                    panNode.connect(audioCtx.destination);
 
                     analyser.fftSize = 512;
                     const bufferLength = analyser.frequencyBinCount;
