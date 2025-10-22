@@ -127,6 +127,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                         console.log("getCandidate ignored - connected");
                         return;
                     }
+                    if (event.data.candidate.candidate == "") return;
                     peerConnections[event.data.id]!.addIceCandidate(new RTCIceCandidate(event.data.candidate.candidate)).then(() => {
                         console.log("candidate add success");
                     });
@@ -156,6 +157,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                         return;
                     }
                     console.log("popped from queue");
+                    if (cand.candidate.candidate == "") return;
                     await peerConnections[event.data.id]!.addIceCandidate(new RTCIceCandidate(cand.candidate));
                 }
                 IceCandidateQueue[event.data.id]!.popped = true;
@@ -450,6 +452,7 @@ async function useQueuedCandidates (queue: { popped: boolean, queue: { candidate
             return;
         }
         console.log("popped an ICE candidate from queue");
+        if (candidate.candidate.candidate == "") return;
         await peerConnection.addIceCandidate(new RTCIceCandidate(candidate.candidate));
     }
     queue.popped = true;
