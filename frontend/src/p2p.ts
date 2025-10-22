@@ -54,12 +54,6 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
 
     let audioCtx = new AudioContext();
 
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && audioCtx.state === "suspended") {
-            audioCtx.resume();
-        }
-    });
-
     let clientCharacterContainer = document.createElement("div");
     clientCharacterContainer.style.position = "absolute";
     clientCharacterContainer.style.top = "50%";
@@ -206,7 +200,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
         return;
     }
 
-    let peerConnection = new RTCPeerConnection(PCConfig);
+    let peerConnection = new RTCPeerConnection({...PCConfig, iceTransportPolicy: "relay"});
 
     console.log("render videos");
     try {

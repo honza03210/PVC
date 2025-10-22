@@ -24,7 +24,5 @@ export const PCConfig = {
             username: "8239e4b73bc5b996db912fe2",
             credential: "jHeMsGMK16dSePFF",
         },
-    ],
-    iceTransportPolicy: "relay" // use only TURN servers
-
+    ]
 };
