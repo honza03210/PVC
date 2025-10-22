@@ -24,15 +24,17 @@ async function startup() {
         errorMsgLabel: document.getElementById("errorMsg") as HTMLDivElement,
         videoContainer: document.getElementById("videoContainer") as HTMLDivElement,
         manualPositions: document.getElementById("manualPositions") as HTMLInputElement,
+        distanceFalloff: document.getElementById("distanceFalloff") as HTMLInputElement,
     }
     const PeerConnections: {[key: string] : RTCPeerConnection} = {}
 
     let joined = false;
 
-    const manualPositions = document.createElement("input")
     const audioButton = document.createElement("button");
+    audioButton.innerText = "Initialize audio";
 
     audioButton.addEventListener("click", async () => {
+        audioButton.disabled = true;
 
         let audioCtx = new AudioContext()
 
@@ -92,14 +94,19 @@ async function startup() {
                 }
             });
 
-        //const SignallingSocket = BindSignallingSocket(appUI);
-        // @ts-ignore
-        document.querySelector('#join').addEventListener('click', e => {
+        const joinButton = document.createElement("button");
+        joinButton.innerText = "Join"
+        joinButton.style.fontSize = "32";
+
+        joinButton.addEventListener('click', e => {
             if (!joined) {
                 joined = true;
                 roomJoin(PeerConnections, appUI, wsPositions)
             }
         });
+
+        document.getElementById("container")?.appendChild(joinButton);
+
     })
     document.body.appendChild(audioButton);
 }

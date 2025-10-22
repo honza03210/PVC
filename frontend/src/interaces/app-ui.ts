@@ -8,5 +8,6 @@ export interface AppUI {
     errorMsgLabel: HTMLDivElement;
     videoContainer: HTMLDivElement;
     manualPositions: HTMLInputElement;
+    distanceFalloff: HTMLInputElement;
 
 }

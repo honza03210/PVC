@@ -263,14 +263,6 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                 if (offer) {
                     let dc = peerConnection.createDataChannel("positions", {ordered: true});
                     dc.onopen = () => {
-                        // peerCharacter.id = "remotePlayerCharacter-" + id;
-                        // peerCharacter.width = 20;
-                        // peerCharacter.height = 20;
-                        // peerCharacter.style.position = "absolute";
-                        // peerCharacter.style.top = "50%";
-                        // peerCharacter.style.left = "50%";
-                        // peerCharacter.style.backgroundColor = "green";
-                        // document.body.appendChild(peerCharacter);
                         function sendPos() {
                             setTimeout(()=>{
                                 let char = document.getElementById("playerCharacter");
@@ -293,15 +285,6 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     peerConnection.ondatachannel = (e) => {
                         let dc = e.channel;
                         dc.onopen = () => {
-                            // peerCharacter.id = "remotePlayerCharacter-" + id;
-                            // peerCharacter.width = 20;
-                            // peerCharacter.height = 20;
-                            // peerCharacter.style.position = "absolute";
-                            // peerCharacter.style.top = "50%";
-                            // peerCharacter.style.left = "50%";
-                            // peerCharacter.style.backgroundColor = "green";
-
-
                             function sendPos() {
                                 setTimeout(()=>{
                                     let char = document.getElementById("playerCharacter");
@@ -344,13 +327,18 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                 peerConnection.ontrack = ev => {
                     let microphone = audioCtx.createMediaStreamSource(ev.streams[0]!);
                     let analyser = audioCtx.createAnalyser();
-                    // let gainNode = audioCtx.createGain();
                     let panNode = audioCtx.createPanner();
                     panNode.panningModel = "HRTF";
-                    panNode.distanceModel = "linear";
+                    panNode.distanceModel = "inverse";
                     panNode.refDistance = 50;
                     panNode.maxDistance = 500;
                     panNode.rolloffFactor = 1;
+
+                    appUI.distanceFalloff.addEventListener("change", () => {
+                        panNode.refDistance = appUI.distanceFalloff.valueAsNumber;
+                        panNode.maxDistance = appUI.distanceFalloff.valueAsNumber
+                    });
+
                     microphone.connect(panNode);
                     panNode.connect(analyser);
                     const dest = audioCtx.createMediaStreamDestination();
@@ -393,7 +381,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                         canvasCtx.lineTo(WIDTH, HEIGHT / 2);
                         canvasCtx.stroke();
                     }
-                    function updateAudioPosition(timeDelta: DOMHighResTimeStamp, panNode: PannerNode, id: string){
+                    function updateAudioPosition(timeDelta: DOMHighResTimeStamp, panNode: PannerNode, id: string) {
                         requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
                         let peerChar = document.getElementById("remotePlayerCharacter-" + id);
                         let localChar = document.getElementById("playerCharacter");
@@ -401,30 +389,19 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                             console.log("no peer char or local char");
                             return
                         }
-                        let lCPositions = {x: parseFloat(localChar.style.left) / 100 * window.innerWidth, y: parseFloat(localChar.style.top) / 100 * window.innerHeight};
-                        let pCPositions = {x: parseFloat(peerChar.style.left) / 100 * window.innerWidth, y: parseFloat(peerChar.style.top) / 100 * window.innerHeight};
+                        let lCPositions = {
+                            x: parseFloat(localChar.style.left) / 100 * window.innerWidth,
+                            y: parseFloat(localChar.style.top) / 100 * window.innerHeight
+                        };
+                        let pCPositions = {
+                            x: parseFloat(peerChar.style.left) / 100 * window.innerWidth,
+                            y: parseFloat(peerChar.style.top) / 100 * window.innerHeight
+                        };
 
                         panNode.positionX.linearRampToValueAtTime(pCPositions.x - lCPositions.x, 0.05);
                         panNode.positionY.linearRampToValueAtTime(pCPositions.y - lCPositions.y, 0.05);
 
 
-                        // const dx = lCPositions.x - pCPositions.x;
-                        // const dy = lCPositions.y - pCPositions.y;
-                        // const distance = Math.sqrt(dx * dx + dy * dy);
-                        //
-                        // const maxDistance = 800; // px
-                        // const minDistance = 50;
-                        // const normalized = Math.max(0, Math.min(1, 1 - (distance - minDistance) / (maxDistance - minDistance)));
-                        // // gainNode.gain.value = normalized;
-                        // console.log("Gain: " + normalized);
-                        // gainNode.gain.linearRampToValueAtTime(normalized, audioCtx.currentTime + 0.05);
-                        // //
-                        // const halfWidth = window.innerWidth / 2;
-                        // const relativeX = (lCPositions.x - halfWidth) / halfWidth;
-                        // const pan = Math.max(-1, Math.min(1, relativeX));
-                        // // panNode.pan.value = pan;
-                        // panNode.pan.linearRampToValueAtTime(pan, audioCtx.currentTime + 0.05);
-                        // console.log("Pan: " + pan);
                     }
                     requestAnimationFrame(draw);
                     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
