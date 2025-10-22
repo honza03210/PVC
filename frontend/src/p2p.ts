@@ -12,8 +12,8 @@ async function createOffer(wWPort: MessagePort, destID: string, peerConnections:
     peerConnection
         .createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true})
         .then(async sdp => {
-            sdp.sdp = sdp.sdp!.replace(/a=fmtp:111 minptime=10;useinbandfec=1/g,
-                'a=fmtp:111 minptime=10;useinbandfec=1;maxaveragebitrate=96000');
+            // sdp.sdp = sdp.sdp!.replace(/a=fmtp:111 minptime=10;useinbandfec=1/g,
+            //     'a=fmtp:111 minptime=10;useinbandfec=1;maxaveragebitrate=96000');
 
             await peerConnection.setLocalDescription(sdp);
             wWPort.postMessage({message: {dest: destID, sdp: sdp}, type: "offer"});
