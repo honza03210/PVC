@@ -59,7 +59,6 @@ async function startup() {
 
                 function draw() {
                     requestAnimationFrame(draw);
-                    console.log("client audio viz drawBegin")
                     canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
                     analyser.getByteTimeDomainData(dataArray);
                     // Fill solid color

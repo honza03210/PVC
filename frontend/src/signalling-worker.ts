@@ -13,7 +13,7 @@ console.log("lol");
 (self as unknown as SharedWorkerGlobalScope).onconnect = (event: MessageEvent) => {
     const port = event.ports[0];
 
-    const signallingSocket = io("http://localhost:3000", {
+    const signallingSocket = io("http://localhost:3001", {
         transports: ['websocket', 'polling'],
         withCredentials: true,
     });
@@ -39,7 +39,6 @@ console.log("lol");
 
     port!.start();
 
-    port!.postMessage({ type: "sharedWorkerMessage", message: `${window.location.protocol}://${window.location.host}` });
     port!.postMessage({ type: "sharedWorkerMessage", message: "Connected: " + signallingSocket.connected });
     port!.postMessage({ type: "sharedWorkerMessage", message: "Hello from SharedWorker!" });
 };

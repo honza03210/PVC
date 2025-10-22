@@ -54,22 +54,36 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
 
     let audioCtx = new AudioContext();
 
-    let clientCharacter = document.createElement("canvas");
-    clientCharacter.id = "playerCharacter";
-    clientCharacter.width = 20;
-    clientCharacter.height = 20;
-    clientCharacter.style.position = "absolute";
-    clientCharacter.style.top = "50%";
-    clientCharacter.style.left = "50%";
-    clientCharacter.style.backgroundColor = "green";
+    let clientCharacterContainer = document.createElement("div");
+    clientCharacterContainer.style.position = "absolute";
+    clientCharacterContainer.style.top = "50%";
+    clientCharacterContainer.style.left = "50%";
+    clientCharacterContainer.id = "playerCharacter";
 
-    document.getElementById("container")!.appendChild(clientCharacter);
+    let nameLabel = document.createElement("div");
+    nameLabel.textContent = "Me";
+    nameLabel.style.textAlign = "center";
+    nameLabel.style.fontSize = "12px";
+    nameLabel.style.color = "blue";
+    nameLabel.style.fontWeight = "bold";
+    clientCharacterContainer.appendChild(nameLabel);
+
+    let clientCharacter = document.createElement("canvas");
+    clientCharacter.width = 30;
+    clientCharacter.height = 30;
+    clientCharacter.style.position = "absolute";
+    clientCharacter.style.backgroundColor = "blue";
+
+    clientCharacterContainer.appendChild(clientCharacter);
+
+
+    document.getElementById("container")!.appendChild(clientCharacterContainer);
 
     PlayerMovementInit();
 
     let IceCandidateQueue: {[key: string] : {popped: boolean, queue: {candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]}} = {};
 
-    const worker = new SharedWorker("/src/signalling-worker.ts", {type: "module"});
+    const worker = new SharedWorker(new URL('/src/signalling-worker.ts', import.meta.url), {type: "module"});
     console.log("worker " + worker);
     const wWPort = worker.port;
 
@@ -122,7 +136,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 for (const userID of event.data.message.userIDs) {
                     if (userID < event.data.message.selfID && (!(userID in peerConnections || peerConnections[userID]!.connectionState != "connected"))) {
                         console.log("found disconnected user");
-                        await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true);
+                        await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true, "DISCONNECTED USER PLACEHOLDER");
                         await createOffer(wWPort, userID, peerConnections, peerConnections[userID]);
                     }
                 }
@@ -141,7 +155,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 break;
             case "getOffer":
                 console.log("get offer:" + event.data.message.sdp);
-                await pinit(wWPort, event.data.message.id, peerConnections, appUI, wsPositions, false);
+                await pinit(wWPort, event.data.message.id, peerConnections, appUI, wsPositions, false, event.data.username);
                 await createAnswer(wWPort, peerConnections, peerConnections[event.data.message.id], event.data.message.sdp, event.data.message.id);
                 break;
             case "getAnswer":
@@ -163,7 +177,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                     console.log("peer already connected");
                     return;
                 }
-                await pinit(wWPort, event.data.message.id, peerConnections, appUI, wsPositions, true);
+                await pinit(wWPort, event.data.message.id, peerConnections, appUI, wsPositions, true, event.data.username);
                 await createOffer(wWPort, event.data.message.id, peerConnections, peerConnections[event.data.message.id]);
                 break;
 
@@ -177,7 +191,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
         }, type: "join"});
     console.log("join posted");
 
-async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: string] : RTCPeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean) {
+async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: string] : RTCPeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean, username: string) {
     if (id in peerConnections) {
         console.log("id already in peer connections")
         return;
@@ -218,18 +232,41 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     peerConnection.addTrack(track, stream);
                 });
 
+                let peerCharacterContainer = document.createElement("div");
+                peerCharacterContainer.style.position = "absolute";
+                peerCharacterContainer.style.top = "50%";
+                peerCharacterContainer.style.left = "50%";
+                peerCharacterContainer.id = "remotePlayerCharacter-" + id;
+
+                let nameLabel = document.createElement("div");
+                nameLabel.textContent = username;
+                nameLabel.style.textAlign = "center";
+                nameLabel.style.fontSize = "12px";
+                nameLabel.style.color = "green";
+                nameLabel.style.fontWeight = "bold";
+                peerCharacterContainer.appendChild(nameLabel);
+
                 let peerCharacter = document.createElement("canvas");
+                peerCharacter.width = 30;
+                peerCharacter.height = 30;
+                peerCharacter.style.position = "absolute";
+                peerCharacter.style.backgroundColor = "blue";
+
+                peerCharacterContainer.appendChild(peerCharacter);
+                document.body.appendChild(peerCharacterContainer);
+
+
                 if (offer) {
                     let dc = peerConnection.createDataChannel("positions", {ordered: true});
                     dc.onopen = () => {
-                        peerCharacter.id = "remotePlayerCharacter-" + id;
-                        peerCharacter.width = 20;
-                        peerCharacter.height = 20;
-                        peerCharacter.style.position = "absolute";
-                        peerCharacter.style.top = "50%";
-                        peerCharacter.style.left = "50%";
-                        peerCharacter.style.backgroundColor = "green";
-                        document.body.appendChild(peerCharacter);
+                        // peerCharacter.id = "remotePlayerCharacter-" + id;
+                        // peerCharacter.width = 20;
+                        // peerCharacter.height = 20;
+                        // peerCharacter.style.position = "absolute";
+                        // peerCharacter.style.top = "50%";
+                        // peerCharacter.style.left = "50%";
+                        // peerCharacter.style.backgroundColor = "green";
+                        // document.body.appendChild(peerCharacter);
                         function sendPos() {
                             setTimeout(()=>{
                                 let char = document.getElementById("playerCharacter");
@@ -250,14 +287,15 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     peerConnection.ondatachannel = (e) => {
                         let dc = e.channel;
                         dc.onopen = () => {
-                            peerCharacter.id = "remotePlayerCharacter-" + id;
-                            peerCharacter.width = 20;
-                            peerCharacter.height = 20;
-                            peerCharacter.style.position = "absolute";
-                            peerCharacter.style.top = "50%";
-                            peerCharacter.style.left = "50%";
-                            peerCharacter.style.backgroundColor = "green";
-                            document.body.appendChild(peerCharacter);
+                            // peerCharacter.id = "remotePlayerCharacter-" + id;
+                            // peerCharacter.width = 20;
+                            // peerCharacter.height = 20;
+                            // peerCharacter.style.position = "absolute";
+                            // peerCharacter.style.top = "50%";
+                            // peerCharacter.style.left = "50%";
+                            // peerCharacter.style.backgroundColor = "green";
+
+
                             function sendPos() {
                                 setTimeout(()=>{
                                     let char = document.getElementById("playerCharacter");
@@ -316,7 +354,6 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     let canvasCtx = remoteVideo.getContext("2d")!;
                     const WIDTH = 200;
                     const HEIGHT = 100;
-                    console.log("lolsad");
                     function draw() {
                         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
                         const drawVisual = requestAnimationFrame(draw);
@@ -349,7 +386,6 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                         canvasCtx.stroke();
                     }
                     function updateAudioPosition(timeDelta: DOMHighResTimeStamp, panNode: PannerNode, id: string){
-                        console.log("updateAudioStarted");
                         requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
                         let peerChar = document.getElementById("remotePlayerCharacter-" + id);
                         let localChar = document.getElementById("playerCharacter");
@@ -360,9 +396,8 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                         let lCPositions = {x: parseFloat(localChar.style.left) / 100 * window.innerWidth, y: parseFloat(localChar.style.top) / 100 * window.innerHeight};
                         let pCPositions = {x: parseFloat(peerChar.style.left) / 100 * window.innerWidth, y: parseFloat(peerChar.style.top) / 100 * window.innerHeight};
 
-                        panNode.positionX.setValueAtTime(lCPositions.x - pCPositions.x, 0.05);
-                        panNode.positionY.setValueAtTime(lCPositions.y - pCPositions.y, 0.05);
-                        console.log("panNode: " + panNode.positionX.value + " " + panNode.positionY.value + " " + panNode.positionZ.value);
+                        panNode.positionX.linearRampToValueAtTime(pCPositions.x - lCPositions.x, 0.05);
+                        panNode.positionY.linearRampToValueAtTime(pCPositions.y - lCPositions.y, 0.05);
 
 
                         // const dx = lCPositions.x - pCPositions.x;

@@ -5,11 +5,14 @@ import argon2id from "argon2";
 export function signalling(server : any) {
     const io = new Server(server, {
         cors: {
-            origin: ["https://jaguar-magnetic-deer.ngrok-free.app"], // your ngrok domain
+            origin: ["*"],
             methods: ["GET", "POST"],
-            credentials: true // allow cookies/auth headers if needed
+            credentials: true
         },
     });
+
+    // socketID : username
+    let usernames : {[key: string]: string} = {};
 
     // roomID[socketID : username]
     let rooms : {[key: string]: { [id: string] : string }} = {};
@@ -68,13 +71,14 @@ export function signalling(server : any) {
             // const users = Object.values(rooms[roomId]);
             // socket.broadcast.to(socket.data.roomId).emit("room_users", { id: socket.id, users: users.join(", ")});
             console.log("[joined] room:" + roomId + " name: " + data.name);
-            socket.broadcast.to(socket.data.roomId).emit("PeerJoined", { id: socket.id });
+            usernames[socket.id] = data.name;
+            socket.broadcast.to(socket.data.roomId).emit("PeerJoined", { id: socket.id, username: data.name });
             setTimeout(() =>{ listUserIDs(socket, socket.data.roomId) }, 5000)
 
         });
 
         socket.on("offer", (payload: {dest: string, sdp: any}) => {
-            io.to(payload.dest).emit("getOffer", {id: socket.id, sdp: payload.sdp});
+            io.to(payload.dest).emit("getOffer", {id: socket.id, sdp: payload.sdp, username: usernames[socket.id]});
             console.log("offer from " + socket.id + " to " + payload.dest);
         });
         socket.on("answerAck", (payload: {dest: string}) => {
@@ -92,6 +96,7 @@ export function signalling(server : any) {
             console.log("candidate from " + socket.id + payload.candidate);
         });
         socket.on("disconnect", () => {
+            delete usernames[socket.id];
             if (socket.data.roomId === undefined) {
                 console.error("User not present in any room");
                 return;
