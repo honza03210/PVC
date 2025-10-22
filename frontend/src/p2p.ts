@@ -358,8 +358,6 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     const WIDTH = 200;
                     const HEIGHT = 100;
                     function draw() {
-
-                        console.log("is context lost: " + canvasCtx.isContextLost());
                         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
                         analyser.getByteTimeDomainData(dataArray);
                         // Fill solid color
@@ -388,7 +386,6 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                         // Finish the line
                         canvasCtx.lineTo(WIDTH, HEIGHT / 2);
                         canvasCtx.stroke();
-                        console.log("draw end");
                         requestAnimationFrame(draw);
                     }
                     function updateAudioPosition(timeDelta: DOMHighResTimeStamp, panNode: PannerNode, id: string) {
