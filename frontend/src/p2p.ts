@@ -1,7 +1,7 @@
 import { PCConfig } from "./configs/pc-config.js";
 import { type AppUI } from "./interaces/app-ui.js";
 import { PlayerMovementInit } from "./player-char-movement.js";
-
+import { DragElement } from "./draggable.js";
 
 async function createOffer(wWPort: MessagePort, destID: string, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined) {
     if (!peerConnection) {
@@ -76,8 +76,9 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
 
     clientCharacterContainer.appendChild(clientCharacter);
 
-
     document.getElementById("container")!.appendChild(clientCharacterContainer);
+
+    DragElement(clientCharacterContainer, appUI);
 
     PlayerMovementInit();
 
@@ -256,6 +257,8 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                 peerCharacterContainer.appendChild(peerCharacter);
                 document.body.appendChild(peerCharacterContainer);
 
+                DragElement(peerCharacterContainer, appUI);
+
 
                 if (offer) {
                     let dc = peerConnection.createDataChannel("positions", {ordered: true});
@@ -278,6 +281,8 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                         sendPos();
                     };
                     dc.onmessage = (event: { data: any }) => {
+                        if (appUI.manualPositions.checked) return;
+
                         let char = document.getElementById("remotePlayerCharacter-" + id);
                         console.log("received position message: ", event.data);
                         let data = Object.fromEntries(new URLSearchParams(event.data));
@@ -307,6 +312,8 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                             sendPos();
                         };
                         dc.onmessage = (event: { data: any }) => {
+                            if (appUI.manualPositions.checked) return;
+
                             let char = document.getElementById("remotePlayerCharacter-" + id);
                             console.log("received position message: ", event.data);
                             let data = Object.fromEntries(new URLSearchParams(event.data));

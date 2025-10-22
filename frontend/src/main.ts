@@ -23,6 +23,7 @@ async function startup() {
         roomList: document.getElementById("roomList") as HTMLDivElement,
         errorMsgLabel: document.getElementById("errorMsg") as HTMLDivElement,
         videoContainer: document.getElementById("videoContainer") as HTMLDivElement,
+        manualPositions: document.getElementById("manualPositions") as HTMLInputElement,
     }
     const PeerConnections: {[key: string] : RTCPeerConnection} = {}
 
