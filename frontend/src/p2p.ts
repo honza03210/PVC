@@ -54,6 +54,12 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
 
     let audioCtx = new AudioContext();
 
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && audioCtx.state === "suspended") {
+            audioCtx.resume();
+        }
+    });
+
     let clientCharacterContainer = document.createElement("div");
     clientCharacterContainer.style.position = "absolute";
     clientCharacterContainer.style.top = "50%";
@@ -252,7 +258,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                 peerCharacter.width = 30;
                 peerCharacter.height = 30;
                 peerCharacter.style.position = "absolute";
-                peerCharacter.style.backgroundColor = "blue";
+                peerCharacter.style.backgroundColor = "green";
 
                 peerCharacterContainer.appendChild(peerCharacter);
                 document.body.appendChild(peerCharacterContainer);
@@ -276,7 +282,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                         if (appUI.manualPositions.checked) return;
 
                         let char = document.getElementById("remotePlayerCharacter-" + id);
-                        console.log("received position message: ", event.data);
+                        //console.log("received position message: ", event.data);
                         let data = Object.fromEntries(new URLSearchParams(event.data));
                         char!.style.top = data.top!;
                         char!.style.left = data.left!;
@@ -324,7 +330,8 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                 };
 
 
-                peerConnection.ontrack = ev => {
+                peerConnection.ontrack = async ev => {
+                    console.log("STREAAAMS: " + ev.streams);
                     let microphone = audioCtx.createMediaStreamSource(ev.streams[0]!);
                     let analyser = audioCtx.createAnalyser();
                     let panNode = audioCtx.createPanner();
@@ -342,7 +349,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     microphone.connect(panNode);
                     panNode.connect(analyser);
                     const dest = audioCtx.createMediaStreamDestination();
-                    panNode.connect(dest);
+                    microphone.connect(audioCtx.destination);
 
                     analyser.fftSize = 512;
                     const bufferLength = analyser.frequencyBinCount;
@@ -351,8 +358,9 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     const WIDTH = 200;
                     const HEIGHT = 100;
                     function draw() {
+
+                        console.log("is context lost: " + canvasCtx.isContextLost());
                         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-                        const drawVisual = requestAnimationFrame(draw);
                         analyser.getByteTimeDomainData(dataArray);
                         // Fill solid color
                         canvasCtx.fillStyle = "rgb(200 200 200)";
@@ -380,6 +388,8 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                         // Finish the line
                         canvasCtx.lineTo(WIDTH, HEIGHT / 2);
                         canvasCtx.stroke();
+                        console.log("draw end");
+                        requestAnimationFrame(draw);
                     }
                     function updateAudioPosition(timeDelta: DOMHighResTimeStamp, panNode: PannerNode, id: string) {
                         requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
@@ -403,7 +413,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
 
 
                     }
-                    requestAnimationFrame(draw);
+                    requestAnimationFrame((time) => draw());
                     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
                     console.log("add remote track success");
                     if (remoteAudio)
