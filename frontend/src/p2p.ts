@@ -170,6 +170,8 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 console.log("answerAck sent")
                 wWPort.postMessage({message: {dest: event.data.id}, type: "answerAck"});
                 if (!IceCandidateQueue[event.data.id]){
+                    console.log("NO QUEUE TO POP");
+                    IceCandidateQueue[event.data.id] = {popped: true, queue: []};
                     return;
                 }
                 console.log("getAnswerAck");
