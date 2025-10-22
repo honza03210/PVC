@@ -25,4 +25,6 @@ export const PCConfig = {
             credential: "jHeMsGMK16dSePFF",
         },
     ],
+    iceTransportPolicy: "relay" // use only TURN servers
+
 };
