@@ -136,7 +136,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
             case "listUsers":
                 console.log("listUsers: ", event.data);
                 for (const userID of event.data.userIDs) {
-                    if (!(userID in peerConnections && peerConnections[userID]!.connectionState != "connected")) {
+                    if (!(peerConnections[userID] != undefined && peerConnections[userID]!.connectionState != "connected")) {
                         if ((userID < event.data.selfID) && (peerConnections[userID]!.connectionState == "failed")) {
                             console.log("found failed user");
                             await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true, "DISCONNECTED USER PLACEHOLDER");
