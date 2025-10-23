@@ -26,6 +26,10 @@ async function startup() {
         manualPositions: document.getElementById("manualPositions") as HTMLInputElement,
         distanceFalloff: document.getElementById("distanceFalloff") as HTMLInputElement,
     }
+
+    appUI.nameInput.innerText = urlParams.get("username") ?? "";
+    appUI.roomIDInput.innerText = urlParams.get("room_id") ?? "";
+
     const PeerConnections: {[key: string] : RTCPeerConnection} = {}
 
     let joined = false;

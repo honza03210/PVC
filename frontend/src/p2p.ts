@@ -214,7 +214,9 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
         return;
     }
 
-    let peerConnection = new RTCPeerConnection({...PCConfig, iceTransportPolicy: "relay"});
+    let peerConnection = new RTCPeerConnection({...PCConfig});
+
+    // let peerConnection = new RTCPeerConnection({...PCConfig, iceTransportPolicy: "relay"});
 
     console.log("render videos");
     try {
@@ -415,8 +417,18 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                             y: parseFloat(peerChar.style.top) / 100 * window.innerHeight
                         };
 
-                        panNode.positionX.linearRampToValueAtTime(pCPositions.x - lCPositions.x, 0.05);
-                        panNode.positionY.linearRampToValueAtTime(pCPositions.y - lCPositions.y, 0.05);
+                        const now = audioCtx.currentTime;
+                        const rampTime = 0.05; // 50 ms
+
+                        panNode.positionX.cancelScheduledValues(now);
+                        panNode.positionY.cancelScheduledValues(now);
+
+                        panNode.positionX.linearRampToValueAtTime(pCPositions.x - lCPositions.x, now + rampTime);
+                        panNode.positionY.linearRampToValueAtTime(pCPositions.y - lCPositions.y, now + rampTime);
+
+                        //
+                        // panNode.positionX.linearRampToValueAtTime(pCPositions.x - lCPositions.x, 0.05);
+                        // panNode.positionY.linearRampToValueAtTime(pCPositions.y - lCPositions.y, 0.05);
 
 
                     }
