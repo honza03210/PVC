@@ -152,6 +152,10 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 break;
             case "getAnswerAck":
                 console.log("getAnswerAck");
+                if (IceCandidateQueue[event.data.id] == undefined) {
+                    console.log("undefined queue");
+                    return;
+                }
                 for (const cand of IceCandidateQueue[event.data.id]!.queue) {
                     if (peerConnections[event.data.id]!.connectionState == "connected"){
                         console.log("getCandidate ignored - connected");
