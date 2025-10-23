@@ -355,7 +355,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     let panNode = audioCtx.createPanner();
                     panNode.panningModel = "equalpower";
                     panNode.distanceModel = "linear";
-                    panNode.refDistance = 50;
+                    panNode.refDistance = 5;
                     panNode.maxDistance = 500;
                     panNode.rolloffFactor = 1;
                     panNode.coneInnerAngle = 360;
@@ -432,9 +432,9 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
 
                         panNode.positionX.cancelScheduledValues(now);
                         panNode.positionY.cancelScheduledValues(now);
-
-                        panNode.positionX.linearRampToValueAtTime(pCPositions.x - lCPositions.x, now + rampTime);
-                        panNode.positionY.linearRampToValueAtTime(pCPositions.y - lCPositions.y, now + rampTime);
+                        panNode.positionZ.setValueAtTime(0, now);
+                        panNode.positionX.linearRampToValueAtTime((pCPositions.x - lCPositions.x) / 100, now + rampTime);
+                        panNode.positionY.linearRampToValueAtTime((pCPositions.y - lCPositions.y) / 100, now + rampTime);
 
                         //
                         // panNode.positionX.linearRampToValueAtTime(pCPositions.x - lCPositions.x, 0.05);
