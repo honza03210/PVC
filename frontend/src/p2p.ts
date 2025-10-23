@@ -136,6 +136,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
             case "listUsers":
                 console.log("listUsers");
                 for (const userID of event.data.userIDs) {
+                    console.log("LISTED: STATE:: " + peerConnections[userID].connectionState);
                     if (!(userID in peerConnections && peerConnections[userID]!.connectionState != "connected")) {
                         if ((userID < event.data.selfID) && (peerConnections[userID]!.connectionState == "failed")) {
                             console.log("found failed user");
@@ -353,10 +354,13 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     let analyser = audioCtx.createAnalyser();
                     let panNode = audioCtx.createPanner();
                     panNode.panningModel = "HRTF";
-                    panNode.distanceModel = "inverse";
+                    panNode.distanceModel = "exponential";
                     panNode.refDistance = 50;
                     panNode.maxDistance = 500;
                     panNode.rolloffFactor = 1;
+                    panNode.coneInnerAngle = 360;
+                    panNode.coneOuterAngle = 360;
+
 
                     appUI.distanceFalloff.addEventListener("change", () => {
                         panNode.refDistance = appUI.distanceFalloff.valueAsNumber;
