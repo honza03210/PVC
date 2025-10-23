@@ -134,7 +134,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 console.log("getCandidate -- pushed to queue: ", event.data.candidate);
                 break;
             case "listUsers":
-                console.log("listUsers");
+                console.log("listUsers: " + event.data);
                 for (const userID of event.data.userIDs) {
                     console.log("LISTED: STATE:: " + peerConnections[userID].connectionState);
                     if (!(userID in peerConnections && peerConnections[userID]!.connectionState != "connected")) {
@@ -322,7 +322,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                             if (appUI.manualPositions.checked) return;
 
                             let char = document.getElementById("remotePlayerCharacter-" + id);
-                            console.log("received position message: ", event.data);
+                            // console.log("received position message: ", event.data);
                             let data = Object.fromEntries(new URLSearchParams(event.data));
                             char!.style.top = data.top!;
                             char!.style.left = data.left!;
@@ -353,13 +353,14 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     let microphone = audioCtx.createMediaStreamSource(ev.streams[0]!);
                     let analyser = audioCtx.createAnalyser();
                     let panNode = audioCtx.createPanner();
-                    panNode.panningModel = "HRTF";
-                    panNode.distanceModel = "exponential";
+                    panNode.panningModel = "equalpower";
+                    panNode.distanceModel = "linear";
                     panNode.refDistance = 50;
                     panNode.maxDistance = 500;
                     panNode.rolloffFactor = 1;
                     panNode.coneInnerAngle = 360;
                     panNode.coneOuterAngle = 360;
+                    panNode.coneOuterGain = 1;
 
 
                     appUI.distanceFalloff.addEventListener("change", () => {
@@ -370,7 +371,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     microphone.connect(panNode);
                     panNode.connect(analyser);
                     const dest = audioCtx.createMediaStreamDestination();
-                    panNode.connect(audioCtx.destination);
+                    analyser.connect(audioCtx.destination);
 
                     analyser.fftSize = 512;
                     const bufferLength = analyser.frequencyBinCount;
