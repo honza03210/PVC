@@ -221,7 +221,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
         return;
     }
 
-    let peerConnection = new RTCPeerConnection({...PCConfig, iceTransportPolicy: "all"});
+    let peerConnection = new RTCPeerConnection({...PCConfig, iceTransportPolicy: "relay"});
 
     console.log("render videos");
     try {
