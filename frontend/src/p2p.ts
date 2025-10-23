@@ -134,9 +134,8 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 console.log("getCandidate -- pushed to queue: ", event.data.candidate);
                 break;
             case "listUsers":
-                console.log("listUsers: " + event.data);
+                console.log("listUsers: ", event.data);
                 for (const userID of event.data.userIDs) {
-                    console.log("LISTED: STATE:: " + peerConnections[userID].connectionState);
                     if (!(userID in peerConnections && peerConnections[userID]!.connectionState != "connected")) {
                         if ((userID < event.data.selfID) && (peerConnections[userID]!.connectionState == "failed")) {
                             console.log("found failed user");
