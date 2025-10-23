@@ -122,10 +122,10 @@ export function signalling(server : any) {
 
     function listUserIDs(socket: any, roomID: string) {
         try {
-            socket.emit("listUsers", { selfID:socket.id, userIDs: Object.keys(rooms[roomID]!)});
+            socket.emit("listUsers", { selfID: socket.id, userIDs: Object.keys(rooms[roomID]!)});
             setTimeout(() => {
                 listUserIDs(socket, roomID)
-            }, 5000);
+            }, 10000);
         } catch(err) {
         }
     }

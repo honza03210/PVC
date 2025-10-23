@@ -136,10 +136,17 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
             case "listUsers":
                 console.log("listUsers");
                 for (const userID of event.data.userIDs) {
-                    if (userID < event.data.selfID && (!(userID in peerConnections || peerConnections[userID]!.connectionState != "connected"))) {
-                        console.log("found disconnected user");
-                        await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true, "DISCONNECTED USER PLACEHOLDER");
-                        await createOffer(wWPort, userID, peerConnections, peerConnections[userID]);
+                    if ((userID < event.data.selfID) && (!(userID in peerConnections && peerConnections[userID]!.connectionState != "connected"))) {
+                        if (peerConnections[userID]!.connectionState == "failed") {
+                            console.log("found failed user");
+                            await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true, "DISCONNECTED USER PLACEHOLDER");
+                            await createOffer(wWPort, userID, peerConnections, peerConnections[userID]);
+                        } else if (peerConnections[userID]!.connectionState == "closed" || peerConnections[userID]!.connectionState == "disconnected") {
+                            document.getElementById("remotePlayerCharacter-" + userID)!.remove();
+                            document.getElementById("remoteVideo-" + userID)!.remove();
+                            document.getElementById("remoteAudio-" + userID)!.remove();
+                            delete peerConnections[userID];
+                        }
                     }
                 }
                 break;
@@ -215,8 +222,6 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
     }
 
     let peerConnection = new RTCPeerConnection({...PCConfig});
-
-    // let peerConnection = new RTCPeerConnection({...PCConfig, iceTransportPolicy: "relay"});
 
     console.log("render videos");
     try {
