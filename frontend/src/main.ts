@@ -27,8 +27,8 @@ async function startup() {
         distanceFalloff: document.getElementById("distanceFalloff") as HTMLInputElement,
     }
 
-    appUI.nameInput.innerText = urlParams.get("username") ?? "";
-    appUI.roomIDInput.innerText = urlParams.get("room_id") ?? "";
+    appUI.nameInput.value = urlParams.get("username") ?? "";
+    appUI.roomIDInput.value = urlParams.get("room_id") ?? "";
 
     const PeerConnections: {[key: string] : RTCPeerConnection} = {}
 
