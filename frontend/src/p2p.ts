@@ -136,8 +136,8 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
             case "listUsers":
                 console.log("listUsers");
                 for (const userID of event.data.userIDs) {
-                    if ((userID < event.data.selfID) && (!(userID in peerConnections && peerConnections[userID]!.connectionState != "connected"))) {
-                        if (peerConnections[userID]!.connectionState == "failed") {
+                    if (!(userID in peerConnections && peerConnections[userID]!.connectionState != "connected")) {
+                        if ((userID < event.data.selfID) && (peerConnections[userID]!.connectionState == "failed")) {
                             console.log("found failed user");
                             await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true, "DISCONNECTED USER PLACEHOLDER");
                             await createOffer(wWPort, userID, peerConnections, peerConnections[userID]);
@@ -228,8 +228,8 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
         await navigator.mediaDevices
             .getUserMedia({
                 audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
+                    echoCancellation: true,
+                    noiseSuppression: true,
                     autoGainControl: false,
                     channelCount: 1,
                     sampleRate: 48000,
