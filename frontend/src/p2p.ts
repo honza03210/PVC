@@ -221,15 +221,15 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
         return;
     }
 
-    let peerConnection = new RTCPeerConnection({...PCConfig, iceTransportPolicy: "relay"});
+    let peerConnection = new RTCPeerConnection({...PCConfig});
 
     console.log("render videos");
     try {
         await navigator.mediaDevices
             .getUserMedia({
                 audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
+                    echoCancellation: false,
+                    noiseSuppression: false,
                     autoGainControl: false,
                     channelCount: 1,
                     sampleRate: 48000,
