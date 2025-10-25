@@ -135,31 +135,31 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 break;
             case "listUsers":
                 console.log("listUsers: ", event.data);
-
                 for (const userID in peerConnections) {
                     if (event.data.userIDs.indexOf(userID) === -1) {
+                        console.log("found a failed/disconnected user... removing them")
                         document.getElementById("remotePlayerCharacter-" + userID)!.remove();
                         document.getElementById("remoteVideo-" + userID)!.remove();
                         document.getElementById("remoteAudio-" + userID)!.remove();
                         delete peerConnections[userID];
                     }
                 }
-
-                console.log("listUsers ignored")
-                for (const userID of event.data.userIDs) {
-                    if ((peerConnections[userID] != undefined && peerConnections[userID]!.connectionState != "connected")) {
-                        if ((userID < event.data.selfID) && (peerConnections[userID]!.connectionState == "failed")) {
-                            console.log("found failed user");
-                            await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true, "DISCONNECTED USER PLACEHOLDER");
-                            await createOffer(wWPort, userID, peerConnections, peerConnections[userID]);
-                        } else if (peerConnections[userID]!.connectionState == "closed" || peerConnections[userID]!.connectionState == "disconnected") {
-                            document.getElementById("remotePlayerCharacter-" + userID)!.remove();
-                            document.getElementById("remoteVideo-" + userID)!.remove();
-                            document.getElementById("remoteAudio-" + userID)!.remove();
-                            delete peerConnections[userID];
-                        }
-                    }
-                }
+                //
+                // for (const userID of event.data.userIDs) {
+                //     if ((peerConnections[userID] != undefined && peerConnections[userID]!.connectionState != "connected")) {
+                //         if ((userID < event.data.selfID) && (peerConnections[userID]!.connectionState == "failed")) {
+                //             console.log("found failed user");
+                //             await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true, "DISCONNECTED USER PLACEHOLDER");
+                //             await createOffer(wWPort, userID, peerConnections, peerConnections[userID]);
+                //         } else if (peerConnections[userID]!.connectionState == "closed" || peerConnections[userID]!.connectionState == "disconnected") {
+                //             console.log("found a failed/disconnected user... removing them")
+                //             document.getElementById("remotePlayerCharacter-" + userID)!.remove();
+                //             document.getElementById("remoteVideo-" + userID)!.remove();
+                //             document.getElementById("remoteAudio-" + userID)!.remove();
+                //             delete peerConnections[userID];
+                //         }
+                //     }
+                // }
                 break;
             case "getAnswerAck":
                 console.log("getAnswerAck");
