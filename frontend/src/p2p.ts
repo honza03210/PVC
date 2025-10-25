@@ -135,15 +135,15 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 break;
             case "listUsers":
                 console.log("listUsers: ", event.data);
-                for (const userID in peerConnections) {
-                    if (event.data.userIDs.indexOf(userID) === -1) {
-                        console.log("found a failed/disconnected user... removing them")
-                        document.getElementById("remotePlayerCharacter-" + userID)!.remove();
-                        document.getElementById("remoteVideo-" + userID)!.remove();
-                        document.getElementById("remoteAudio-" + userID)!.remove();
-                        delete peerConnections[userID];
-                    }
-                }
+                // for (const userID in peerConnections) {
+                //     if (event.data.userIDs.indexOf(userID) === -1) {
+                //         console.log("found a failed/disconnected user... removing them")
+                //         document.getElementById("remotePlayerCharacter-" + userID)!.remove();
+                //         document.getElementById("remoteVideo-" + userID)!.remove();
+                //         document.getElementById("remoteAudio-" + userID)!.remove();
+                //         delete peerConnections[userID];
+                //     }
+                // }
                 //
                 // for (const userID of event.data.userIDs) {
                 //     if ((peerConnections[userID] != undefined && peerConnections[userID]!.connectionState != "connected")) {
@@ -164,6 +164,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
             case "getAnswerAck":
                 console.log("getAnswerAck");
                 if (IceCandidateQueue[event.data.id] == undefined) {
+                    IceCandidateQueue[event.data.id] = {popped: true, queue: []};
                     console.log("undefined queue");
                     return;
                 }
