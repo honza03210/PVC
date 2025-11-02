@@ -2,6 +2,7 @@ import { PCConfig } from "./configs/pc-config.js";
 import { type AppUI } from "./interaces/app-ui.js";
 import { PlayerMovementInit } from "./player-char-movement.js";
 import { DragElement } from "./draggable.js";
+import { AddSamplePlayer } from "./add-sample-player.js";
 
 async function createOffer(wWPort: MessagePort, destID: string, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined) {
     if (!peerConnection) {
@@ -52,7 +53,7 @@ async function createAnswer(wWPort: MessagePort, peerConnections: {[key: string]
 export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, appUI: AppUI, wsPositions: WebSocket) {
     console.log("roomJoin");
 
-    let audioCtx = new AudioContext();
+    let audioCtx = appUI.audioCtx;
 
     let clientCharacterContainer = document.createElement("div");
     clientCharacterContainer.style.position = "absolute";
@@ -93,6 +94,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
 
     wWPort.addEventListener("message", async (event) => {
         console.log("message", event.data);
+        let p2pInitButton;
         switch (event.data.type) {
             case "connect":
                 wWPort.postMessage({ type: "listRooms" });
@@ -217,6 +219,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                     console.log("peer already connected");
                     return;
                 }
+
                 await pinit(wWPort, event.data.id, peerConnections, appUI, wsPositions, true, event.data.username);
                 await createOffer(wWPort, event.data.id, peerConnections, peerConnections[event.data.id]);
                 break;
@@ -230,6 +233,17 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
         password: appUI.passwordInput.value
         }, type: "join"});
     console.log("join posted");
+
+    const sampleSoundButton = document.createElement("button");
+    sampleSoundButton.innerText = "Add a sample VC member";
+    sampleSoundButton.style.fontSize = "32";
+
+    sampleSoundButton.addEventListener('click', async e => {
+        await AddSamplePlayer("0", appUI, "Sample");
+    });
+
+    document.getElementById("container")?.appendChild(sampleSoundButton);
+
 
 async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: string] : RTCPeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean, username: string) {
     if (id in peerConnections) {
@@ -254,14 +268,18 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
             })
             .then(stream => {
                 const remoteVideo = document.createElement("canvas");
-                const remoteAudio = document.createElement("audio");
-
+                const remoteAudio: HTMLAudioElement = document.createElement("audio");
 
                 remoteVideo.id = "remoteVideo-" + id;
                 remoteAudio.id = "remoteAudio-" + id;
 
+                // remoteAudio.setAttribute('autoplay', '');
+                // remoteAudio.setAttribute('muted', '');
+
                 remoteAudio.autoplay = true;
                 remoteAudio.muted = false;
+
+
 
                 if (appUI.videoContainer) {
                     appUI.videoContainer.appendChild(remoteAudio);
@@ -364,8 +382,14 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
 
 
                 peerConnection.ontrack = async ev => {
-                    console.log("STREAAAMS: " + ev.streams);
-                    let microphone = audioCtx.createMediaStreamSource(ev.streams[0]!);
+
+
+                    console.log("STREAAAMS: ", ev.streams);
+                    let microphone = audioCtx.createMediaStreamSource(ev.streams[0]);
+                    if (remoteAudio) {
+                        remoteAudio.muted = true;
+                        remoteAudio.srcObject = ev.streams[0];
+                    }
                     let analyser = audioCtx.createAnalyser();
                     let panNode = audioCtx.createPanner();
                     panNode.panningModel = "equalpower";
@@ -384,9 +408,25 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     });
 
                     microphone.connect(panNode);
+
+
                     panNode.connect(analyser);
-                    const dest = audioCtx.createMediaStreamDestination();
+                    // const dest = audioCtx.createMediaStreamDestination();
+                    // console.log("AAAAAAAAAAAAAAAAAAAAAAAA", dest)
                     analyser.connect(audioCtx.destination);
+                    let muted = false;
+                    remoteVideo.onclick = () => {
+                        if (muted) {
+                            console.log("unmuted");
+                            muted = false;
+                            analyser.connect(audioCtx.destination);
+                        } else {
+                            console.log("muted");
+                            muted = true;
+                            analyser.disconnect(audioCtx.destination);
+                        }
+                    }
+                    // analyser.connect(dest);
 
                     analyser.fftSize = 512;
                     const bufferLength = analyser.frequencyBinCount;
@@ -459,12 +499,26 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     }
                     requestAnimationFrame((time) => draw());
                     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
-                    console.log("add remote track success");
-                    if (remoteAudio)
-                        remoteAudio.srcObject = dest.stream;
-                    else {
-                        console.log("remote track failed");
-                    }
+
+                    // if (remoteAudio) {
+                    //     remoteAudio.srcObject = dest.stream;
+                    // }
+
+                    // if ("srcObject" in remoteAudio) {
+                    //     remoteAudio.srcObject = dest.stream;
+                    // } else {
+                    //     //Avoid using this in new browsers, as it is going away.
+                    //     //@ts-ignore
+                    //     remoteAudio.src = URL.createObjectURL(dest.stream);
+                    // }
+                    //
+                    // if (remoteAudio) {
+                    //     remoteAudio.srcObject = dest.stream;
+                    //     console.log("add remote track success");
+                    // }
+                    // else {
+                    //     console.log("remote track failed");
+                    // }
                 };
 
             })

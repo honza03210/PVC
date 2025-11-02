@@ -9,5 +9,6 @@ export interface AppUI {
     videoContainer: HTMLDivElement;
     manualPositions: HTMLInputElement;
     distanceFalloff: HTMLInputElement;
+    audioCtx: AudioContext;
 
 }

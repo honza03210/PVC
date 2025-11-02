@@ -25,6 +25,7 @@ async function startup() {
         videoContainer: document.getElementById("videoContainer") as HTMLDivElement,
         manualPositions: document.getElementById("manualPositions") as HTMLInputElement,
         distanceFalloff: document.getElementById("distanceFalloff") as HTMLInputElement,
+        audioCtx: new AudioContext(),
     }
 
     appUI.nameInput.value = urlParams.get("username") ?? "";
@@ -40,11 +41,14 @@ async function startup() {
     audioButton.addEventListener("click", async () => {
         audioButton.disabled = true;
 
-        let audioCtx = new AudioContext()
+        let audioCtx = appUI.audioCtx;
 
-        if (audioCtx.state === "suspended") {
-            await audioCtx.resume();
-        }
+        document.addEventListener("click", async () => {
+            if (audioCtx.state === "suspended") {
+                await audioCtx.resume();
+                console.log("AudioContext resumed");
+            }
+        });
 
         await navigator.mediaDevices
             .getUserMedia({
