@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+
+<div id="container">
+
+
+    <div style="display: flex; flex-direction: column"></div>
+    <label for="name">Username</label><input type="text" id="name"/>
+    <label for="roomID">Room Name</label><input type="text" id="roomID"/>
+    <label for="password">Password</label><input type="password" id="password"/>
+    <div>
+        <input type="checkbox" id="manualPositions" name="manualPositions"/>
+        <label for="manualPositions">Set Positions Manually</label>
+    </div>
+
+    <label for="distanceFalloff">Distance Falloff:</label>
+    <input type="number" id="distanceFalloff" name="distanceFalloff" min="0" max="8000" value="100"/>
+
+    <div id="videoContainer" style="margin: 30px">
+        <canvas id="localVideo"></canvas>
+        <audio id="localAudio" autoplay muted></audio>
+    </div>
+
+    <div id="errorMsg"></div>
+    <div id="roomList"></div>
+</div>
+</body>
+</html>
