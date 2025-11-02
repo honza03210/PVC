@@ -1,4 +1,5 @@
 import {PCConfig} from "../configs/pc-config.js";
+import {ServerConfig} from "../configs/server-config";
 import {type AppUI} from "../interaces/app-ui.js";
 import {PlayerMovementInit} from "../player-char-movement.js";
 import {DragElement} from "../draggable.js";
@@ -90,7 +91,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
         }
     } = {};
 
-    const signallingSocket = io("https://jaguar-magnetic-deer.ngrok-free.app/", {
+    const signallingSocket = io(ServerConfig.url, {
         transports: ['websocket', 'polling'],
         withCredentials: true,
     });
