@@ -13,7 +13,7 @@ console.log("lol");
 (self as unknown as SharedWorkerGlobalScope).onconnect = (event: MessageEvent) => {
     const port = event.ports[0];
 
-    const signallingSocket = io("http://localhost:3001/", {
+    const signallingSocket = io("https://jaguar-magnetic-deer.ngrok-free.app:3001/", {
         transports: ['websocket', 'polling'],
         withCredentials: true,
     });
