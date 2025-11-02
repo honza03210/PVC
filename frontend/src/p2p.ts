@@ -222,7 +222,7 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
 
     console.log("render videos");
     try {
-        await navigator.mediaDevices
+        const stream = await navigator.mediaDevices
             .getUserMedia({
                 audio: {
                     echoCancellation: false,
@@ -231,88 +231,81 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     channelCount: 1,
                     sampleRate: 48000,
                 },
-                // audio: true
             })
-            .then(stream => {
-                const remoteVideo = document.createElement("canvas");
-                const remoteAudio: HTMLAudioElement = document.createElement("audio");
+        const remoteVideo = document.createElement("canvas");
+        const remoteAudio: HTMLAudioElement = document.createElement("audio");
 
-                remoteVideo.id = "remoteVideo-" + id;
-                remoteAudio.id = "remoteAudio-" + id;
+        remoteVideo.id = "remoteVideo-" + id;
+        remoteAudio.id = "remoteAudio-" + id;
 
-                remoteAudio.autoplay = true;
-                remoteAudio.muted = false;
+        remoteAudio.autoplay = true;
+        remoteAudio.muted = false;
 
-                if (appUI.videoContainer) {
-                    appUI.videoContainer.appendChild(remoteAudio);
-                    appUI.videoContainer.appendChild(remoteVideo);
-                }
+        if (appUI.videoContainer) {
+            appUI.videoContainer.appendChild(remoteAudio);
+            appUI.videoContainer.appendChild(remoteVideo);
+        }
 
-                stream.getTracks().forEach(track => {
-                    peerConnection.addTrack(track, stream);
-                });
+        stream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, stream);
+        });
 
-                let peerCharacterContainer = document.createElement("div");
-                peerCharacterContainer.style.position = "absolute";
-                peerCharacterContainer.style.top = "50%";
-                peerCharacterContainer.style.left = "50%";
-                peerCharacterContainer.id = "remotePlayerCharacter-" + id;
+        let peerCharacterContainer = document.createElement("div");
+        peerCharacterContainer.style.position = "absolute";
+        peerCharacterContainer.style.top = "50%";
+        peerCharacterContainer.style.left = "50%";
+        peerCharacterContainer.id = "remotePlayerCharacter-" + id;
 
-                let nameLabel = document.createElement("div");
-                nameLabel.textContent = username;
-                console.log("USERNAMMEEE: " + username);
-                nameLabel.style.textAlign = "center";
-                nameLabel.style.fontSize = "12px";
-                nameLabel.style.color = "green";
-                nameLabel.style.fontWeight = "bold";
-                peerCharacterContainer.appendChild(nameLabel);
+        let nameLabel = document.createElement("div");
+        nameLabel.textContent = username;
+        console.log("USERNAMMEEE: " + username);
+        nameLabel.style.textAlign = "center";
+        nameLabel.style.fontSize = "12px";
+        nameLabel.style.color = "green";
+        nameLabel.style.fontWeight = "bold";
+        peerCharacterContainer.appendChild(nameLabel);
 
-                let peerCharacter = document.createElement("canvas");
-                peerCharacter.width = 30;
-                peerCharacter.height = 30;
-                peerCharacter.style.position = "absolute";
-                peerCharacter.style.backgroundColor = "green";
+        let peerCharacter = document.createElement("canvas");
+        peerCharacter.width = 30;
+        peerCharacter.height = 30;
+        peerCharacter.style.position = "absolute";
+        peerCharacter.style.backgroundColor = "green";
 
-                peerCharacterContainer.appendChild(peerCharacter);
-                document.body.appendChild(peerCharacterContainer);
+        peerCharacterContainer.appendChild(peerCharacter);
+        document.body.appendChild(peerCharacterContainer);
 
-                DragElement(peerCharacterContainer, appUI);
+        DragElement(peerCharacterContainer, appUI);
 
-                if (offer) {
-                    let dc = peerConnection.createDataChannel("positions", {ordered: true});
-                    BindDataChannel(appUI, dc, id);
-                } else {
-                    peerConnection.ondatachannel = (e) => {
-                        let dc = e.channel;
-                        BindDataChannel(appUI, dc, id);
-                    };
-                }
+        if (offer) {
+            let dc = peerConnection.createDataChannel("positions", {ordered: true});
+            BindDataChannel(appUI, dc, id);
+        } else {
+            peerConnection.ondatachannel = (e) => {
+                let dc = e.channel;
+                BindDataChannel(appUI, dc, id);
+            };
+        }
 
-                peerConnection.onicecandidate = e => {
-                    console.log("onicecandidate");
-                    if (e.candidate) {
-                        console.log("candidate: " + e.candidate);
-                        wWPort.postMessage({message: {dest: id, candidate: {candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid,
-                                    sdpMLineIndex: e.candidate.sdpMLineIndex,
-                                    usernameFragment: (e.candidate as any).usernameFragment,}}, type: "candidate"});
-                    } else {
-                        console.log("no candidate")
-                    }
-                };
+        peerConnection.onicecandidate = e => {
+            console.log("onicecandidate");
+            if (e.candidate) {
+                console.log("candidate: " + e.candidate);
+                wWPort.postMessage({message: {dest: id, candidate: {candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid,
+                            sdpMLineIndex: e.candidate.sdpMLineIndex,
+                            usernameFragment: (e.candidate as any).usernameFragment,}}, type: "candidate"});
+            } else {
+                console.log("no candidate")
+            }
+        };
 
-                peerConnection.oniceconnectionstatechange = e => {
-                    console.log(e);
-                };
+        peerConnection.oniceconnectionstatechange = e => {
+            console.log(e);
+        };
 
 
-                peerConnection.ontrack = async ev => {
-                    HandleNewReceivedStream(ev.streams[0], remoteAudio, remoteVideo, appUI, id);
-                };
-            })
-            .catch(error => {
-                console.log(`getUserMedia error: ${error}`);
-            });
-
+        peerConnection.ontrack = async ev => {
+            HandleNewReceivedStream(ev.streams[0], remoteAudio, remoteVideo, appUI, id);
+        };
     } catch (e) {
         console.log(e);
     }

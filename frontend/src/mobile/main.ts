@@ -54,62 +54,58 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: R
             }
         });
 
-        await navigator.mediaDevices
-            .getUserMedia({
-                audio: true,
-            })
-            .then(stream => {
-                var microphone = audioCtx.createMediaStreamSource(stream);
-                var analyser = audioCtx.createAnalyser();
-                microphone.connect(analyser);
-                analyser.fftSize = 512;
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
-                requestAnimationFrame(draw);
-                if (appUI.localAudio) {
-                    appUI.localAudio.muted = true;
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        var microphone = audioCtx.createMediaStreamSource(stream);
+        var analyser = audioCtx.createAnalyser();
+        microphone.connect(analyser);
+        analyser.fftSize = 512;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        requestAnimationFrame(draw);
+        if (appUI.localAudio) {
+            appUI.localAudio.muted = true;
+        }
+        let canvasCtx = appUI.localVideo.getContext("2d")!;
+        const WIDTH = 200;
+        const HEIGHT = 100;
+
+        function draw() {
+            requestAnimationFrame(draw);
+            canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+            analyser.getByteTimeDomainData(dataArray);
+            // Fill solid color
+            canvasCtx.fillStyle = "rgb(200 200 200)";
+            canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+            // Begin the path
+            canvasCtx.lineWidth = 2;
+            canvasCtx.strokeStyle = "rgb(0 0 0)";
+            canvasCtx.beginPath();
+            // Draw each point in the waveform
+            const sliceWidth = WIDTH / bufferLength;
+            let x = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i]! / 128.0;
+                const y = v * (HEIGHT / 2);
+
+                if (i === 0) {
+                    canvasCtx.moveTo(x, y);
+                } else {
+                    canvasCtx.lineTo(x, y);
                 }
-                let canvasCtx = appUI.localVideo.getContext("2d")!;
-                const WIDTH = 200;
-                const HEIGHT = 100;
 
-                function draw() {
-                    requestAnimationFrame(draw);
-                    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-                    analyser.getByteTimeDomainData(dataArray);
-                    // Fill solid color
-                    canvasCtx.fillStyle = "rgb(200 200 200)";
-                    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-                    // Begin the path
-                    canvasCtx.lineWidth = 2;
-                    canvasCtx.strokeStyle = "rgb(0 0 0)";
-                    canvasCtx.beginPath();
-                    // Draw each point in the waveform
-                    const sliceWidth = WIDTH / bufferLength;
-                    let x = 0;
-                    for (let i = 0; i < bufferLength; i++) {
-                        const v = dataArray[i]! / 128.0;
-                        const y = v * (HEIGHT / 2);
+                x += sliceWidth;
+            }
 
-                        if (i === 0) {
-                            canvasCtx.moveTo(x, y);
-                        } else {
-                            canvasCtx.lineTo(x, y);
-                        }
+            // Finish the line
+            canvasCtx.lineTo(WIDTH, HEIGHT / 2);
+            canvasCtx.stroke();
+        }
+    });
 
-                        x += sliceWidth;
-                    }
+const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
 
-                    // Finish the line
-                    canvasCtx.lineTo(WIDTH, HEIGHT / 2);
-                    canvasCtx.stroke();
-                }
-            });
+document.getElementById("container")?.appendChild(joinButton);
 
-        const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
-
-        document.getElementById("container")?.appendChild(joinButton);
-    })
     return audioButton;
 }
 
