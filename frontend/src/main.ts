@@ -1,20 +1,21 @@
-import { connectPositions } from "./ws-connect.js";
 import {roomJoin} from "./p2p.js";
-import { type AppUI } from "./interaces/app-ui.js";
+import {type AppUI} from "./interaces/app-ui.js";
 // import {BindSignallingSocket} from "./bind-signalling.js";
 // import {sign} from "node:crypto";
 
-document.addEventListener("DOMContentLoaded", () : void => {startup()})
+document.addEventListener("DOMContentLoaded", (): void => {
+    startup()
+})
 
 async function startup() {
-    let urlParams : URLSearchParams = new URLSearchParams(window.location.search);
+    let urlParams: URLSearchParams = new URLSearchParams(window.location.search);
 
     console.log(urlParams.get("username") + " is trying to connect to room associated with server " + urlParams.get("server_id"));
 
     // let wsPositions : WebSocket = connectPositions("ws://localhost:4242");
     let wsPositions: any;
 
-    const appUI : AppUI = {
+    const appUI: AppUI = {
         localVideo: document.getElementById('localVideo') as HTMLCanvasElement,
         localAudio: document.getElementById('localAudio') as HTMLAudioElement,
         nameInput: document.getElementById('name') as HTMLInputElement,
@@ -31,7 +32,7 @@ async function startup() {
     appUI.nameInput.value = urlParams.get("username") ?? "";
     appUI.roomIDInput.value = urlParams.get("room_id") ?? "";
 
-    const PeerConnections: {[key: string] : RTCPeerConnection} = {}
+    const PeerConnections: { [key: string]: RTCPeerConnection } = {}
 
     let joined = false;
 

@@ -1,8 +1,8 @@
-import { PCConfig } from "./configs/pc-config.js";
-import { type AppUI } from "./interaces/app-ui.js";
-import { PlayerMovementInit } from "./player-char-movement.js";
-import { DragElement } from "./draggable.js";
-import { AddSamplePlayer } from "./add-sample-player.js";
+import {PCConfig} from "./configs/pc-config.js";
+import {type AppUI} from "./interaces/app-ui.js";
+import {PlayerMovementInit} from "./player-char-movement.js";
+import {DragElement} from "./draggable.js";
+import {AddSamplePlayer} from "./add-sample-player.js";
 
 async function createOffer(wWPort: MessagePort, destID: string, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined) {
     if (!peerConnection) {
@@ -13,9 +13,6 @@ async function createOffer(wWPort: MessagePort, destID: string, peerConnections:
     peerConnection
         .createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true})
         .then(async sdp => {
-            // sdp.sdp = sdp.sdp!.replace(/a=fmtp:111 minptime=10;useinbandfec=1/g,
-            //     'a=fmtp:111 minptime=10;useinbandfec=1;maxaveragebitrate=96000');
-
             await peerConnection.setLocalDescription(sdp);
             wWPort.postMessage({message: {dest: destID, sdp: sdp}, type: "offer"});
         })
@@ -137,31 +134,6 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                 break;
             case "listUsers":
                 console.log("listUsers: ", event.data);
-                // for (const userID in peerConnections) {
-                //     if (event.data.userIDs.indexOf(userID) === -1) {
-                //         console.log("found a failed/disconnected user... removing them")
-                //         document.getElementById("remotePlayerCharacter-" + userID)!.remove();
-                //         document.getElementById("remoteVideo-" + userID)!.remove();
-                //         document.getElementById("remoteAudio-" + userID)!.remove();
-                //         delete peerConnections[userID];
-                //     }
-                // }
-                //
-                // for (const userID of event.data.userIDs) {
-                //     if ((peerConnections[userID] != undefined && peerConnections[userID]!.connectionState != "connected")) {
-                //         if ((userID < event.data.selfID) && (peerConnections[userID]!.connectionState == "failed")) {
-                //             console.log("found failed user");
-                //             await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true, "DISCONNECTED USER PLACEHOLDER");
-                //             await createOffer(wWPort, userID, peerConnections, peerConnections[userID]);
-                //         } else if (peerConnections[userID]!.connectionState == "closed" || peerConnections[userID]!.connectionState == "disconnected") {
-                //             console.log("found a failed/disconnected user... removing them")
-                //             document.getElementById("remotePlayerCharacter-" + userID)!.remove();
-                //             document.getElementById("remoteVideo-" + userID)!.remove();
-                //             document.getElementById("remoteAudio-" + userID)!.remove();
-                //             delete peerConnections[userID];
-                //         }
-                //     }
-                // }
                 break;
             case "getAnswerAck":
                 console.log("getAnswerAck");
@@ -210,8 +182,6 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
                     await peerConnections[event.data.id]!.addIceCandidate(new RTCIceCandidate(cand.candidate));
                 }
                 IceCandidateQueue[event.data.id]!.popped = true;
-                // break;
-                // useQueuedCandidates(IceCandidateQueue[event.data.id], peerConnections[event.data.id]);
                 break;
             case "PeerJoined":
                 console.log("Peer joined: " + event.data.id);
@@ -273,13 +243,8 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                 remoteVideo.id = "remoteVideo-" + id;
                 remoteAudio.id = "remoteAudio-" + id;
 
-                // remoteAudio.setAttribute('autoplay', '');
-                // remoteAudio.setAttribute('muted', '');
-
                 remoteAudio.autoplay = true;
                 remoteAudio.muted = false;
-
-
 
                 if (appUI.videoContainer) {
                     appUI.videoContainer.appendChild(remoteAudio);
@@ -411,8 +376,6 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
 
 
                     panNode.connect(analyser);
-                    // const dest = audioCtx.createMediaStreamDestination();
-                    // console.log("AAAAAAAAAAAAAAAAAAAAAAAA", dest)
                     analyser.connect(audioCtx.destination);
                     let muted = false;
                     remoteVideo.onclick = () => {
@@ -490,37 +453,10 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                         panNode.positionZ.setValueAtTime(0, now);
                         panNode.positionX.linearRampToValueAtTime((pCPositions.x - lCPositions.x) / 100, now + rampTime);
                         panNode.positionY.linearRampToValueAtTime((pCPositions.y - lCPositions.y) / 100, now + rampTime);
-
-                        //
-                        // panNode.positionX.linearRampToValueAtTime(pCPositions.x - lCPositions.x, 0.05);
-                        // panNode.positionY.linearRampToValueAtTime(pCPositions.y - lCPositions.y, 0.05);
-
-
                     }
                     requestAnimationFrame((time) => draw());
                     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
-
-                    // if (remoteAudio) {
-                    //     remoteAudio.srcObject = dest.stream;
-                    // }
-
-                    // if ("srcObject" in remoteAudio) {
-                    //     remoteAudio.srcObject = dest.stream;
-                    // } else {
-                    //     //Avoid using this in new browsers, as it is going away.
-                    //     //@ts-ignore
-                    //     remoteAudio.src = URL.createObjectURL(dest.stream);
-                    // }
-                    //
-                    // if (remoteAudio) {
-                    //     remoteAudio.srcObject = dest.stream;
-                    //     console.log("add remote track success");
-                    // }
-                    // else {
-                    //     console.log("remote track failed");
-                    // }
                 };
-
             })
             .catch(error => {
                 console.log(`getUserMedia error: ${error}`);

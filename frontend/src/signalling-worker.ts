@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import { io, Socket } from "socket.io-client";
+import {io} from "socket.io-client";
 
 // // Cast self to SharedWorkerGlobalScope
 // const workerSelf = self as unknown as SharedWorkerGlobalScope;
@@ -26,7 +26,7 @@ console.log("lol");
         signallingSocket.emit(msgEvent.data.type, msgEvent.data.message);
     };
 
-    const events: string[] = ["connect", "disconnect", "error", "listRooms", "getCandidate", "listUsers", "getAnswerAck", "getOffer", "getAnswer", "PeerJoined", ];
+    const events: string[] = ["connect", "disconnect", "error", "listRooms", "getCandidate", "listUsers", "getAnswerAck", "getOffer", "getAnswer", "PeerJoined",];
 
     events.forEach((eventName) => {
         signallingSocket.on(eventName, (data: any) => {
@@ -36,8 +36,8 @@ console.log("lol");
 
     port!.start();
 
-    port!.postMessage({ type: "sharedWorkerMessage", message: "Connected: " + signallingSocket.connected });
-    port!.postMessage({ type: "sharedWorkerMessage", message: "Hello from SharedWorker!" });
+    port!.postMessage({type: "sharedWorkerMessage", message: "Connected: " + signallingSocket.connected});
+    port!.postMessage({type: "sharedWorkerMessage", message: "Hello from SharedWorker!"});
 };
 //
 // let socket: Socket | null = null;
