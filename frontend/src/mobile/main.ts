@@ -4,6 +4,7 @@ import {type AppUI} from "../interaces/app-ui.js";
 // import {sign} from "node:crypto";
 
 document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
+    console.log("DOMContentLoaded");
     await startup()
 })
 
@@ -33,6 +34,7 @@ async function startup() {
     const peerConnections: { [key: string]: RTCPeerConnection } = {}
 
     const audioButton = createAudioInitButton(appUI, peerConnections, wsPositions);
+    console.log("added Audio button");
     document.body.appendChild(audioButton);
 }
 
@@ -100,11 +102,11 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: R
             canvasCtx.lineTo(WIDTH, HEIGHT / 2);
             canvasCtx.stroke();
         }
+
+
+        const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
+        document.getElementById("container")?.appendChild(joinButton);
     });
-
-const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
-
-document.getElementById("container")?.appendChild(joinButton);
 
     return audioButton;
 }

@@ -97,88 +97,89 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
     });
 
     signallingSocket.onAny(async (ev, ...args) => {
+        console.log("Event: ", ev, args);
         switch (ev.toString()) {
             case "connect":
                 signallingSocket.emit("listRooms", {});
                 console.log('Hello, successfully connected to the signaling server!');
                 break;
             case "disconnect":
-                console.log("disconnect:" + args[0].data);
+                console.log("disconnect:" + args[0]);
                 break;
             case "error":
-                console.log("Error: " + args[0].data.message);
-                appUI.errorMsgLabel.innerHTML = "Error" + args[0].data.message;
+                console.log("Error: " + args[0].message);
+                appUI.errorMsgLabel.innerHTML = "Error" + args[0].message;
                 break;
             case "listRooms":
-                appUI.roomList.innerHTML = "Rooms: \n" + args[0].data.roomsList;
+                appUI.roomList.innerHTML = "Rooms: \n" + args[0].roomsList;
                 break;
             case "sharedWorkerMessage":
-                console.log("SharedWorker says: " + args[0].data.message);
+                console.log("SharedWorker says: " + args[0].message);
                 break;
             case "getCandidate":
-                if (!args[0].data.candidate.candidate) {
+                if (!args[0].candidate.candidate) {
                     return;
                 }
-                if (IceCandidateQueue[args[0].data.id] && IceCandidateQueue[args[0].data.id]!.popped) {
-                    console.log("getCandidate", args[0].data.candidate.candidate);
-                    if (peerConnections[args[0].data.id]!.connectionState == "connected") {
+                if (IceCandidateQueue[args[0].id] && IceCandidateQueue[args[0].id]!.popped) {
+                    console.log("getCandidate", args[0].candidate.candidate);
+                    if (peerConnections[args[0].id]!.connectionState == "connected") {
                         console.log("getCandidate ignored - connected");
                         return;
                     }
-                    if (args[0].data.candidate.candidate == "") return;
-                    peerConnections[args[0].data.id]!.addIceCandidate(new RTCIceCandidate(args[0].data.candidate.candidate)).then(() => {
+                    if (args[0].candidate.candidate == "") return;
+                    peerConnections[args[0].id]!.addIceCandidate(new RTCIceCandidate(args[0].candidate.candidate)).then(() => {
                         console.log("candidate add success");
                     });
                     return;
-                } else if (!IceCandidateQueue[args[0].data.id]) {
-                    IceCandidateQueue[args[0].data.id] = {popped: false, queue: []};
+                } else if (!IceCandidateQueue[args[0].id]) {
+                    IceCandidateQueue[args[0].id] = {popped: false, queue: []};
                 }
-                IceCandidateQueue[args[0].data.id]!.queue.push(args[0].data.candidate);
-                console.log("getCandidate -- pushed to queue: ", args[0].data.candidate);
+                IceCandidateQueue[args[0].id]!.queue.push(args[0].candidate);
+                console.log("getCandidate -- pushed to queue: ", args[0].candidate);
                 break;
             case "listUsers":
-                console.log("listUsers: ", args[0].data);
+                console.log("listUsers: ", args[0]);
                 break;
             case "getAnswerAck":
                 console.log("getAnswerAck");
-                if (IceCandidateQueue[args[0].data.id] == undefined) {
-                    IceCandidateQueue[args[0].data.id] = {popped: true, queue: []};
+                if (IceCandidateQueue[args[0].id] == undefined) {
+                    IceCandidateQueue[args[0].id] = {popped: true, queue: []};
                     console.log("undefined queue");
                     return;
                 }
-                await useQueuedCandidates(peerConnections, IceCandidateQueue, args[0].data.id)
-                IceCandidateQueue[args[0].data.id]!.popped = true;
+                await useQueuedCandidates(peerConnections, IceCandidateQueue, args[0].id)
+                IceCandidateQueue[args[0].id]!.popped = true;
                 break;
             case "getOffer":
-                console.log("get offer:" + args[0].data.sdp);
-                await pinit(signallingSocket, args[0].data.id, peerConnections, appUI, wsPositions, false, args[0].data.username);
-                await createAnswer(signallingSocket, peerConnections, peerConnections[args[0].data.id], args[0].data.sdp, args[0].data.id);
+                console.log("get offer:" + args[0].sdp);
+                await pinit(signallingSocket, args[0].id, peerConnections, appUI, wsPositions, false, args[0].username);
+                await createAnswer(signallingSocket, peerConnections, peerConnections[args[0].id], args[0].sdp, args[0].id);
                 break;
             case "getAnswer":
-                console.log("get answer:" + args[0].data.sdp);
-                if (!peerConnections[args[0].data.id]!.remoteDescription || !peerConnections[args[0].data.id]!.remoteDescription!.type) {
+                console.log("get answer:" + args[0].sdp);
+                if (!peerConnections[args[0].id]!.remoteDescription || !peerConnections[args[0].id]!.remoteDescription!.type) {
                     console.log("setting remote desc after getting an answer");
-                    await peerConnections[args[0].data.id]!.setRemoteDescription(args[0].data.sdp);
+                    await peerConnections[args[0].id]!.setRemoteDescription(args[0].sdp);
                 }
                 console.log("answerAck sent")
-                signallingSocket.emit("answerAck", {dest: args[0].data.id});
-                if (!IceCandidateQueue[args[0].data.id]) {
+                signallingSocket.emit("answerAck", {dest: args[0].id});
+                if (!IceCandidateQueue[args[0].id]) {
                     console.log("NO QUEUE TO POP");
-                    IceCandidateQueue[args[0].data.id] = {popped: true, queue: []};
+                    IceCandidateQueue[args[0].id] = {popped: true, queue: []};
                     return;
                 }
                 console.log("getAnswerAck");
-                await useQueuedCandidates(peerConnections, IceCandidateQueue, args[0].data.id)
+                await useQueuedCandidates(peerConnections, IceCandidateQueue, args[0].id)
                 break;
             case "PeerJoined":
-                console.log("Peer joined: " + args[0].data.id);
-                if (peerConnections[args[0].data.id]) {
+                console.log("Peer joined: " + args[0].id);
+                if (peerConnections[args[0].id]) {
                     console.log("peer already connected");
                     return;
                 }
 
-                await pinit(signallingSocket, args[0].data.id, peerConnections, appUI, wsPositions, true, args[0].data.username);
-                await createOffer(signallingSocket, args[0].data.id, peerConnections, peerConnections[args[0].data.id]);
+                await pinit(signallingSocket, args[0].id, peerConnections, appUI, wsPositions, true, args[0].username);
+                await createOffer(signallingSocket, args[0].id, peerConnections, peerConnections[args[0].id]);
                 break;
 
         }
