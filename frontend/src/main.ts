@@ -3,18 +3,11 @@ import {type AppUI} from "./interaces/app-ui.js";
 // import {BindSignallingSocket} from "./bind-signalling.js";
 // import {sign} from "node:crypto";
 
-document.addEventListener("DOMContentLoaded", (): void => {
-    startup()
+document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
+    await startup()
 })
 
 async function startup() {
-    let urlParams: URLSearchParams = new URLSearchParams(window.location.search);
-
-    console.log(urlParams.get("username") + " is trying to connect to room associated with server " + urlParams.get("server_id"));
-
-    // let wsPositions : WebSocket = connectPositions("ws://localhost:4242");
-    let wsPositions: any;
-
     const appUI: AppUI = {
         localVideo: document.getElementById('localVideo') as HTMLCanvasElement,
         localAudio: document.getElementById('localAudio') as HTMLAudioElement,
@@ -29,14 +22,24 @@ async function startup() {
         audioCtx: new AudioContext(),
     }
 
+    let urlParams: URLSearchParams = new URLSearchParams(window.location.search);
+    console.log(urlParams.get("username") + " is trying to connect to room associated with server " + urlParams.get("server_id"));
     appUI.nameInput.value = urlParams.get("username") ?? "";
     appUI.roomIDInput.value = urlParams.get("room_id") ?? "";
 
-    const PeerConnections: { [key: string]: RTCPeerConnection } = {}
+    // let wsPositions : WebSocket = connectPositions("ws://localhost:4242");
+    let wsPositions: any;
 
-    let joined = false;
+    const peerConnections: { [key: string]: RTCPeerConnection } = {}
 
-    const audioButton = document.createElement("button");
+    const audioButton = createAudioInitButton(appUI, peerConnections, wsPositions);
+    document.body.appendChild(audioButton);
+}
+
+
+
+function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: RTCPeerConnection }, wsPositions: any): HTMLButtonElement {
+    let audioButton = document.createElement("button");
     audioButton.innerText = "Initialize audio";
 
     audioButton.addEventListener("click", async () => {
@@ -103,25 +106,24 @@ async function startup() {
                 }
             });
 
-        const joinButton = document.createElement("button");
-        joinButton.innerText = "Join"
-        joinButton.style.fontSize = "32";
-
-        joinButton.addEventListener('click', e => {
-            if (!joined) {
-                joined = true;
-                roomJoin(PeerConnections, appUI, wsPositions)
-            }
-        });
+        const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
 
         document.getElementById("container")?.appendChild(joinButton);
-
     })
-    document.body.appendChild(audioButton);
+    return audioButton;
 }
 
+function createJoinButton(appUI: AppUI, peerConnections: { [key: string]: RTCPeerConnection }, wsPositions:any): HTMLButtonElement {
+    let joinButton = document.createElement("button");
+    joinButton.innerText = "Join"
+    joinButton.style.fontSize = "32";
 
-
+    joinButton.addEventListener('click', e => {
+        joinButton.remove();
+        roomJoin(peerConnections, appUI, wsPositions)
+    });
+    return joinButton;
+}
 
 
 

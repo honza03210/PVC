@@ -1,10 +1,11 @@
-import {PCConfig} from "./configs/pc-config.js";
-import {type AppUI} from "./interaces/app-ui.js";
-import {PlayerMovementInit} from "./player-char-movement.js";
-import {DragElement} from "./draggable.js";
-import {AddSamplePlayer} from "./add-sample-player.js";
+import {PCConfig} from "../configs/pc-config.js";
+import {type AppUI} from "../interaces/app-ui.js";
+import {PlayerMovementInit} from "../player-char-movement.js";
+import {DragElement} from "../draggable.js";
+import {AddSamplePlayer} from "../add-sample-player.js";
+import {io, Socket} from "socket.io-client";
 
-async function createOffer(wWPort: MessagePort, destID: string, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined) {
+async function createOffer(signallingSocket: Socket, destID: string, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined) {
     if (!peerConnection) {
         console.error("create offer failed - peer connection undefined");
         return;
@@ -14,7 +15,7 @@ async function createOffer(wWPort: MessagePort, destID: string, peerConnections:
         .createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true})
         .then(async sdp => {
             await peerConnection.setLocalDescription(sdp);
-            wWPort.postMessage({message: {dest: destID, sdp: sdp}, type: "offer"});
+            signallingSocket.emit("offer", {dest: destID, sdp: sdp});
         })
         .catch(error => {
             console.log(error);
@@ -22,7 +23,7 @@ async function createOffer(wWPort: MessagePort, destID: string, peerConnections:
 
 }
 
-async function createAnswer(wWPort: MessagePort, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined, sdp: string | RTCSessionDescription, destID: string) {
+async function createAnswer(signallingSocket: Socket, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined, sdp: string | RTCSessionDescription, destID: string) {
     if (peerConnection === undefined) {
         console.error("create answer failed - peer connection undefined");
         return;
@@ -38,7 +39,7 @@ async function createAnswer(wWPort: MessagePort, peerConnections: {[key: string]
             })
             .then(async sdp1 => {
                 await peerConnection.setLocalDescription(sdp1);
-                wWPort.postMessage({message: {dest: destID, sdp: sdp1}, type: "answer"});
+                signallingSocket.emit("answer", {dest: destID, sdp: sdp1});
             })
             .catch(error => {
                 console.log(error);
@@ -89,110 +90,105 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
         }
     } = {};
 
-    const worker = new SharedWorker(new URL('/src/signalling-worker.ts', import.meta.url), {type: "module"});
-    console.log("worker " + worker);
-    const wWPort = worker.port;
+    const signallingSocket = io("http://localhost:3001/", {
+        transports: ['websocket', 'polling'],
+        withCredentials: true,
+    });
 
-    wWPort.start();
-    console.log("port " + wWPort + " ; ");
-
-    wWPort.addEventListener("message", async (event) => {
-        console.log("message", event.data);
-        let p2pInitButton;
-        switch (event.data.type) {
+    signallingSocket.onAny(async (ev, ...args) => {
+        switch (ev.toString()) {
             case "connect":
-                wWPort.postMessage({type: "listRooms"});
+                signallingSocket.emit("listRooms", {});
                 console.log('Hello, successfully connected to the signaling server!');
                 break;
             case "disconnect":
-                console.log("disconnect:" + event.data);
+                console.log("disconnect:" + args[0].data);
                 break;
             case "error":
-                console.log("Error: " + event.data.message);
-                appUI.errorMsgLabel.innerHTML = "Error" + event.data.message;
+                console.log("Error: " + args[0].data.message);
+                appUI.errorMsgLabel.innerHTML = "Error" + args[0].data.message;
                 break;
             case "listRooms":
-                appUI.roomList.innerHTML = "Rooms: \n" + event.data.roomsList;
+                appUI.roomList.innerHTML = "Rooms: \n" + args[0].data.roomsList;
                 break;
             case "sharedWorkerMessage":
-                console.log("SharedWorker says: " + event.data.message);
+                console.log("SharedWorker says: " + args[0].data.message);
                 break;
             case "getCandidate":
-                if (!event.data.candidate.candidate) {
+                if (!args[0].data.candidate.candidate) {
                     return;
                 }
-                if (IceCandidateQueue[event.data.id] && IceCandidateQueue[event.data.id]!.popped) {
-                    console.log("getCandidate", event.data.candidate.candidate);
-                    if (peerConnections[event.data.id]!.connectionState == "connected") {
+                if (IceCandidateQueue[args[0].data.id] && IceCandidateQueue[args[0].data.id]!.popped) {
+                    console.log("getCandidate", args[0].data.candidate.candidate);
+                    if (peerConnections[args[0].data.id]!.connectionState == "connected") {
                         console.log("getCandidate ignored - connected");
                         return;
                     }
-                    if (event.data.candidate.candidate == "") return;
-                    peerConnections[event.data.id]!.addIceCandidate(new RTCIceCandidate(event.data.candidate.candidate)).then(() => {
+                    if (args[0].data.candidate.candidate == "") return;
+                    peerConnections[args[0].data.id]!.addIceCandidate(new RTCIceCandidate(args[0].data.candidate.candidate)).then(() => {
                         console.log("candidate add success");
                     });
                     return;
-                } else if (!IceCandidateQueue[event.data.id]) {
-                    IceCandidateQueue[event.data.id] = {popped: false, queue: []};
+                } else if (!IceCandidateQueue[args[0].data.id]) {
+                    IceCandidateQueue[args[0].data.id] = {popped: false, queue: []};
                 }
-                IceCandidateQueue[event.data.id]!.queue.push(event.data.candidate);
-                console.log("getCandidate -- pushed to queue: ", event.data.candidate);
+                IceCandidateQueue[args[0].data.id]!.queue.push(args[0].data.candidate);
+                console.log("getCandidate -- pushed to queue: ", args[0].data.candidate);
                 break;
             case "listUsers":
-                console.log("listUsers: ", event.data);
+                console.log("listUsers: ", args[0].data);
                 break;
             case "getAnswerAck":
                 console.log("getAnswerAck");
-                if (IceCandidateQueue[event.data.id] == undefined) {
-                    IceCandidateQueue[event.data.id] = {popped: true, queue: []};
+                if (IceCandidateQueue[args[0].data.id] == undefined) {
+                    IceCandidateQueue[args[0].data.id] = {popped: true, queue: []};
                     console.log("undefined queue");
                     return;
                 }
-                await useQueuedCandidates(peerConnections, IceCandidateQueue, event.data.id)
-                IceCandidateQueue[event.data.id]!.popped = true;
+                await useQueuedCandidates(peerConnections, IceCandidateQueue, args[0].data.id)
+                IceCandidateQueue[args[0].data.id]!.popped = true;
                 break;
             case "getOffer":
-                console.log("get offer:" + event.data.sdp);
-                await pinit(wWPort, event.data.id, peerConnections, appUI, wsPositions, false, event.data.username);
-                await createAnswer(wWPort, peerConnections, peerConnections[event.data.id], event.data.sdp, event.data.id);
+                console.log("get offer:" + args[0].data.sdp);
+                await pinit(signallingSocket, args[0].data.id, peerConnections, appUI, wsPositions, false, args[0].data.username);
+                await createAnswer(signallingSocket, peerConnections, peerConnections[args[0].data.id], args[0].data.sdp, args[0].data.id);
                 break;
             case "getAnswer":
-                console.log("get answer:" + event.data.sdp);
-                if (!peerConnections[event.data.id]!.remoteDescription || !peerConnections[event.data.id]!.remoteDescription!.type) {
+                console.log("get answer:" + args[0].data.sdp);
+                if (!peerConnections[args[0].data.id]!.remoteDescription || !peerConnections[args[0].data.id]!.remoteDescription!.type) {
                     console.log("setting remote desc after getting an answer");
-                    await peerConnections[event.data.id]!.setRemoteDescription(event.data.sdp);
+                    await peerConnections[args[0].data.id]!.setRemoteDescription(args[0].data.sdp);
                 }
                 console.log("answerAck sent")
-                wWPort.postMessage({message: {dest: event.data.id}, type: "answerAck"});
-                if (!IceCandidateQueue[event.data.id]) {
+                signallingSocket.emit("answerAck", {dest: args[0].data.id});
+                if (!IceCandidateQueue[args[0].data.id]) {
                     console.log("NO QUEUE TO POP");
-                    IceCandidateQueue[event.data.id] = {popped: true, queue: []};
+                    IceCandidateQueue[args[0].data.id] = {popped: true, queue: []};
                     return;
                 }
                 console.log("getAnswerAck");
-                await useQueuedCandidates(peerConnections, IceCandidateQueue, event.data.id)
+                await useQueuedCandidates(peerConnections, IceCandidateQueue, args[0].data.id)
                 break;
             case "PeerJoined":
-                console.log("Peer joined: " + event.data.id);
-                if (peerConnections[event.data.id]) {
+                console.log("Peer joined: " + args[0].data.id);
+                if (peerConnections[args[0].data.id]) {
                     console.log("peer already connected");
                     return;
                 }
 
-                await pinit(wWPort, event.data.id, peerConnections, appUI, wsPositions, true, event.data.username);
-                await createOffer(wWPort, event.data.id, peerConnections, peerConnections[event.data.id]);
+                await pinit(signallingSocket, args[0].data.id, peerConnections, appUI, wsPositions, true, args[0].data.username);
+                await createOffer(signallingSocket, args[0].data.id, peerConnections, peerConnections[args[0].data.id]);
                 break;
 
         }
-    })
-
-    wWPort.postMessage({
-        message: {
-            roomId: appUI.roomIDInput.value,
-            name: appUI.nameInput.value,
-            password: appUI.passwordInput.value
-        }, type: "join"
     });
+
+    signallingSocket.emit("join", {
+        roomId: appUI.roomIDInput.value,
+        name: appUI.nameInput.value,
+        password: appUI.passwordInput.value
+    });
+
     console.log("join posted");
     const sampleSoundButton = CreateSampleSoundButton(appUI);
     document.getElementById("container")?.appendChild(sampleSoundButton);
@@ -210,7 +206,7 @@ function CreateSampleSoundButton(appUI: AppUI) {
     return sampleSoundButton;
 }
 
-async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: string] : RTCPeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean, username: string) {
+async function pinit(signallingSocket: Socket, id : string, peerConnections: {[key: string] : RTCPeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean, username: string) {
     let audioCtx = appUI.audioCtx;
 
     if (id in peerConnections) {
@@ -292,9 +288,9 @@ async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: s
                     console.log("onicecandidate");
                     if (e.candidate) {
                         console.log("candidate: " + e.candidate);
-                        wWPort.postMessage({message: {dest: id, candidate: {candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid,
-                                    sdpMLineIndex: e.candidate.sdpMLineIndex,
-                                    usernameFragment: (e.candidate as any).usernameFragment,}}, type: "candidate"});
+                        signallingSocket.emit("candidate", {dest: id, candidate: {candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid,
+                                sdpMLineIndex: e.candidate.sdpMLineIndex,
+                                usernameFragment: (e.candidate as any).usernameFragment}});
                     } else {
                         console.log("no candidate")
                     }

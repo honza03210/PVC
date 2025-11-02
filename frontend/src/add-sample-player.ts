@@ -1,5 +1,6 @@
 import {DragElement} from "./draggable";
 import type {AppUI} from "./interaces/app-ui";
+import {SetPanNodeParams} from "./p2p";
 
 export async function AddSamplePlayer(id: string, appUI: AppUI, username: string) {
 
@@ -52,14 +53,7 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
 
     let analyser = audioCtx.createAnalyser();
     let panNode = audioCtx.createPanner();
-    panNode.panningModel = "equalpower";
-    panNode.distanceModel = "linear";
-    panNode.refDistance = 5;
-    panNode.maxDistance = 500;
-    panNode.rolloffFactor = 1;
-    panNode.coneInnerAngle = 360;
-    panNode.coneOuterAngle = 360;
-    panNode.coneOuterGain = 1;
+    SetPanNodeParams(panNode);
 
 
     appUI.distanceFalloff.addEventListener("change", () => {
