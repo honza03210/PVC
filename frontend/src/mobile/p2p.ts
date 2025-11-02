@@ -90,7 +90,7 @@ export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, a
         }
     } = {};
 
-    const signallingSocket = io("https://jaguar-magnetic-deer.ngrok-free.app:3001/", {
+    const signallingSocket = io("https://jaguar-magnetic-deer.ngrok-free.app/", {
         transports: ['websocket', 'polling'],
         withCredentials: true,
     });
