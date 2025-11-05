@@ -1,11 +1,12 @@
 import {PCConfig} from "./configs/pc-config.js";
 import {type AppUI} from "./interaces/app-ui.js";
-import {PlayerMovementInit} from "./player-char-movement.js";
 import {DragElement} from "./draggable.js";
 import {AddSamplePlayer} from "./add-sample-player.js";
 import {io, Socket} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
+import {InitPlayerCharacter} from "./player-char-movement.js";
 import {PeerConnection} from "./peer-connection.js";
+import {Signalling} from "./signalling";
 
 
 export function SignallingSend(signalling: Socket | MessagePort, message: any){
@@ -18,35 +19,6 @@ export function SignallingSend(signalling: Socket | MessagePort, message: any){
     }
 }
 
-export function InitPlayerCharacter(appUI: AppUI){
-    let clientCharacterContainer = document.createElement("div");
-    clientCharacterContainer.style.position = "absolute";
-    clientCharacterContainer.style.top = "50%";
-    clientCharacterContainer.style.left = "50%";
-    clientCharacterContainer.id = "playerCharacter";
-
-    let nameLabel = document.createElement("div");
-    nameLabel.textContent = "Me";
-    nameLabel.style.textAlign = "center";
-    nameLabel.style.fontSize = "12px";
-    nameLabel.style.color = "blue";
-    nameLabel.style.fontWeight = "bold";
-    clientCharacterContainer.appendChild(nameLabel);
-
-    let clientCharacter = document.createElement("canvas");
-    clientCharacter.width = 30;
-    clientCharacter.height = 30;
-    clientCharacter.style.position = "absolute";
-    clientCharacter.style.backgroundColor = "blue";
-
-    clientCharacterContainer.appendChild(clientCharacter);
-
-    document.getElementById("container")!.appendChild(clientCharacterContainer);
-
-    DragElement(clientCharacterContainer, appUI);
-
-    PlayerMovementInit();
-}
 
 
 export function roomJoin(isMobile: boolean, peerConnections: {[key: string] : PeerConnection}, appUI: AppUI, wsPositions: WebSocket) {
@@ -61,37 +33,27 @@ export function roomJoin(isMobile: boolean, peerConnections: {[key: string] : Pe
         }
     } = {};
 
-    let signalling;
+    let comm;
 
     if (isMobile) {
-        signalling = io(ServerConfig.url, {
+        comm = io(ServerConfig.url, {
             transports: ['websocket', 'polling'],
             withCredentials: true,
         });
 
     } else {
-        const worker = new SharedWorker(new URL('/src/signalling-worker.ts', import.meta.url), {type: "module"});
+        const worker = new SharedWorker(new URL('/src/shared-signalling-worker.ts', import.meta.url), {type: "module"});
         console.log("worker " + worker);
-        signalling = worker.port;
+        comm = worker.port;
 
-        signalling.start();
-        console.log("port " + signalling + " ; ");
+        comm.start();
+        console.log("port " + comm + " ; ");
     }
+    let signalling: Signalling = new Signalling(comm);
 
+    signalling.BindEvents(appUI, IceCandidateQueue, peerConnections, wsPositions);
 
-    if ("onAny" in signalling){
-        signalling.onAny(async (ev, ...args) => {
-            console.log("Event: ", ev, args);
-            await HandleSignallingEvent(signalling, ev.toString(), args[0], appUI, IceCandidateQueue, peerConnections, wsPositions);
-        })
-    } else if ("addEventListener" in signalling){
-        signalling.addEventListener("message", async (event) => {
-            await HandleSignallingEvent(signalling, event.data.type, event.data, appUI, IceCandidateQueue, peerConnections, wsPositions);
-        });
-    }
-
-
-    SignallingSend(signalling, {
+    signalling.Send({
         payload: {
             roomId: appUI.roomIDInput.value,
             name: appUI.nameInput.value,
@@ -102,94 +64,6 @@ export function roomJoin(isMobile: boolean, peerConnections: {[key: string] : Pe
     const sampleSoundButton = CreateSampleSoundButton(appUI);
     document.getElementById("container")?.appendChild(sampleSoundButton);
 }
-
-export async function HandleSignallingEvent(signalling: Socket | MessagePort, eventName: string, eventData: any, appUI: AppUI, IceCandidateQueue: { [key: string]: { popped: boolean, queue: { candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]}}, peerConnections: { [key: string]: PeerConnection }, wsPositions: WebSocket) {
-        switch (eventName) {
-            case "connect":
-                SignallingSend(signalling, {type: "listRooms", payload: {}});
-                console.log('Hello, successfully connected to the signaling server!');
-                break;
-            case "disconnect":
-                console.log("disconnect:" + eventData);
-                break;
-            case "error":
-                console.log("Error: " + eventData.message);
-                appUI.errorMsgLabel.innerHTML = "Error" + eventData.message;
-                break;
-            case "listRooms":
-                appUI.roomList.innerHTML = "Rooms: \n" + eventData.roomsList;
-                break;
-            case "sharedWorkerMessage":
-                console.log("SharedWorker says: " + eventData.message);
-                break;
-            case "getCandidate":
-                if (!eventData.candidate.candidate) {
-                    return;
-                }
-                if (IceCandidateQueue[eventData.id] && IceCandidateQueue[eventData.id]!.popped) {
-                    console.log("getCandidate", eventData.candidate.candidate);
-                    if (peerConnections[eventData.id]!.connectionState == "connected") {
-                        console.log("getCandidate ignored - connected");
-                        return;
-                    }
-                    if (eventData.candidate.candidate == "") return;
-                    peerConnections[eventData.id]!.addIceCandidate(new RTCIceCandidate(eventData.candidate.candidate)).then(() => {
-                        console.log("candidate add success");
-                    });
-                    return;
-                } else if (!IceCandidateQueue[eventData.id]) {
-                    IceCandidateQueue[eventData.id] = {popped: false, queue: []};
-                }
-                IceCandidateQueue[eventData.id]!.queue.push(eventData.candidate);
-                console.log("getCandidate -- pushed to queue: ", eventData.candidate);
-                break;
-            case "listUsers":
-                console.log("listUsers: ", eventData);
-                break;
-            case "getAnswerAck":
-                console.log("getAnswerAck");
-                if (IceCandidateQueue[eventData.id] == undefined) {
-                    IceCandidateQueue[eventData.id] = {popped: true, queue: []};
-                    console.log("undefined queue");
-                    return;
-                }
-                await useQueuedCandidates(peerConnections, IceCandidateQueue, eventData.id)
-                IceCandidateQueue[eventData.id]!.popped = true;
-                break;
-            case "getOffer":
-                console.log("get offer:" + eventData.sdp);
-                await InitPC(signalling, eventData.id, peerConnections, appUI, wsPositions, false, eventData.username);
-                await peerConnections[eventData.id].CreateAnswer(signalling, eventData.sdp, eventData.id);
-                break;
-            case "getAnswer":
-                console.log("get answer:" + eventData.sdp);
-                if (!peerConnections[eventData.id]!.remoteDescription || !peerConnections[eventData.id]!.remoteDescription!.type) {
-                    console.log("setting remote desc after getting an answer");
-                    await peerConnections[eventData.id]!.setRemoteDescription(eventData.sdp);
-                }
-                console.log("answerAck sent")
-                SignallingSend(signalling, {payload: {dest: eventData.id}, type: "answerAck"});
-                if (!IceCandidateQueue[eventData.id]) {
-                    console.log("NO QUEUE TO POP");
-                    IceCandidateQueue[eventData.id] = {popped: true, queue: []};
-                    return;
-                }
-                console.log("getAnswerAck");
-                await useQueuedCandidates(peerConnections, IceCandidateQueue, eventData.id)
-                break;
-            case "PeerJoined":
-                console.log("Peer joined: " + eventData.id);
-                if (peerConnections[eventData.id]) {
-                    console.log("peer already connected");
-                    return;
-                }
-
-                await InitPC(signalling, eventData.id, peerConnections, appUI, wsPositions, true, eventData.username);
-                await peerConnections[eventData.id].CreateOffer(signalling, eventData.id);
-                break;
-
-        }
-    }
 
 
 export function CreateSampleSoundButton(appUI: AppUI) {
@@ -204,7 +78,7 @@ export function CreateSampleSoundButton(appUI: AppUI) {
     return sampleSoundButton;
 }
 
-export async function InitPC(signalling: Socket | MessagePort, id : string, peerConnections: {[key: string] : RTCPeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean, username: string) {
+export async function InitPC(signalling: Signalling, id : string, peerConnections: {[key: string] : PeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean, username: string) {
     if (id in peerConnections) {
         console.log("id already in peer connections")
         return;
@@ -282,15 +156,9 @@ export async function InitPC(signalling: Socket | MessagePort, id : string, peer
             console.log("onicecandidate");
             if (e.candidate) {
                 console.log("candidate: " + e.candidate);
-                if ("emit" in signalling) {
-                    signalling.emit("candidate", {dest: id, candidate: {candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid,
-                        sdpMLineIndex: e.candidate.sdpMLineIndex,
-                        usernameFragment: (e.candidate as any).usernameFragment}});
-                } else if ("postMessage" in signalling) {
-                    signalling.postMessage({message: {dest: id, candidate: {candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid,
-                            sdpMLineIndex: e.candidate.sdpMLineIndex,
-                            usernameFragment: (e.candidate as any).usernameFragment,}}, type: "candidate"});
-                }
+                signalling.Send({payload: {dest: id, candidate: {candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid,
+                    sdpMLineIndex: e.candidate.sdpMLineIndex,
+                    usernameFragment: (e.candidate as any).usernameFragment,}}, type: "candidate"})
             } else {
                 console.log("no candidate")
             }
@@ -404,7 +272,7 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
         console.log("x: " + (pCPositions.x - lCPositions.x) / 100 + " y: " + (pCPositions.y - lCPositions.y) / 100);
         requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
     }
-    requestAnimationFrame((time) => draw());
+    requestAnimationFrame(draw);
     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
 }
 

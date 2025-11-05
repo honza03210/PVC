@@ -1,3 +1,37 @@
+import type {AppUI} from "./interaces/app-ui";
+import {DragElement} from "./draggable";
+
+export function InitPlayerCharacter(appUI: AppUI){
+    let clientCharacterContainer = document.createElement("div");
+    clientCharacterContainer.style.position = "absolute";
+    clientCharacterContainer.style.top = "50%";
+    clientCharacterContainer.style.left = "50%";
+    clientCharacterContainer.id = "playerCharacter";
+
+    let nameLabel = document.createElement("div");
+    nameLabel.textContent = "Me";
+    nameLabel.style.textAlign = "center";
+    nameLabel.style.fontSize = "12px";
+    nameLabel.style.color = "blue";
+    nameLabel.style.fontWeight = "bold";
+    clientCharacterContainer.appendChild(nameLabel);
+
+    let clientCharacter = document.createElement("canvas");
+    clientCharacter.width = 30;
+    clientCharacter.height = 30;
+    clientCharacter.style.position = "absolute";
+    clientCharacter.style.backgroundColor = "blue";
+
+    clientCharacterContainer.appendChild(clientCharacter);
+
+    document.getElementById("container")!.appendChild(clientCharacterContainer);
+
+    DragElement(clientCharacterContainer, appUI);
+
+    PlayerMovementInit();
+}
+
+
 export function PlayerMovementInit() {
     const pageWidth = document.documentElement.scrollWidth;
     const pageHeight = document.documentElement.scrollHeight;
