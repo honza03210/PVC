@@ -1,5 +1,6 @@
 import {roomJoin} from "./p2p.js";
 import {type AppUI} from "./interaces/app-ui.js";
+import {PeerConnection} from "./peer-connection.js";
 // import {BindSignallingSocket} from "./bind-signalling.js";
 // import {sign} from "node:crypto";
 
@@ -30,7 +31,7 @@ async function startup() {
     // let wsPositions : WebSocket = connectPositions("ws://localhost:4242");
     let wsPositions: any;
 
-    const peerConnections: { [key: string]: RTCPeerConnection } = {}
+    const peerConnections: { [key: string]: PeerConnection } = {}
 
     const audioButton = createAudioInitButton(appUI, peerConnections, wsPositions);
     document.body.appendChild(audioButton);
@@ -38,7 +39,7 @@ async function startup() {
 
 
 
-function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: RTCPeerConnection }, wsPositions: any): HTMLButtonElement {
+function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: PeerConnection }, wsPositions: any): HTMLButtonElement {
     let audioButton = document.createElement("button");
     audioButton.innerText = "Initialize audio";
 
@@ -113,7 +114,7 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: R
     return audioButton;
 }
 
-function createJoinButton(appUI: AppUI, peerConnections: { [key: string]: RTCPeerConnection }, wsPositions:any): HTMLButtonElement {
+function createJoinButton(appUI: AppUI, peerConnections: { [key: string]: PeerConnection }, wsPositions:any): HTMLButtonElement {
     let joinButton = document.createElement("button");
     joinButton.innerText = "Join"
     joinButton.style.fontSize = "32";

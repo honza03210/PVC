@@ -5,7 +5,7 @@ import {DragElement} from "./draggable.js";
 import {AddSamplePlayer} from "./add-sample-player.js";
 import {io, Socket} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
-
+import {PeerConnection} from "./peer-connection.js";
 
 
 export function SignallingSend(signalling: Socket | MessagePort, message: any){
@@ -16,50 +16,6 @@ export function SignallingSend(signalling: Socket | MessagePort, message: any){
     } else {
         console.error("signalling object can't emit or postMessage");
     }
-}
-
-export async function CreateOffer(signalling: Socket | MessagePort, destID: string, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined) {
-    if (!peerConnection) {
-        console.error("create offer failed - peer connection undefined");
-        return;
-    }
-    console.log("create offer");
-    peerConnection
-        .createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true})
-        .then(async sdp => {
-            await peerConnection.setLocalDescription(sdp);
-            SignallingSend(signalling, {type: "offer", payload: {dest: destID, sdp: sdp}})
-        })
-        .catch(error => {
-            console.log(error);
-        });
-}
-
-
-
-
-export async function CreateAnswer(signalling: Socket | MessagePort, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined, sdp: string | RTCSessionDescription, destID: string) {
-    if (peerConnection === undefined) {
-        console.error("create answer failed - peer connection undefined");
-        return;
-    }
-    console.log("create answer");
-    peerConnection.setRemoteDescription(<RTCSessionDescriptionInit>sdp).then(() => {
-        console.log("answer set remote description success");
-        peerConnection
-            .createAnswer({
-                offerToReceiveVideo: true,
-                offerToReceiveAudio: true,
-                offerToReceivePositions: true,
-            })
-            .then(async sdp1 => {
-                await peerConnection.setLocalDescription(sdp1);
-                SignallingSend(signalling, {type: "answer", payload: {dest: destID, sdp: sdp1}})
-            })
-            .catch(error => {
-                console.log(error);
-            });
-    });
 }
 
 export function InitPlayerCharacter(appUI: AppUI){
@@ -93,7 +49,7 @@ export function InitPlayerCharacter(appUI: AppUI){
 }
 
 
-export function roomJoin(isMobile: boolean, peerConnections: {[key: string] : RTCPeerConnection}, appUI: AppUI, wsPositions: WebSocket) {
+export function roomJoin(isMobile: boolean, peerConnections: {[key: string] : PeerConnection}, appUI: AppUI, wsPositions: WebSocket) {
     console.log("roomJoin");
 
     InitPlayerCharacter(appUI);
@@ -147,7 +103,7 @@ export function roomJoin(isMobile: boolean, peerConnections: {[key: string] : RT
     document.getElementById("container")?.appendChild(sampleSoundButton);
 }
 
-export async function HandleSignallingEvent(signalling: Socket | MessagePort, eventName: string, eventData: any, appUI: AppUI, IceCandidateQueue: { [key: string]: { popped: boolean, queue: { candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]}}, peerConnections: { [key: string]: RTCPeerConnection }, wsPositions: WebSocket) {
+export async function HandleSignallingEvent(signalling: Socket | MessagePort, eventName: string, eventData: any, appUI: AppUI, IceCandidateQueue: { [key: string]: { popped: boolean, queue: { candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]}}, peerConnections: { [key: string]: PeerConnection }, wsPositions: WebSocket) {
         switch (eventName) {
             case "connect":
                 SignallingSend(signalling, {type: "listRooms", payload: {}});
@@ -203,7 +159,7 @@ export async function HandleSignallingEvent(signalling: Socket | MessagePort, ev
             case "getOffer":
                 console.log("get offer:" + eventData.sdp);
                 await InitPC(signalling, eventData.id, peerConnections, appUI, wsPositions, false, eventData.username);
-                await CreateAnswer(signalling, peerConnections, peerConnections[eventData.id], eventData.sdp, eventData.id);
+                await peerConnections[eventData.id].CreateAnswer(signalling, eventData.sdp, eventData.id);
                 break;
             case "getAnswer":
                 console.log("get answer:" + eventData.sdp);
@@ -229,7 +185,7 @@ export async function HandleSignallingEvent(signalling: Socket | MessagePort, ev
                 }
 
                 await InitPC(signalling, eventData.id, peerConnections, appUI, wsPositions, true, eventData.username);
-                await CreateOffer(signalling, eventData.id, peerConnections, peerConnections[eventData.id]);
+                await peerConnections[eventData.id].CreateOffer(signalling, eventData.id);
                 break;
 
         }
@@ -254,7 +210,7 @@ export async function InitPC(signalling: Socket | MessagePort, id : string, peer
         return;
     }
 
-    let peerConnection = new RTCPeerConnection({...PCConfig, iceTransportPolicy: "all"});
+    let peerConnection: PeerConnection = new PeerConnection({...PCConfig, iceTransportPolicy: "all"});
 
     console.log("render videos");
     try {
