@@ -117,10 +117,20 @@ function createJoinButton(appUI: AppUI, peerConnections: { [key: string]: RTCPee
     let joinButton = document.createElement("button");
     joinButton.innerText = "Join"
     joinButton.style.fontSize = "32";
+    let supportsSharedWorkers: boolean
+    try {
+        new SharedWorker(
+            URL.createObjectURL(new Blob([""], { type: "text/javascript" }))
+        );
+        supportsSharedWorkers = true;
+    } catch (e) {
+        supportsSharedWorkers = false;
+    }
 
     joinButton.addEventListener('click', e => {
         joinButton.remove();
-        roomJoin(peerConnections, appUI, wsPositions)
+        console.log("Join initiated - Shared worker: " + supportsSharedWorkers);
+        roomJoin(supportsSharedWorkers, peerConnections, appUI, wsPositions)
     });
     return joinButton;
 }

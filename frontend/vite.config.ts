@@ -11,7 +11,7 @@ export default defineConfig({
             // but this makes it explicit and avoids edge cases.
             input: {
                 main: resolve(__dirname, "index.html"),
-                mobile: resolve(__dirname, "mobile/index.html"),
+                // mobile: resolve(__dirname, "mobile/index.html"),
             },
         },
     },

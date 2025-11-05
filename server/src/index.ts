@@ -18,10 +18,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
 });
 
-app.get('/mobile', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/dist/mobile/index.html'));
-});
-
 const server = app.listen(3001, "0.0.0.0", () => {
     console.log('server is running on http://localhost:3001')
 })

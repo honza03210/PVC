@@ -5,6 +5,7 @@ import {type AppUI} from "../interaces/app-ui.js";
 
 document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
     console.log("DOMContentLoaded");
+    console.log("LOL");
     await startup()
 })
 

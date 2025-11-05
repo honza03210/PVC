@@ -122,7 +122,6 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     }
 
     function updateAudioPosition(timeDelta: DOMHighResTimeStamp, panNode: PannerNode, id: string) {
-        requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
         let peerChar = document.getElementById("remotePlayerCharacter-" + id);
         let localChar = document.getElementById("playerCharacter");
         if (!localChar || !peerChar) {
@@ -138,15 +137,11 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
             y: parseFloat(peerChar.style.top) / 100 * window.innerHeight
         };
 
-        const now = audioCtx.currentTime;
-        const rampTime = 0.05; // 50 ms
+        panNode.positionX.setValueAtTime((pCPositions.x - lCPositions.x) / 100, 0);
+        panNode.positionZ.setValueAtTime((pCPositions.y - lCPositions.y) / 100, 0);
 
-        panNode.positionX.cancelScheduledValues(now);
-        panNode.positionY.cancelScheduledValues(now);
-        panNode.positionZ.setValueAtTime(0, now);
-        panNode.positionX.linearRampToValueAtTime((pCPositions.x - lCPositions.x) / 100, now + rampTime);
-        panNode.positionY.linearRampToValueAtTime((pCPositions.y - lCPositions.y) / 100, now + rampTime);
-
+        console.log("x: " + (pCPositions.x - lCPositions.x) / 100 + " y: " + (pCPositions.y - lCPositions.y) / 100);
+        requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
     }
 
     requestAnimationFrame((time) => draw());
