@@ -1,6 +1,7 @@
 import {DragElement} from "./draggable";
 import type {AppUI} from "./interaces/app-ui";
 import {SetPanNodeParams} from "./p2p";
+import {CreateSampleSoundButton} from "./p2p";
 
 export async function AddSamplePlayer(id: string, appUI: AppUI, username: string) {
 
@@ -18,7 +19,7 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     sourceNode.start();
 
     const sampleVideo = document.createElement("canvas");
-
+    let sampleVideoColor: string = "rgba(141,141,141, 0.05)"
     sampleVideo.id = "sampleVideo-" + id;
 
     if (appUI.videoContainer) {
@@ -36,7 +37,7 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     console.log("USERNAMMEEE: " + username);
     nameLabel.style.textAlign = "center";
     nameLabel.style.fontSize = "12px";
-    nameLabel.style.color = "green";
+    nameLabel.style.color = "rgb(255,113,0)";
     nameLabel.style.fontWeight = "bold";
     sampleCharacterContainer.appendChild(nameLabel);
 
@@ -44,7 +45,7 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     peerCharacter.width = 30;
     peerCharacter.height = 30;
     peerCharacter.style.position = "absolute";
-    peerCharacter.style.backgroundColor = "green";
+    peerCharacter.style.backgroundColor = "rgb(255,113,0)";
 
     sampleCharacterContainer.appendChild(peerCharacter);
     document.body.appendChild(sampleCharacterContainer);
@@ -72,14 +73,29 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     sampleVideo.onclick = () => {
         if (muted) {
             console.log("unmuted");
+            sampleVideoColor = "rgba(141,141,141, 0.05)"
             muted = false;
             analyser.connect(audioCtx.destination);
         } else {
             console.log("muted");
+            sampleVideoColor = "rgba(255,0,0,0.28)"
             muted = true;
             analyser.disconnect(audioCtx.destination);
         }
     }
+
+    let cancelButton = document.createElement("button");
+    cancelButton.textContent = "Cancel the Sample";
+    cancelButton.addEventListener("click", async () => {
+        sourceNode.stop();
+        sampleCharacterContainer.remove();
+        sampleVideo.remove();
+        cancelButton.remove();
+        document.getElementById("main-menu")!.appendChild(CreateSampleSoundButton(appUI));
+    });
+
+    document.getElementById("main-menu")!.appendChild(cancelButton);
+
     // analyser.connect(dest);
 
     analyser.fftSize = 512;
@@ -90,14 +106,14 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     const HEIGHT = 100;
 
     function draw() {
-        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+        canvasCtx.clearRect(-1, -1, WIDTH + 2, HEIGHT + 2);
         analyser.getByteTimeDomainData(dataArray);
         // Fill solid color
-        canvasCtx.fillStyle = "rgb(200 200 200)";
+        canvasCtx.fillStyle = sampleVideoColor;
         canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
         // Begin the path
         canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = "rgb(0 0 0)";
+        canvasCtx.strokeStyle = "rgb(255,113,0)";
         canvasCtx.beginPath();
         // Draw each point in the waveform
         const sliceWidth = WIDTH / bufferLength;
@@ -107,9 +123,9 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
             const y = v * (HEIGHT / 2);
 
             if (i === 0) {
-                canvasCtx.moveTo(x, y);
+                canvasCtx.moveTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
             } else {
-                canvasCtx.lineTo(x, y);
+                canvasCtx.lineTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
             }
 
             x += sliceWidth;

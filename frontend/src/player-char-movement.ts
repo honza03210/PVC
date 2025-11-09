@@ -9,10 +9,10 @@ export function InitPlayerCharacter(appUI: AppUI){
     clientCharacterContainer.id = "playerCharacter";
 
     let nameLabel = document.createElement("div");
-    nameLabel.textContent = "Me";
+    nameLabel.textContent = appUI.nameInput.value;
     nameLabel.style.textAlign = "center";
     nameLabel.style.fontSize = "12px";
-    nameLabel.style.color = "blue";
+    nameLabel.style.color = "orange";
     nameLabel.style.fontWeight = "bold";
     clientCharacterContainer.appendChild(nameLabel);
 
@@ -21,6 +21,7 @@ export function InitPlayerCharacter(appUI: AppUI){
     clientCharacter.height = 30;
     clientCharacter.style.position = "absolute";
     clientCharacter.style.backgroundColor = "blue";
+    clientCharacter.style.border = "3px solid orange";
 
     clientCharacterContainer.appendChild(clientCharacter);
 

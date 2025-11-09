@@ -4,23 +4,49 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <script type="module" src="/src/main.ts"></script>
+    <style>
+        body {
+            background-color: #242424;
+            color: white;
+        }
+        input{
+            margin-bottom: 10px;
+            color: white;
+            width: 150px;
+            background-color: #888888;
+        }
+        button{
+            color: black;
+            background-color: lightgray;
+        }
+        #main-menu{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: fit-content;
+            padding: 40px;
+            border-radius: 30px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
 </head>
 <body>
 
 <div id="container">
 
 
-    <div style="display: flex; flex-direction: column"></div>
-    <label for="name">Username</label><input type="text" id="name"/>
-    <label for="roomID">Room Name</label><input type="text" id="roomID"/>
-    <label for="password">Password</label><input type="password" id="password"/>
-    <div>
-        <input type="checkbox" id="manualPositions" name="manualPositions"/>
+    <div id="main-menu" style="">
+        <label for="name">Username</label><input type="text" id="name"/>
+        <label for="roomID">Room Name</label><input type="text" id="roomID"/>
+        <label for="password">Password</label><input type="password" id="password"/>
         <label for="manualPositions">Set Positions Manually</label>
+        <input type="checkbox" id="manualPositions" name="manualPositions"/>
+        <label for="distanceFalloff">Distance Falloff:</label>
+        <input type="number" id="distanceFalloff" name="distanceFalloff" min="0" max="8000" value="100"/>
     </div>
 
-    <label for="distanceFalloff">Distance Falloff:</label>
-    <input type="number" id="distanceFalloff" name="distanceFalloff" min="0" max="8000" value="100"/>
 
     <div id="videoContainer" style="margin: 30px">
         <canvas id="localVideo"></canvas>

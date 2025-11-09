@@ -62,9 +62,8 @@ export function roomJoin(isMobile: boolean, peerConnections: {[key: string] : Pe
     });
     console.log("join posted");
     const sampleSoundButton = CreateSampleSoundButton(appUI);
-    document.getElementById("container")?.appendChild(sampleSoundButton);
+    document.getElementById("main-menu")?.appendChild(sampleSoundButton);
 }
-
 
 export function CreateSampleSoundButton(appUI: AppUI) {
     let sampleSoundButton = document.createElement("button");
@@ -127,7 +126,7 @@ export async function InitPC(signalling: Signalling, id : string, peerConnection
         console.log("USERNAMMEEE: " + username);
         nameLabel.style.textAlign = "center";
         nameLabel.style.fontSize = "12px";
-        nameLabel.style.color = "green";
+        nameLabel.style.color = stringToColor(id);
         nameLabel.style.fontWeight = "bold";
         peerCharacterContainer.appendChild(nameLabel);
 
@@ -135,7 +134,7 @@ export async function InitPC(signalling: Signalling, id : string, peerConnection
         peerCharacter.width = 30;
         peerCharacter.height = 30;
         peerCharacter.style.position = "absolute";
-        peerCharacter.style.backgroundColor = "green";
+        peerCharacter.style.backgroundColor = stringToColor(id);
 
         peerCharacterContainer.appendChild(peerCharacter);
         document.body.appendChild(peerCharacterContainer);
@@ -179,6 +178,18 @@ export async function InitPC(signalling: Signalling, id : string, peerConnection
     peerConnections[id] = peerConnection;
 }
 
+function stringToColor(str: string) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const r = 128 + (hash & 0x7F);
+    const g = 128 + ((hash >> 8) & 0x7F);
+    const b = 128 + ((hash >> 16) & 0x7F);
+
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
 export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, appUI: AppUI, id: string) {
     let audioCtx = appUI.audioCtx;
     let microphone = audioCtx.createMediaStreamSource(stream);
@@ -199,15 +210,20 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     panNode.connect(analyser);
     analyser.connect(audioCtx.destination);
 
+    let remoteVideoColor: string = "rgba(141,141,141, 0.05)";
+    let remoteVideoStroke: string = stringToColor(id);
+
     let muted = false;
 
     remoteVideo.onclick = () => {
         if (muted) {
             console.log("unmuted");
+            remoteVideoColor = "rgba(141,141,141, 0.05)";
             muted = false;
             analyser.connect(audioCtx.destination);
         } else {
             console.log("muted");
+            remoteVideoColor = "rgba(255,0,0,0.28)";
             muted = true;
             analyser.disconnect(audioCtx.destination);
         }
@@ -220,14 +236,14 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     const WIDTH = 200;
     const HEIGHT = 100;
     function draw() {
-        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+        canvasCtx.clearRect(-1, -1, WIDTH + 2, HEIGHT + 2);
         analyser.getByteTimeDomainData(dataArray);
         // Fill solid color
-        canvasCtx.fillStyle = "rgb(200 200 200)";
+        canvasCtx.fillStyle = remoteVideoColor;
         canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
         // Begin the path
         canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = "rgb(0 0 0)";
+        canvasCtx.strokeStyle = remoteVideoStroke;
         canvasCtx.beginPath();
         // Draw each point in the waveform
         const sliceWidth = WIDTH / bufferLength;
@@ -237,9 +253,9 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
             const y = v * (HEIGHT / 2);
 
             if (i === 0) {
-                canvasCtx.moveTo(x, y);
+                canvasCtx.moveTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
             } else {
-                canvasCtx.lineTo(x, y);
+                canvasCtx.lineTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
             }
 
             x += sliceWidth;

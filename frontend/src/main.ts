@@ -1,40 +1,24 @@
 import {roomJoin} from "./p2p.js";
 import {type AppUI} from "./interaces/app-ui.js";
 import {PeerConnection} from "./peer-connection.js";
-// import {BindSignallingSocket} from "./bind-signalling.js";
-// import {sign} from "node:crypto";
+import {UIManager} from "./ui-manager";
+import {DragElement} from "./draggable";
 
 document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
     await startup()
 })
 
 async function startup() {
-    const appUI: AppUI = {
-        localVideo: document.getElementById('localVideo') as HTMLCanvasElement,
-        localAudio: document.getElementById('localAudio') as HTMLAudioElement,
-        nameInput: document.getElementById('name') as HTMLInputElement,
-        passwordInput: document.getElementById("password") as HTMLInputElement,
-        roomIDInput: document.getElementById("roomID") as HTMLInputElement,
-        roomList: document.getElementById("roomList") as HTMLDivElement,
-        errorMsgLabel: document.getElementById("errorMsg") as HTMLDivElement,
-        videoContainer: document.getElementById("videoContainer") as HTMLDivElement,
-        manualPositions: document.getElementById("manualPositions") as HTMLInputElement,
-        distanceFalloff: document.getElementById("distanceFalloff") as HTMLInputElement,
-        audioCtx: new AudioContext(),
-    }
+    let uiManager = new UIManager();
 
-    let urlParams: URLSearchParams = new URLSearchParams(window.location.search);
-    console.log(urlParams.get("username") + " is trying to connect to room associated with server " + urlParams.get("server_id"));
-    appUI.nameInput.value = urlParams.get("username") ?? "";
-    appUI.roomIDInput.value = urlParams.get("room_id") ?? "";
+    uiManager.PrefillFieldsFromUrl();
 
     // let wsPositions : WebSocket = connectPositions("ws://localhost:4242");
     let wsPositions: any;
 
     const peerConnections: { [key: string]: PeerConnection } = {}
 
-    const audioButton = createAudioInitButton(appUI, peerConnections, wsPositions);
-    document.body.appendChild(audioButton);
+    document.getElementById("main-menu")!.appendChild(createAudioInitButton(uiManager.appUI, peerConnections, wsPositions));
 }
 
 
@@ -44,7 +28,7 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: P
     audioButton.innerText = "Initialize audio";
 
     audioButton.addEventListener("click", async () => {
-        audioButton.disabled = true;
+        audioButton.remove();
 
         let audioCtx = appUI.audioCtx;
 
@@ -76,14 +60,15 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: P
 
                 function draw() {
                     requestAnimationFrame(draw);
-                    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+                    canvasCtx.clearRect(-1, -1, WIDTH + 2, HEIGHT + 2);
                     analyser.getByteTimeDomainData(dataArray);
                     // Fill solid color
-                    canvasCtx.fillStyle = "rgb(200 200 200)";
-                    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+                    // canvasCtx.fillStyle = "rgba(0 0 0 0.1)";
+                    //
+                    // canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
                     // Begin the path
                     canvasCtx.lineWidth = 2;
-                    canvasCtx.strokeStyle = "rgb(0 0 0)";
+                    canvasCtx.strokeStyle = "rgb(200 200 200)";
                     canvasCtx.beginPath();
                     // Draw each point in the waveform
                     const sliceWidth = WIDTH / bufferLength;
@@ -93,9 +78,9 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: P
                         const y = v * (HEIGHT / 2);
 
                         if (i === 0) {
-                            canvasCtx.moveTo(x, y);
+                            canvasCtx.moveTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
                         } else {
-                            canvasCtx.lineTo(x, y);
+                            canvasCtx.lineTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
                         }
 
                         x += sliceWidth;
@@ -109,7 +94,7 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: P
 
         const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
 
-        document.getElementById("container")?.appendChild(joinButton);
+        document.getElementById("main-menu")!.appendChild(joinButton);
     })
     return audioButton;
 }
