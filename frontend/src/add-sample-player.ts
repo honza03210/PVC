@@ -19,6 +19,9 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     sourceNode.start();
 
     const sampleVideo = document.createElement("canvas");
+    sampleVideo.width = 200;
+    sampleVideo.height = 100;
+    sampleVideo.style.margin = "50px";
     let sampleVideoColor: string = "rgba(141,141,141, 0.05)"
     sampleVideo.id = "sampleVideo-" + id;
 
@@ -102,8 +105,8 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     let canvasCtx = sampleVideo.getContext("2d")!;
-    const WIDTH = 200;
-    const HEIGHT = 100;
+    const WIDTH = sampleVideo.width;
+    const HEIGHT = sampleVideo.height;
 
     function draw() {
         canvasCtx.clearRect(-1, -1, WIDTH + 2, HEIGHT + 2);

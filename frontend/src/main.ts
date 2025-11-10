@@ -55,8 +55,11 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: P
                     appUI.localAudio.muted = true;
                 }
                 let canvasCtx = appUI.localVideo.getContext("2d")!;
-                const WIDTH = 200;
-                const HEIGHT = 100;
+                appUI.localVideo.width = 200;
+                appUI.localVideo.height = 100;
+                appUI.localVideo.style.margin = "50px";
+                const WIDTH = appUI.localVideo.width;
+                const HEIGHT = appUI.localVideo.height;
 
                 function draw() {
                     requestAnimationFrame(draw);

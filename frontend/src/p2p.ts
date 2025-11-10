@@ -98,6 +98,11 @@ export async function InitPC(signalling: Signalling, id : string, peerConnection
                 },
             })
         const remoteVideo = document.createElement("canvas");
+        remoteVideo.width = 200;
+        remoteVideo.height = 100;
+        remoteVideo.style.margin = "50px";
+
+
         const remoteAudio: HTMLAudioElement = document.createElement("audio");
 
         remoteVideo.id = "remoteVideo-" + id;
@@ -117,6 +122,7 @@ export async function InitPC(signalling: Signalling, id : string, peerConnection
 
         let peerCharacterContainer = document.createElement("div");
         peerCharacterContainer.style.position = "absolute";
+        peerCharacterContainer.style.zIndex = "2";
         peerCharacterContainer.style.top = "50%";
         peerCharacterContainer.style.left = "50%";
         peerCharacterContainer.id = "remotePlayerCharacter-" + id;
@@ -203,7 +209,7 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
 
     appUI.distanceFalloff.addEventListener("change", () => {
         panNode.refDistance = appUI.distanceFalloff.valueAsNumber;
-        panNode.maxDistance = appUI.distanceFalloff.valueAsNumber
+        panNode.maxDistance = appUI.distanceFalloff.valueAsNumber * 10;
     });
 
     microphone.connect(panNode);
@@ -233,8 +239,8 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     let canvasCtx = remoteVideo.getContext("2d")!;
-    const WIDTH = 200;
-    const HEIGHT = 100;
+    const WIDTH = remoteVideo.width;
+    const HEIGHT = remoteVideo.height;
     function draw() {
         canvasCtx.clearRect(-1, -1, WIDTH + 2, HEIGHT + 2);
         analyser.getByteTimeDomainData(dataArray);

@@ -17,6 +17,7 @@ export function InitPlayerCharacter(appUI: AppUI){
     clientCharacterContainer.appendChild(nameLabel);
 
     let clientCharacter = document.createElement("canvas");
+    clientCharacter.id = "playerCharacterCanvas";
     clientCharacter.width = 30;
     clientCharacter.height = 30;
     clientCharacter.style.position = "absolute";
@@ -48,12 +49,25 @@ export function PlayerMovementInit() {
     var left = 0;
     var right = 0;
 
-    var player = document.getElementById("playerCharacter");
+    var player: HTMLElement = document.getElementById("playerCharacter")!;
 
 
     function colorRandomizer(player: any) {
         player.style.backgroundColor = "rgb(" + (Math.random() * (255)) + ", " + (Math.random() * (255)) + ", " + (Math.random() * (255)) + ")"
     }
+
+    var playerCharCanvas: any = document.getElementById("playerCharacterCanvas")!;
+
+    // let playerMaxX = 100;
+    // let playerMaxY = 100;
+    // if ( playerCharCanvas) {
+    console.log(playerCharCanvas.width, player);
+    let border = 7 * parseFloat(playerCharCanvas.style.border.slice(0, 1));
+    console.log(border);
+        let playerMaxX: number = 100 * (1 - (playerCharCanvas.width + border) / pageWidth);
+        let playerMaxY: number = 100 * (1 -(playerCharCanvas.height + border) / pageWidth);
+    // }
+    console.log(playerMaxY);
 
 
     setInterval(() => {
@@ -109,8 +123,8 @@ export function PlayerMovementInit() {
         //console.log("ypos after", ypos);
 
 
-        let xback = xpos + "%";
-        let yback = ypos + "%";
+        let xback = Math.min(Math.max(xpos, 0), playerMaxX) + "%";
+        let yback = Math.min(Math.max(ypos, 0), playerMaxY) + "%";
 
         player!.style.left = xback;
         player!.style.top = yback;
