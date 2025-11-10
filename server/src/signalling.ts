@@ -1,5 +1,7 @@
 import { Server } from "socket.io";
 import argon2id from "argon2";
+import {GenerateTurnCredentials} from "./generate-turn-credentials.js";
+import {response} from "express";
 
 // TODO - server typing
 export function signalling(server : any) {
@@ -73,6 +75,7 @@ export function signalling(server : any) {
             console.log("[joined] room:" + roomId + " name: " + data.name);
             usernames[socket.id] = data.name;
             socket.broadcast.to(socket.data.roomId).emit("PeerJoined", { id: socket.id, username: data.name });
+            await sendUserCredentials(socket);
             setTimeout(() =>{ listUserIDs(socket, socket.data.roomId) }, 5000)
 
         });
@@ -128,6 +131,11 @@ export function signalling(server : any) {
             }, 10000);
         } catch(err) {
         }
+    }
+
+    async function sendUserCredentials(socket: any){
+        let response = await GenerateTurnCredentials();
+        socket.emit("userCredentials", { selfID: socket.id, credentials: response })
     }
 }
 
