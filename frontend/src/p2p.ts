@@ -83,7 +83,7 @@ export async function InitPC(signalling: Signalling, id : string, peerConnection
         return;
     }
 
-    let peerConnection: PeerConnection = new PeerConnection({...PCConfig, iceTransportPolicy: "all"});
+    let peerConnection: PeerConnection = new PeerConnection({...signalling.IceServers, iceTransportPolicy: "all"});
 
     console.log("render videos");
     try {
@@ -307,6 +307,14 @@ export function SetPanNodeParams(panNode: PannerNode) {
     panNode.coneInnerAngle = 360;
     panNode.coneOuterAngle = 360;
     panNode.coneOuterGain = 1;
+}
+
+export async function HandleUserDisconnect(userID: string){
+    document.getElementById("remotePlayerCharacter-" + userID)?.remove();
+    document.getElementById("remoteVideo-" + userID)?.remove();
+    document.getElementById("remoteAudio-" + userID)?.remove();
+
+
 }
 
 export function BindDataChannel(appUI: AppUI, dc: RTCDataChannel, id: string) {

@@ -1,4 +1,4 @@
-export const PCConfig = {
+export let PCConfig = {
     iceServers: [
         {
             urls: "stun:stun.relay.metered.ca:80",

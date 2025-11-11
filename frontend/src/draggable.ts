@@ -1,6 +1,7 @@
 import {AppUI} from "./interaces/app-ui";
 
 export function DragElement(elmnt: HTMLElement, appUI: AppUI) {
+    elmnt.classList.add("draggable");
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     if (document.getElementById(elmnt.id + "header")) {
         // if present, the header is where you move the DIV from:
@@ -48,5 +49,6 @@ export function DragElement(elmnt: HTMLElement, appUI: AppUI) {
         // stop moving when mouse button is released:
         document.onmouseup = null;
         document.onmousemove = null;
+
     }
 }

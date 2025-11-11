@@ -75,7 +75,7 @@ export function signalling(server : any) {
             console.log("[joined] room:" + roomId + " name: " + data.name);
             usernames[socket.id] = data.name;
             socket.broadcast.to(socket.data.roomId).emit("PeerJoined", { id: socket.id, username: data.name });
-            await sendUserCredentials(socket);
+            await sendUserCredentials(socket, data.name);
             setTimeout(() =>{ listUserIDs(socket, socket.data.roomId) }, 5000)
 
         });
@@ -118,7 +118,8 @@ export function signalling(server : any) {
             if (typeof room === "undefined") {
                 return;
             }
-            socket.broadcast.to(Object.keys(rooms[socket.data.roomId]!)).emit("user_exit", {id: socket.id});
+            console.log("userDisconnected broadcast")
+            socket.broadcast.to(Object.keys(rooms[socket.data.roomId]!)).emit("userDisconnected", {id: socket.id});
             console.log(`[${socket.data.roomId}]: ${socket.id} exit`);
         });
     });
@@ -133,10 +134,19 @@ export function signalling(server : any) {
         }
     }
 
-    async function sendUserCredentials(socket: any){
-        let response = await GenerateTurnCredentials();
-        socket.emit("userCredentials", { selfID: socket.id, credentials: response })
+    async function sendUserCredentials(socket: any, user: string){
+        let response = await GenerateTurnCredentials(user);
+        if (response != null){
+            console.log("user credentials response: ", response);
+            socket.emit("userCredentials", { selfID: socket.id, credentials: response });
+        } else {
+            setTimeout(() => {
+                console.log("failed to fetch user credentials");
+                sendUserCredentials(socket, user);
+            }, 100000);
+        }
     }
+
 }
 
 // function getRoom(socket: any){

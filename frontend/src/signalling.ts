@@ -2,12 +2,16 @@ import {Socket} from "socket.io-client";
 import {AppUI} from "./interaces/app-ui";
 import {PeerConnection} from "./peer-connection";
 import { InitPC, useQueuedCandidates} from "./p2p";
+import { HandleUserDisconnect } from "./p2p";
+import {PCConfig} from "./configs/pc-config";
 
 export class Signalling{
+    IceServers: RTCIceServer[];
     communicator: Socket | MessagePort;
 
     constructor(communicator: Socket | MessagePort) {
         this.communicator = communicator;
+        this.IceServers = [];
     }
 
     Send(message: any){
@@ -44,13 +48,15 @@ export class Signalling{
         }
     }
 
+
     async HandleSignallingEvent(eventName: string, eventData: any, appUI: AppUI, IceCandidateQueue: { [key: string]: { popped: boolean, queue: { candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]}}, peerConnections: { [key: string]: PeerConnection }, wsPositions: WebSocket) {
         switch (eventName) {
             case "connect":
                 this.Send({type: "listRooms", payload: {}});
                 console.log('Hello, successfully connected to the signaling server!');
                 break;
-            case "disconnect":
+            case "userDisconnected":
+                await HandleUserDisconnect(eventData.id);
                 console.log("disconnect:" + eventData);
                 break;
             case "error":
@@ -128,7 +134,13 @@ export class Signalling{
                 await InitPC(this, eventData.id, peerConnections, appUI, wsPositions, true, eventData.username);
                 await peerConnections[eventData.id].CreateOffer(this, eventData.id);
                 break;
-
+            case "userCredentials":
+                console.log("userCredentials received: " + eventData);
+                this.IceServers = eventData.credentials;
+                break;
+            default:
+                console.log("Undefined message received: ", eventName, eventData);
+                break;
         }
     }
 }

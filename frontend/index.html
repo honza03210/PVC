@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <script type="module" src="/src/main.ts"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <style>
         body {
             background-color: #242424;
-            color: white;
+            color: rgb(230, 230, 230);
+            font-family: "Inter", sans-serif;
+            font-optical-sizing: auto;
+            font-weight: 500;
+            font-style: normal;
         }
         input{
             margin-bottom: 10px;
@@ -21,6 +28,14 @@
             width: 150px;
             padding: 10px;
         }
+        .checkbox{
+            height: 15px;
+            width: 15px;
+        }
+        input:checked{
+            background-color: lightgray;
+            color: black;
+        }
         .center-div{
             align-items: center;
             justify-content: center;
@@ -33,6 +48,9 @@
         .flex-row{
             display: flex;
             flex-direction: row;
+        }
+        .draggable{
+            cursor: grab;
         }
         #main-menu{
             width: fit-content;
@@ -52,7 +70,7 @@
         <label for="roomID">Room Name</label><input type="text" id="roomID"/>
         <label for="password">Password</label><input type="password" id="password"/>
         <label for="manualPositions">Set Positions Manually</label>
-        <input type="checkbox" id="manualPositions" name="manualPositions"/>
+        <input type="checkbox" id="manualPositions" name="manualPositions" class="checkbox"/>
         <label for="distanceFalloff">Distance Falloff:</label>
         <input type="number" id="distanceFalloff" name="distanceFalloff" min="0" max="8000" value="10"/>
     </div>
