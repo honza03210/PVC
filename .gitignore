@@ -140,4 +140,5 @@ vite.config.ts.timestamp-*
 
 **/public/
 
-/server/src/turn-secret-key.ts
+server/src/turn-secret-key.ts
+server/src/backup-ice-server-array.ts
