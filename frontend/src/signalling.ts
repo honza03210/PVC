@@ -3,7 +3,6 @@ import {AppUI} from "./interaces/app-ui";
 import {PeerConnection} from "./peer-connection";
 import { InitPC, useQueuedCandidates} from "./p2p";
 import { HandleUserDisconnect } from "./p2p";
-import {PCConfig} from "./configs/pc-config";
 
 export class Signalling{
     IceServers: RTCIceServer[];
@@ -56,7 +55,7 @@ export class Signalling{
                 console.log('Hello, successfully connected to the signaling server!');
                 break;
             case "userDisconnected":
-                await HandleUserDisconnect(eventData.id);
+                await HandleUserDisconnect(eventData.id, peerConnections);
                 console.log("disconnect:" + eventData);
                 break;
             case "error":
@@ -135,7 +134,7 @@ export class Signalling{
                 await peerConnections[eventData.id].CreateOffer(this, eventData.id);
                 break;
             case "userCredentials":
-                console.log("userCredentials received: " + eventData);
+                console.log("userCredentials received: ", eventData);
                 this.IceServers = eventData.credentials;
                 break;
             default:

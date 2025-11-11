@@ -140,6 +140,7 @@ export function signalling(server : any) {
             console.log("user credentials response: ", response);
             socket.emit("userCredentials", { selfID: socket.id, credentials: response });
         } else {
+            console.log("GenerateTurnCredentials returned null", response);
             setTimeout(() => {
                 console.log("failed to fetch user credentials");
                 sendUserCredentials(socket, user);

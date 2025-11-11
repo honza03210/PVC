@@ -1,4 +1,3 @@
-import {PCConfig} from "./configs/pc-config.js";
 import {type AppUI} from "./interaces/app-ui.js";
 import {DragElement} from "./draggable.js";
 import {AddSamplePlayer} from "./add-sample-player.js";
@@ -309,12 +308,12 @@ export function SetPanNodeParams(panNode: PannerNode) {
     panNode.coneOuterGain = 1;
 }
 
-export async function HandleUserDisconnect(userID: string){
+export async function HandleUserDisconnect(userID: string, peerConnections: {[key: string] : PeerConnection}){
     document.getElementById("remotePlayerCharacter-" + userID)?.remove();
     document.getElementById("remoteVideo-" + userID)?.remove();
     document.getElementById("remoteAudio-" + userID)?.remove();
-
-
+    peerConnections[userID].close();
+    delete peerConnections[userID];
 }
 
 export function BindDataChannel(appUI: AppUI, dc: RTCDataChannel, id: string) {
