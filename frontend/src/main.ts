@@ -1,4 +1,4 @@
-import {roomJoin} from "./p2p.js";
+import {RoomJoin, Init3D} from "./p2p.js";
 import {type AppUI} from "./interaces/app-ui.js";
 import {PeerConnection} from "./peer-connection.js";
 import {UIManager} from "./ui-manager";
@@ -83,16 +83,23 @@ async function startup() {
         });
 
     const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
+    const init3DButton = create3DInitButton(appUI, wsPositions);
 
-
-    document.getElementById("main-menu")!.appendChild(joinButton);
+    document.getElementById("main-menu")!.append(init3DButton, joinButton);
 
     uiManager.PrefillFieldsFromUrl(joinButton);
 
     //document.getElementById("main-menu")!.appendChild(createAudioInitButton(uiManager.appUI, peerConnections, wsPositions));
 }
 
-
+function create3DInitButton(appUI: AppUI, wsPositions: any){
+    let button = document.createElement("button");
+    button.type = "button";
+    button.classList.add("menu-button");
+    button.innerText = "Go 3D";
+    button.addEventListener("click", () => Init3D(appUI, wsPositions));
+    return button;
+}
 
 function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: PeerConnection }, wsPositions: any): HTMLButtonElement {
     let audioButton = document.createElement("button");
@@ -191,7 +198,7 @@ function createJoinButton(appUI: AppUI, peerConnections: { [key: string]: PeerCo
     joinButton.addEventListener('click', e => {
         joinButton.remove();
         console.log("Join initiated - Shared worker: " + supportsSharedWorkers);
-        roomJoin(supportsSharedWorkers, peerConnections, appUI, wsPositions)
+        RoomJoin(supportsSharedWorkers, peerConnections, appUI, wsPositions)
     });
     return joinButton;
 }

@@ -1,7 +1,7 @@
 import {Socket} from "socket.io-client";
 import {AppUI} from "./interaces/app-ui";
 import {PeerConnection} from "./peer-connection";
-import {InitPC, roomJoin, useQueuedCandidates} from "./p2p";
+import {InitPC, RoomJoin, useQueuedCandidates} from "./p2p";
 import { HandleUserDisconnect } from "./p2p";
 
 export class Signalling{

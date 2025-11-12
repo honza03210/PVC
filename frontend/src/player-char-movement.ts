@@ -1,7 +1,7 @@
 import type {AppUI} from "./interaces/app-ui";
 import {DragElement} from "./draggable";
 
-export function InitPlayerCharacter(appUI: AppUI){
+export function Init2DPlayerCharacter(appUI: AppUI){
     let clientCharacterContainer = document.createElement("div");
     clientCharacterContainer.style.position = "absolute";
     clientCharacterContainer.style.top = "75%";

@@ -3,10 +3,11 @@ import {DragElement} from "./draggable.js";
 import {AddSamplePlayer} from "./add-sample-player.js";
 import {io, Socket} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
-import {InitPlayerCharacter} from "./player-char-movement.js";
+import {Init2DPlayerCharacter} from "./player-char-movement.js";
 import {PeerConnection} from "./peer-connection.js";
 import {Signalling} from "./signalling";
-
+import 'aframe';
+import {THREE} from "aframe";
 
 export function SignallingSend(signalling: Socket | MessagePort, message: any){
     if ("emit" in signalling) {
@@ -18,9 +19,17 @@ export function SignallingSend(signalling: Socket | MessagePort, message: any){
     }
 }
 
+function InitPlayerCharacter(appUI: AppUI){
+    if (document.getElementById("aFrameScene")?.style.display == "none") {
+        Init2DPlayerCharacter(appUI);
+    } else {
+        //AddCharacter("USER", "You", appUI);
+    }
+}
 
 
-export function roomJoin(isMobile: boolean, peerConnections: {[key: string] : PeerConnection}, appUI: AppUI, wsPositions: WebSocket) {
+
+export function RoomJoin(isMobile: boolean, peerConnections: {[key: string] : PeerConnection}, appUI: AppUI, wsPositions: WebSocket) {
     console.log("roomJoin");
 
     InitPlayerCharacter(appUI);
@@ -77,49 +86,16 @@ export function CreateSampleSoundButton(appUI: AppUI) {
     return sampleSoundButton;
 }
 
-export async function InitPC(signalling: Signalling, id : string, peerConnections: {[key: string] : PeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean, username: string) {
-    if (id in peerConnections) {
-        console.log("id already in peer connections")
-        return;
-    }
-
-    let peerConnection: PeerConnection = new PeerConnection({...signalling.IceServers, iceTransportPolicy: "all"});
-
-    console.log("render videos");
-    try {
-        const stream = await navigator.mediaDevices
-            .getUserMedia({
-                audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false,
-                    channelCount: 1,
-                    sampleRate: 48000,
-                },
-            })
-        const remoteVideo = document.createElement("canvas");
-        remoteVideo.width = 200;
-        remoteVideo.height = 100;
-        remoteVideo.style.margin = "50px";
-
-
-        const remoteAudio: HTMLAudioElement = document.createElement("audio");
-
-        remoteVideo.id = "remoteVideo-" + id;
-        remoteAudio.id = "remoteAudio-" + id;
-
-        remoteAudio.autoplay = true;
-        remoteAudio.muted = false;
-
-        if (appUI.videoContainer) {
-            appUI.videoContainer.appendChild(remoteAudio);
-            appUI.videoContainer.appendChild(remoteVideo);
-        }
-
-        stream.getTracks().forEach(track => {
-            peerConnection.addTrack(track, stream);
-        });
-
+export function AddCharacter(id: string, username: string, appUI: AppUI){
+    console.log("Adding char for id: ", id);
+    if (document.getElementById("aFrameScene")?.style.display != "none") {
+        let playerBox = document.createElement("a-box");
+        playerBox.setAttribute("id", "player-" + id);
+        playerBox.setAttribute("position", {x: 0, y: Math.random() * 100 % 5, z: -2})
+        playerBox.setAttribute('color', stringToColor(id));
+        let scene = document.getElementById("aFrameScene");
+        scene?.append(playerBox);
+    } else {
         let peerCharacterContainer = document.createElement("div");
         peerCharacterContainer.style.position = "absolute";
         peerCharacterContainer.style.zIndex = "2";
@@ -146,6 +122,61 @@ export async function InitPC(signalling: Signalling, id : string, peerConnection
         document.body.appendChild(peerCharacterContainer);
 
         DragElement(peerCharacterContainer, appUI);
+    }
+}
+
+export function Init3D(appUI: AppUI, wspositions: any) {
+    let scene = document.getElementById("aFrameScene");
+    if (scene) {
+        scene.style.display = "block";
+        scene.style.zIndex = "-1";
+    }
+    console.log("loaded 3D");
+}
+
+export async function InitPC(signalling: Signalling, id : string, peerConnections: {[key: string] : PeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean, username: string) {
+    if (id in peerConnections) {
+        console.log("id already in peer connections")
+        return;
+    }
+
+    let peerConnection: PeerConnection = new PeerConnection({...signalling.IceServers, iceTransportPolicy: "all"});
+
+    console.log("render videos");
+    try {
+        const stream = await navigator.mediaDevices
+            .getUserMedia({
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                    channelCount: 1,
+                    sampleRate: 48000,
+                },
+            })
+        const remoteVideo = document.createElement("canvas");
+        remoteVideo.width = 200;
+        remoteVideo.height = 100;
+        remoteVideo.style.margin = "50px";
+
+        const remoteAudio: HTMLAudioElement = document.createElement("audio");
+
+        remoteVideo.id = "remoteVideo-" + id;
+        remoteAudio.id = "remoteAudio-" + id;
+
+        remoteAudio.autoplay = true;
+        remoteAudio.muted = false;
+
+        if (appUI.videoContainer) {
+            appUI.videoContainer.appendChild(remoteAudio);
+            appUI.videoContainer.appendChild(remoteVideo);
+        }
+
+        stream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, stream);
+        });
+
+        AddCharacter(id, username, appUI);
 
         if (offer) {
             let dc = peerConnection.createDataChannel("positions", {ordered: true});
@@ -239,6 +270,7 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     let canvasCtx = remoteVideo.getContext("2d")!;
+    const canvasTexture = new AFRAME.THREE.CanvasTexture(remoteVideo);
     const WIDTH = remoteVideo.width;
     const HEIGHT = remoteVideo.height;
     function draw() {
@@ -270,6 +302,7 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
         // Finish the line
         canvasCtx.lineTo(WIDTH, HEIGHT / 2);
         canvasCtx.stroke();
+        canvasTexture.needsUpdate = true;
         requestAnimationFrame(draw);
     }
     function updateAudioPosition(timeDelta: DOMHighResTimeStamp, panNode: PannerNode, id: string) {
@@ -296,6 +329,12 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     }
     requestAnimationFrame(draw);
     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
+
+    const boxEl = document.getElementById('player-' + id);
+    // @ts-ignore
+    boxEl!.getObject3D('mesh').material.map = canvasTexture;
+    // @ts-ignore
+    boxEl!.getObject3D('mesh').material.needsUpdate = true;
 }
 
 export function SetPanNodeParams(panNode: PannerNode) {
@@ -321,8 +360,14 @@ export function BindDataChannel(appUI: AppUI, dc: RTCDataChannel, id: string) {
     dc.onopen = () => {
         function sendPos() {
             setTimeout(()=>{
-                let char = document.getElementById("playerCharacter");
-                dc.send(new URLSearchParams({top: char!.style.top, left: char!.style.left}).toString());
+                if (document.getElementById("aFrameScene")?.style.display == "none") {
+                    let char = document.getElementById("playerCharacter");
+                    dc.send(new URLSearchParams({top: char!.style.top, left: char!.style.left}).toString());
+                } else {
+                    const playerPosition: any = document.querySelector('[camera]')!.getAttribute("position");
+                    console.log("Sent 3D object position", `${playerPosition!.x} ${playerPosition!.y} ${playerPosition!.z}`);
+                    dc.send(`${playerPosition!.x} ${playerPosition!.y} ${playerPosition!.z}`);
+                }
                 sendPos()
             }, 10)
         }
@@ -330,10 +375,16 @@ export function BindDataChannel(appUI: AppUI, dc: RTCDataChannel, id: string) {
     };
     dc.onmessage = (event: { data: any }) => {
         if (appUI.manualPositions.checked) return;
-        let char = document.getElementById("remotePlayerCharacter-" + id);
-        let data = Object.fromEntries(new URLSearchParams(event.data));
-        char!.style.top = data.top!;
-        char!.style.left = data.left!;
+        if (document.getElementById("aFrameScene")?.style.display == "none") {
+            let char = document.getElementById("remotePlayerCharacter-" + id);
+            let data = Object.fromEntries(new URLSearchParams(event.data));
+            char!.style.top = data.top!;
+            char!.style.left = data.left!;
+        } else {
+            let char : any = document.getElementById("player-" + id);
+            console.log("Got 3D object position", event.data);
+            char.setAttribute("position", event.data);
+        }
     }
 }
 
