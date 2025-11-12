@@ -4,7 +4,7 @@ import {DragElement} from "./draggable";
 export function InitPlayerCharacter(appUI: AppUI){
     let clientCharacterContainer = document.createElement("div");
     clientCharacterContainer.style.position = "absolute";
-    clientCharacterContainer.style.top = "50%";
+    clientCharacterContainer.style.top = "75%";
     clientCharacterContainer.style.left = "50%";
     clientCharacterContainer.id = "playerCharacter";
 
@@ -61,13 +61,13 @@ export function PlayerMovementInit() {
     // let playerMaxX = 100;
     // let playerMaxY = 100;
     // if ( playerCharCanvas) {
-    console.log(playerCharCanvas.width, player);
+    // console.log(playerCharCanvas.width, player);
     let border = 7 * parseFloat(playerCharCanvas.style.border.slice(0, 1));
-    console.log(border);
+    // console.log(border);
         let playerMaxX: number = 100 * (1 - (playerCharCanvas.width + border) / pageWidth);
         let playerMaxY: number = 100 * (1 -(playerCharCanvas.height + border) / pageWidth);
     // }
-    console.log(playerMaxY);
+    // console.log(playerMaxY);
 
 
     setInterval(() => {

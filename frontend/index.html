@@ -30,12 +30,15 @@
             width: 150px;
             background-color: var(--mid-color);
         }
-        button{
+        label{
+            text-align: center;
+        }
+        .menu-button{
             color: black;
             background-color: var(--secondary-color);
             width: 150px;
             padding: 10px;
-            border-radius: 1vw;
+            border-radius: 0.3vw;
         }
         .checkbox{
             height: 15px;
@@ -72,8 +75,32 @@
         .fill-height{
             height: max-content;
         }
+        .fill-width{
+            width: 100%;
+        }
         .align-top{
             vertical-align: top;
+        }
+        .container{
+            align-content: end;
+        }
+        .vertical-align-center{
+            vertical-align: center;
+        }
+        .menu-table{
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .menu-table td{
+            width: 33%;
+            vertical-align: top;
+        }
+        .center-text{
+            text-align: center;
+        }
+        #rooms-header{
+            margin: auto 0;
+            font-size: 2vh;
         }
         #main-menu-table{
             width: 100%;
@@ -87,9 +114,12 @@
         }
         #rooms-list{
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             width: auto;
             padding: 1vh 0;
+        }
+        #rooms-list > div{
+            margin: 0.2vw;
         }
         #rooms-list-menu{
             display: flex;
@@ -97,6 +127,14 @@
         }
         #main-menu{
             margin: 0 5vw;
+        }
+        #rooms-refresh{
+            align-self: flex-end;
+            font-size: 2vh;
+            margin-right: 0;
+            border-radius: 2vw;
+            width: 5vh;
+            height: 5vh;
         }
     </style>
 </head>
@@ -122,7 +160,15 @@
             </td>
             <td>
                 <div id="rooms-list-menu" class="menu menu-padding flex-column fill-height">
-                    <button id="rooms-refresh" name="rooms-refresh">Refresh</button>
+                    <div class="flex-row fill-width">
+                        <table class="menu-table menu"></table>
+                        <div class="flex-column fill-width vertical-align-center">
+                            <div id="rooms-header" class="vertical-align-center center-text">Rooms </div>
+                        </div>
+                        <div class="flex-column fill-width content-right">
+                            <button id="rooms-refresh" name="rooms-refresh">⭮</button>
+                        </div>
+                    </div>
                     <div id="rooms-list" class="menu flex-column fill-height align-top">
 
                     </div>

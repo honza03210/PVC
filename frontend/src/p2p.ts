@@ -54,8 +54,8 @@ export function roomJoin(isMobile: boolean, peerConnections: {[key: string] : Pe
 
     signalling.Send({
         payload: {
-            roomId: appUI.roomIDInput.value,
-            name: appUI.nameInput.value,
+            roomId: appUI.roomIDInput.value != "" ? appUI.roomIDInput.value : `room-${Math.random().toString(36).substring(2, 10)}`,
+            name: appUI.nameInput.value != "" ? appUI.nameInput.value : `user-${Math.random().toString(36).substring(2, 10)}`,
             password: appUI.passwordInput.value
         }, type: "join"
     });
@@ -67,6 +67,7 @@ export function roomJoin(isMobile: boolean, peerConnections: {[key: string] : Pe
 export function CreateSampleSoundButton(appUI: AppUI) {
     let sampleSoundButton = document.createElement("button");
     sampleSoundButton.innerText = "Add a sample VC member";
+    sampleSoundButton.classList.add("menu-button");
     sampleSoundButton.style.fontSize = "32";
 
     sampleSoundButton.addEventListener('click', async e => {

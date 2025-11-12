@@ -11,14 +11,85 @@ document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
 async function startup() {
     let uiManager = new UIManager();
 
-    uiManager.PrefillFieldsFromUrl();
-
     // let wsPositions : WebSocket = connectPositions("ws://localhost:4242");
     let wsPositions: any;
 
-    const peerConnections: { [key: string]: PeerConnection } = {}
+    const peerConnections: { [key: string]: PeerConnection } = {};
 
-    document.getElementById("main-menu")!.appendChild(createAudioInitButton(uiManager.appUI, peerConnections, wsPositions));
+    let appUI = uiManager.appUI;
+    let audioCtx = appUI.audioCtx;
+
+    document.addEventListener("click", async () => {
+        if (audioCtx.state === "suspended") {
+            await audioCtx.resume();
+            console.log("AudioContext resumed");
+        }
+    });
+
+    await navigator.mediaDevices
+        .getUserMedia({
+            audio: true,
+        })
+        .then(stream => {
+            var microphone = audioCtx.createMediaStreamSource(stream);
+            var analyser = audioCtx.createAnalyser();
+            microphone.connect(analyser);
+            analyser.fftSize = 512;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            requestAnimationFrame(draw);
+            if (appUI.localAudio) {
+                appUI.localAudio.muted = true;
+            }
+            let canvasCtx = appUI.localVideo.getContext("2d")!;
+            appUI.localVideo.width = 200;
+            appUI.localVideo.height = 100;
+            appUI.localVideo.style.margin = "50px";
+            const WIDTH = appUI.localVideo.width;
+            const HEIGHT = appUI.localVideo.height;
+
+            function draw() {
+                requestAnimationFrame(draw);
+                canvasCtx.clearRect(-1, -1, WIDTH + 2, HEIGHT + 2);
+                analyser.getByteTimeDomainData(dataArray);
+                // Fill solid color
+                // canvasCtx.fillStyle = "rgba(0 0 0 0.1)";
+                //
+                // canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+                // Begin the path
+                canvasCtx.lineWidth = 2;
+                canvasCtx.strokeStyle = "rgb(200 200 200)";
+                canvasCtx.beginPath();
+                // Draw each point in the waveform
+                const sliceWidth = WIDTH / bufferLength;
+                let x = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    const v = dataArray[i]! / 128.0;
+                    const y = v * (HEIGHT / 2);
+
+                    if (i === 0) {
+                        canvasCtx.moveTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
+                    } else {
+                        canvasCtx.lineTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
+                    }
+
+                    x += sliceWidth;
+                }
+
+                // Finish the line
+                canvasCtx.lineTo(WIDTH, HEIGHT / 2);
+                canvasCtx.stroke();
+            }
+        });
+
+    const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
+
+
+    document.getElementById("main-menu")!.appendChild(joinButton);
+
+    uiManager.PrefillFieldsFromUrl(joinButton);
+
+    //document.getElementById("main-menu")!.appendChild(createAudioInitButton(uiManager.appUI, peerConnections, wsPositions));
 }
 
 
@@ -105,6 +176,7 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: P
 function createJoinButton(appUI: AppUI, peerConnections: { [key: string]: PeerConnection }, wsPositions:any): HTMLButtonElement {
     let joinButton = document.createElement("button");
     joinButton.innerText = "Join"
+    joinButton.classList.add("menu-button");
     joinButton.style.fontSize = "32";
     let supportsSharedWorkers: boolean
     try {

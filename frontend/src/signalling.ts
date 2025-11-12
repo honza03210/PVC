@@ -1,7 +1,7 @@
 import {Socket} from "socket.io-client";
 import {AppUI} from "./interaces/app-ui";
 import {PeerConnection} from "./peer-connection";
-import { InitPC, useQueuedCandidates} from "./p2p";
+import {InitPC, roomJoin, useQueuedCandidates} from "./p2p";
 import { HandleUserDisconnect } from "./p2p";
 
 export class Signalling{
@@ -52,9 +52,13 @@ export class Signalling{
         switch (eventName) {
             case "connect":
                 console.log('Hello, successfully connected to the signaling server!');
+                document.getElementById("rooms-refresh")?.addEventListener("click", () => {
+                   this.Send({type: "listRooms", payload: {}});
+                });
                 this.Send({type: "listRooms", payload: {}});
                 break;
             case "userDisconnected":
+                this.Send({type: "listRooms", payload: {}});
                 await HandleUserDisconnect(eventData.id, peerConnections);
                 console.log("disconnect:" + eventData);
                 break;
@@ -68,10 +72,16 @@ export class Signalling{
                     (room: {roomID : string, numberOfUsers: number}) => {
                         let div = document.createElement("div");
                         div.innerText = `${room.roomID} : ${room.numberOfUsers} users connected`;
-                        console.log("RoomReceived: ", div, eventData);
+                        let button = document.createElement("button");
+                        button.innerText = "Join room";
+                        button.style.marginLeft = "1vw";
+                        button.addEventListener("click", async () => {
+                            window.open(window.location.origin + `/?username=${appUI.nameInput.value}&room_id=${room.roomID}&autojoin="true"`, "_blank");
+                        })
+                        div.appendChild(button);
+                        console.log("RoomReceived: ", button, eventData);
                         return div;
                 }))
-                // appUI.roomList.innerHTML = "Rooms: \n" + eventData.roomsList;
                 break;
             case "sharedWorkerMessage":
                 console.log("SharedWorker says: " + eventData.message);
@@ -98,6 +108,7 @@ export class Signalling{
                 console.log("getCandidate -- pushed to queue: ", eventData.candidate);
                 break;
             case "listUsers":
+                this.Send({type: "listRooms", payload: {}});
                 console.log("listUsers: ", eventData);
                 break;
             case "getAnswerAck":
@@ -132,6 +143,7 @@ export class Signalling{
                 await useQueuedCandidates(peerConnections, IceCandidateQueue, eventData.id)
                 break;
             case "PeerJoined":
+                this.Send({type: "listRooms", payload: {}});
                 console.log("Peer joined: " + eventData.id);
                 if (peerConnections[eventData.id]) {
                     console.log("peer already connected");

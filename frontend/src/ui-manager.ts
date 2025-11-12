@@ -17,10 +17,13 @@ export class UIManager {
         audioCtx: new AudioContext(),
     }
 
-    PrefillFieldsFromUrl(){
+    PrefillFieldsFromUrl(joinButton: HTMLButtonElement){
         const urlParams = new URLSearchParams(window.location.search);
         this.appUI.nameInput.value = urlParams.get("username") ?? "";
         this.appUI.roomIDInput.value = urlParams.get("room_id") ?? "";
+        if (urlParams.get("autojoin")) {
+            joinButton.click();
+        }
     }
     CreateAudioInitButton(peerConnections: { [key: string]: PeerConnection }, callback: () => Promise<void>, wsPositions: WebSocket){
          let audioButton = document.createElement("button");

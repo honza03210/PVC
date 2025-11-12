@@ -91,6 +91,11 @@ export function signalling(server : any) {
             ListRooms(socket);
         });
 
+        socket.on("listRooms", (data) => {
+            console.log("listRooms received");
+            ListRooms(socket);
+        })
+
         socket.on("offer", (payload: {dest: string, sdp: any}) => {
             io.to(payload.dest).emit("getOffer", {id: socket.id, sdp: payload.sdp, username: usernames[socket.id]});
             console.log("offer from " + socket.id + " to " + payload.dest);

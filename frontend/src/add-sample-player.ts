@@ -88,6 +88,7 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     }
 
     let cancelButton = document.createElement("button");
+    cancelButton.classList.add("menu-button");
     cancelButton.textContent = "Cancel the Sample";
     cancelButton.addEventListener("click", async () => {
         sourceNode.stop();
