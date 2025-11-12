@@ -82,14 +82,14 @@ async function startup() {
             }
         });
 
-    const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
+    // const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
     const init3DButton = create3DInitButton(appUI, wsPositions);
+    document.getElementById("main-menu")!.append(init3DButton);
 
-    document.getElementById("main-menu")!.append(init3DButton, joinButton);
+    // document.getElementById("main-menu")!.append(init3DButton, joinButton);
 
-    uiManager.PrefillFieldsFromUrl(joinButton);
-
-    //document.getElementById("main-menu")!.appendChild(createAudioInitButton(uiManager.appUI, peerConnections, wsPositions));
+    // uiManager.PrefillFieldsFromUrl(joinButton);
+    document.getElementById("main-menu")!.appendChild(createAudioInitButton(uiManager.appUI, peerConnections, wsPositions));
 }
 
 function create3DInitButton(appUI: AppUI, wsPositions: any){
