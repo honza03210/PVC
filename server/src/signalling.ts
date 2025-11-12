@@ -3,6 +3,7 @@ import argon2id from "argon2";
 import {GenerateTurnCredentials} from "./generate-turn-credentials.js";
 import {response} from "express";
 
+
 // TODO - server typing
 export function signalling(server : any) {
     const io = new Server(server, {
@@ -22,11 +23,21 @@ export function signalling(server : any) {
     // argon2 hashed
     let roomsPasswords: {[key: string]: string} = {};
 
+    function ListRooms(socket: any) : void {
+        socket.emit("listRooms", {
+            roomsList: Object.entries(rooms).map(([roomID, users]) =>
+                ({roomID, numberOfUsers: Object.keys(users).length}))
+        });
+    }
+
     io.on("connection", socket => {
         console.log("new socket connected: " + socket.id);
         socket.on("listRooms", (data) => {
-            console.log("listRooms: " +  Object.keys(rooms).join("\r\n") + "listRooms END");
-            socket.emit("listRooms", { roomsList: Object.keys(rooms).join("\r\n") });
+            console.log("LIST_ROOMS received", socket.id);
+            console.log("listRooms: ", Object.entries(rooms).map(([roomID, users]) =>
+                ({roomID, numberOfUsers: Object.keys(users).length})));
+            // socket.emit("listRooms", { roomsList: Object.keys(rooms).join("\r\n") });
+            ListRooms(socket);
         });
 
         // socket.on("ready", async data => {
@@ -77,7 +88,7 @@ export function signalling(server : any) {
             socket.broadcast.to(socket.data.roomId).emit("PeerJoined", { id: socket.id, username: data.name });
             await sendUserCredentials(socket, data.name);
             setTimeout(() =>{ listUserIDs(socket, socket.data.roomId) }, 5000)
-
+            ListRooms(socket);
         });
 
         socket.on("offer", (payload: {dest: string, sdp: any}) => {

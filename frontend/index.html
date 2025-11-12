@@ -8,9 +8,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: rgb(36, 36, 36);
+            --primary-color-light: rgb(50, 50, 50);
+            --secondary-color: rgb(200, 200, 200);
+            --mid-color: rgb(136, 136, 136);
+            --text-anti-primary: rgb(230, 230, 230);
+            --text-anti-secondary: rgb(250, 250, 250);
+        }
         body {
-            background-color: #242424;
-            color: rgb(230, 230, 230);
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
             font-family: "Inter", sans-serif;
             font-optical-sizing: auto;
             font-weight: 500;
@@ -20,20 +28,21 @@
             margin-bottom: 10px;
             color: white;
             width: 150px;
-            background-color: #888888;
+            background-color: var(--mid-color);
         }
         button{
             color: black;
-            background-color: lightgray;
+            background-color: var(--secondary-color);
             width: 150px;
             padding: 10px;
+            border-radius: 1vw;
         }
         .checkbox{
             height: 15px;
             width: 15px;
         }
         input:checked{
-            background-color: lightgray;
+            background-color: var(--secondary-color);
             color: black;
         }
         .center-div{
@@ -52,11 +61,42 @@
         .draggable{
             cursor: grab;
         }
+        .menu{
+            width: auto;
+            border-radius: 2vw;
+            background-color: var(--primary-color-light);
+        }
+        .menu-padding{
+            padding: 2vh;
+        }
+        .fill-height{
+            height: max-content;
+        }
+        .align-top{
+            vertical-align: top;
+        }
+        #main-menu-table{
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #main-menu-table td{
+            width: 33%;
+            height: 100%;
+            padding: 2vh 2vw;
+            vertical-align: top;
+        }
+        #rooms-list{
+            display: flex;
+            flex-direction: row;
+            width: auto;
+            padding: 1vh 0;
+        }
+        #rooms-list-menu{
+            display: flex;
+            flex-direction: column;
+        }
         #main-menu{
-            width: fit-content;
-            padding: 40px;
-            border-radius: 30px;
-            background-color: rgba(255, 255, 255, 0.05);
+            margin: 0 5vw;
         }
     </style>
 </head>
@@ -64,16 +104,32 @@
 
 <div id="container">
 
+    <table id="main-menu-table">
+        <tr>
+            <td>
 
-    <div id="main-menu" class="center-div flex-column">
-        <label for="name">Username</label><input type="text" id="name"/>
-        <label for="roomID">Room Name</label><input type="text" id="roomID"/>
-        <label for="password">Password</label><input type="password" id="password"/>
-        <label for="manualPositions">Set Positions Manually</label>
-        <input type="checkbox" id="manualPositions" name="manualPositions" class="checkbox"/>
-        <label for="distanceFalloff">Distance Falloff:</label>
-        <input type="number" id="distanceFalloff" name="distanceFalloff" min="0" max="8000" value="10"/>
-    </div>
+            </td>
+            <td>
+                <div id="main-menu" class="menu menu-padding center-div flex-column">
+                    <label for="name">Username</label><input type="text" id="name"/>
+                    <label for="roomID">Room Name</label><input type="text" id="roomID"/>
+                    <label for="password">Password</label><input type="password" id="password"/>
+                    <label for="manualPositions">Set Positions Manually</label>
+                    <input type="checkbox" id="manualPositions" name="manualPositions" class="checkbox"/>
+                    <label for="distanceFalloff">Distance Falloff:</label>
+                    <input type="number" id="distanceFalloff" name="distanceFalloff" min="0" max="8000" value="10"/>
+                </div>
+            </td>
+            <td>
+                <div id="rooms-list-menu" class="menu menu-padding flex-column fill-height">
+                    <button id="rooms-refresh" name="rooms-refresh">Refresh</button>
+                    <div id="rooms-list" class="menu flex-column fill-height align-top">
+
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
 
 
     <div id="videoContainer" class="center-div flex-row" style="width: 100%">
@@ -82,7 +138,6 @@
     </div>
 
     <div id="errorMsg"></div>
-    <div id="roomList"></div>
 </div>
 </body>
 </html>

@@ -51,8 +51,8 @@ export class Signalling{
     async HandleSignallingEvent(eventName: string, eventData: any, appUI: AppUI, IceCandidateQueue: { [key: string]: { popped: boolean, queue: { candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]}}, peerConnections: { [key: string]: PeerConnection }, wsPositions: WebSocket) {
         switch (eventName) {
             case "connect":
-                this.Send({type: "listRooms", payload: {}});
                 console.log('Hello, successfully connected to the signaling server!');
+                this.Send({type: "listRooms", payload: {}});
                 break;
             case "userDisconnected":
                 await HandleUserDisconnect(eventData.id, peerConnections);
@@ -63,7 +63,15 @@ export class Signalling{
                 appUI.errorMsgLabel.innerHTML = "Error" + eventData.message;
                 break;
             case "listRooms":
-                appUI.roomList.innerHTML = "Rooms: \n" + eventData.roomsList;
+                console.log("RoomsList: ", eventData);
+                document.getElementById("rooms-list")?.replaceChildren(...eventData.roomsList.map(
+                    (room: {roomID : string, numberOfUsers: number}) => {
+                        let div = document.createElement("div");
+                        div.innerText = `${room.roomID} : ${room.numberOfUsers} users connected`;
+                        console.log("RoomReceived: ", div, eventData);
+                        return div;
+                }))
+                // appUI.roomList.innerHTML = "Rooms: \n" + eventData.roomsList;
                 break;
             case "sharedWorkerMessage":
                 console.log("SharedWorker says: " + eventData.message);
