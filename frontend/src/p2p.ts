@@ -1,11 +1,10 @@
-import {type AppUI} from "./interaces/app-ui.js";
 import {DragElement} from "./draggable.js";
-import {AddSamplePlayer} from "./add-sample-player.js";
 import {io, Socket} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
 import {Init2DPlayerCharacter} from "./player-char-movement.js";
 import {PeerConnection} from "./peer-connection.js";
 import {Signalling} from "./signalling";
+import {UIManager} from "./ui-manager";
 import 'aframe';
 
 export function SignallingSend(signalling: Socket | MessagePort, message: any){
@@ -18,21 +17,21 @@ export function SignallingSend(signalling: Socket | MessagePort, message: any){
     }
 }
 
-function InitPlayerCharacter(appUI: AppUI){
+function InitPlayerCharacter() {
     if (document.getElementById("aFrameScene")?.style.display == "none") {
-        Init2DPlayerCharacter(appUI);
+        Init2DPlayerCharacter(UIManager.appUI);
     } else {
-        //AddCharacter("USER", "You", appUI);
+        //AddCharacter("USER", "You", UIManager.appUI);
     }
 }
 
 
 export function RoomJoin(isMobile: boolean, peerConnections: {
     [key: string]: PeerConnection
-}, appUI: AppUI, positionsSocket: WebSocket | null) {
+}, positionsSocket: WebSocket | null) {
     console.log("roomJoin");
 
-    InitPlayerCharacter(appUI);
+    InitPlayerCharacter();
 
     let IceCandidateQueue: {
         [key: string]: {
@@ -59,34 +58,22 @@ export function RoomJoin(isMobile: boolean, peerConnections: {
     }
     let signalling: Signalling = new Signalling(comm);
 
-    signalling.BindEvents(appUI, IceCandidateQueue, peerConnections, positionsSocket);
+    signalling.BindEvents(IceCandidateQueue, peerConnections, positionsSocket);
 
     signalling.Send({
         payload: {
-            roomId: appUI.roomIDInput.value != "" ? appUI.roomIDInput.value : `room-${Math.random().toString(36).substring(2, 10)}`,
-            name: appUI.nameInput.value != "" ? appUI.nameInput.value : `user-${Math.random().toString(36).substring(2, 10)}`,
-            password: appUI.passwordInput.value
+            roomId: UIManager.appUI.roomIDInput.value != "" ? UIManager.appUI.roomIDInput.value : `room-${Math.random().toString(36).substring(2, 10)}`,
+            name: UIManager.appUI.nameInput.value != "" ? UIManager.appUI.nameInput.value : `user-${Math.random().toString(36).substring(2, 10)}`,
+            password: UIManager.appUI.passwordInput.value
         }, type: "join"
     });
     console.log("join posted");
-    const sampleSoundButton = CreateSampleSoundButton(appUI);
+    const sampleSoundButton = UIManager.CreateSampleSoundButton();
     document.getElementById("main-menu")?.appendChild(sampleSoundButton);
 }
 
-export function CreateSampleSoundButton(appUI: AppUI) {
-    let sampleSoundButton = document.createElement("button");
-    sampleSoundButton.innerText = "Add a sample VC member";
-    sampleSoundButton.classList.add("menu-button");
-    sampleSoundButton.style.fontSize = "32";
 
-    sampleSoundButton.addEventListener('click', async e => {
-        await AddSamplePlayer("0", appUI, "Sample");
-        sampleSoundButton.remove();
-    });
-    return sampleSoundButton;
-}
-
-export function AddCharacter(id: string, username: string, appUI: AppUI){
+export function AddCharacter(id: string, username: string) {
     console.log("Adding char for id: ", id);
     if (document.getElementById("aFrameScene")?.style.display != "none") {
         let playerBox = document.createElement("a-sphere");
@@ -121,100 +108,17 @@ export function AddCharacter(id: string, username: string, appUI: AppUI){
         peerCharacterContainer.appendChild(peerCharacter);
         document.body.appendChild(peerCharacterContainer);
 
-        DragElement(peerCharacterContainer, appUI);
+        DragElement(peerCharacterContainer, UIManager.appUI);
     }
 }
 
-export function Init3D(appUI: AppUI, wspositions: any) {
+export function Init3D(wspositions: WebSocket | null) {
     let scene = document.getElementById("aFrameScene");
     if (scene) {
         scene.style.display = "block";
         scene.style.zIndex = "-1";
     }
     console.log("loaded 3D");
-}
-
-export async function InitPC(signalling: Signalling, id: string, peerConnections: {
-    [key: string]: PeerConnection
-}, appUI: AppUI, positionsSocket: WebSocket | null, offer: boolean, username: string) {
-    if (id in peerConnections) {
-        console.log("id already in peer connections")
-        return;
-    }
-
-    let peerConnection: PeerConnection = new PeerConnection({...signalling.IceServers, iceTransportPolicy: "all"});
-
-    console.log("render videos");
-    try {
-        const stream = await navigator.mediaDevices
-            .getUserMedia({
-                audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false,
-                    channelCount: 1,
-                    sampleRate: 48000,
-                },
-            })
-        const remoteVideo = document.createElement("canvas");
-        remoteVideo.width = 256;
-        remoteVideo.height = 128;
-        remoteVideo.style.margin = "50px";
-
-        const remoteAudio: HTMLAudioElement = document.createElement("audio");
-
-        remoteVideo.id = "remoteVideo-" + id;
-        remoteAudio.id = "remoteAudio-" + id;
-
-        remoteAudio.autoplay = true;
-        remoteAudio.muted = false;
-
-        if (appUI.videoContainer) {
-            appUI.videoContainer.appendChild(remoteAudio);
-            appUI.videoContainer.appendChild(remoteVideo);
-        }
-
-        stream.getTracks().forEach(track => {
-            peerConnection.addTrack(track, stream);
-        });
-
-        AddCharacter(id, username, appUI);
-
-        if (offer) {
-            let dc = peerConnection.createDataChannel("positions", {ordered: true});
-            BindDataChannel(appUI, dc, id);
-        } else {
-            peerConnection.ondatachannel = (e) => {
-                let dc = e.channel;
-                BindDataChannel(appUI, dc, id);
-            };
-        }
-
-        peerConnection.onicecandidate = e => {
-            console.log("onicecandidate");
-            if (e.candidate) {
-                console.log("candidate: " + e.candidate);
-                signalling.Send({payload: {dest: id, candidate: {candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid,
-                    sdpMLineIndex: e.candidate.sdpMLineIndex,
-                    usernameFragment: (e.candidate as any).usernameFragment,}}, type: "candidate"})
-            } else {
-                console.log("no candidate")
-            }
-        };
-
-        peerConnection.oniceconnectionstatechange = e => {
-            console.log(e);
-        };
-
-
-        peerConnection.ontrack = async ev => {
-            HandleNewReceivedStream(ev.streams[0], remoteAudio, remoteVideo, appUI, id);
-        };
-    } catch (e) {
-        console.log(e);
-    }
-    console.log("set new peerConnection");
-    peerConnections[id] = peerConnection;
 }
 
 function stringToColor(str: string) {
@@ -229,8 +133,8 @@ function stringToColor(str: string) {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
-export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, appUI: AppUI, id: string) {
-    let audioCtx = appUI.audioCtx;
+export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, id: string) {
+    let audioCtx = UIManager.appUI.audioCtx;
     let microphone = audioCtx.createMediaStreamSource(stream);
     if (remoteAudio) {
         remoteAudio.muted = true;
@@ -240,9 +144,9 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     let panNode = audioCtx.createPanner();
     SetPanNodeParams(panNode);
 
-    appUI.distanceFalloff.addEventListener("change", () => {
-        panNode.refDistance = appUI.distanceFalloff.valueAsNumber;
-        panNode.maxDistance = appUI.distanceFalloff.valueAsNumber * 10;
+    UIManager.appUI.distanceFalloff.addEventListener("change", () => {
+        panNode.refDistance = UIManager.appUI.distanceFalloff.valueAsNumber;
+        panNode.maxDistance = UIManager.appUI.distanceFalloff.valueAsNumber * 10;
     });
 
     microphone.connect(panNode);
@@ -357,39 +261,6 @@ export async function HandleUserDisconnect(userID: string, peerConnections: {[ke
     peerConnections[userID].close();
     delete peerConnections[userID];
 }
-
-export function BindDataChannel(appUI: AppUI, dc: RTCDataChannel, id: string) {
-    dc.onopen = () => {
-        function sendPos() {
-            setTimeout(()=>{
-                if (document.getElementById("aFrameScene")?.style.display == "none") {
-                    let char = document.getElementById("playerCharacter");
-                    dc.send(new URLSearchParams({top: char!.style.top, left: char!.style.left}).toString());
-                } else {
-                    const playerPosition: any = document.querySelector('[camera]')!.getAttribute("position");
-                    console.log("Sent 3D object position", `${playerPosition!.x} ${playerPosition!.y} ${playerPosition!.z}`);
-                    dc.send(`${playerPosition!.x} ${playerPosition!.y} ${playerPosition!.z}`);
-                }
-                sendPos()
-            }, 10)
-        }
-        sendPos();
-    };
-    dc.onmessage = (event: { data: any }) => {
-        if (appUI.manualPositions.checked) return;
-        if (document.getElementById("aFrameScene")?.style.display == "none") {
-            let char = document.getElementById("remotePlayerCharacter-" + id);
-            let data = Object.fromEntries(new URLSearchParams(event.data));
-            char!.style.top = data.top!;
-            char!.style.left = data.left!;
-        } else {
-            let char : any = document.getElementById("player-" + id);
-            console.log("Got 3D object position", event.data);
-            char.setAttribute("position", event.data);
-        }
-    }
-}
-
 
 export async function useQueuedCandidates (peerConnections: { [p: string]: RTCPeerConnection }, iceCandidateQueue:any, id: string) {
     for (const cand of iceCandidateQueue[id]!.queue) {

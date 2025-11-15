@@ -1,6 +1,7 @@
 import {DragElement} from "./draggable";
 import type {AppUI} from "./interaces/app-ui";
-import {CreateSampleSoundButton, SetPanNodeParams} from "./p2p";
+import {SetPanNodeParams} from "./p2p";
+import {UIManager} from "./ui-manager";
 
 export async function AddSamplePlayer(id: string, appUI: AppUI, username: string) {
 
@@ -94,7 +95,7 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
         sampleCharacterContainer.remove();
         sampleVideo.remove();
         cancelButton.remove();
-        document.getElementById("main-menu")!.appendChild(CreateSampleSoundButton(appUI));
+        document.getElementById("main-menu")!.appendChild(UIManager.CreateSampleSoundButton());
     });
 
     document.getElementById("main-menu")!.appendChild(cancelButton);

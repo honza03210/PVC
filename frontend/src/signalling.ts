@@ -1,7 +1,7 @@
 import {Socket} from "socket.io-client";
-import {AppUI} from "./interaces/app-ui";
-import {PeerConnection} from "./peer-connection";
-import {HandleUserDisconnect, InitPC, useQueuedCandidates} from "./p2p";
+import {InitPC, PeerConnection} from "./peer-connection";
+import {HandleUserDisconnect, useQueuedCandidates} from "./p2p";
+import {UIManager} from "./ui-manager";
 
 export class Signalling{
     IceServers: RTCIceServer[];
@@ -22,8 +22,7 @@ export class Signalling{
         }
     }
 
-    BindEvents( appUI: AppUI,
-                IceCandidateQueue: {
+    BindEvents(IceCandidateQueue: {
                     [p: string]: {
                         popped: boolean
                         queue: {
@@ -37,11 +36,11 @@ export class Signalling{
                 positionsSocket: WebSocket | null) {
         if ("onAny" in this.communicator){
             this.communicator.onAny(async (ev, ...args) => {
-                await this.HandleSignallingEvent(ev.toString(), args[0], appUI, IceCandidateQueue, peerConnections, positionsSocket);
+                await this.HandleSignallingEvent(ev.toString(), args[0], IceCandidateQueue, peerConnections, positionsSocket);
             })
         } else if ("addEventListener" in this.communicator){
             this.communicator.addEventListener("message", async (event) => {
-                await this.HandleSignallingEvent(event.data.type, event.data, appUI, IceCandidateQueue, peerConnections, positionsSocket);
+                await this.HandleSignallingEvent(event.data.type, event.data, IceCandidateQueue, peerConnections, positionsSocket);
             });
         }
     }
@@ -49,7 +48,6 @@ export class Signalling{
 
     async HandleSignallingEvent(eventName: string,
                                 eventData: any,
-                                appUI: AppUI,
                                 IceCandidateQueue: {
                                     [key: string]: {
                                         popped: boolean,
@@ -75,7 +73,7 @@ export class Signalling{
                 break;
             case "error":
                 console.log("Error: " + eventData.message);
-                appUI.errorMsgLabel.innerHTML = "Error" + eventData.message;
+                UIManager.appUI.errorMsgLabel.innerHTML = "Error" + eventData.message;
                 break;
             case "listRooms":
                 console.log("RoomsList: ", eventData);
@@ -87,7 +85,7 @@ export class Signalling{
                         button.innerText = "Join room";
                         button.style.marginLeft = "1vw";
                         button.addEventListener("click", async () => {
-                            window.open(window.location.origin + `/?username=${appUI.nameInput.value}&room_id=${room.roomID}&autojoin="true"`, "_blank");
+                            window.open(window.location.origin + `/?username=${UIManager.appUI.nameInput.value}&room_id=${room.roomID}&autojoin="true"`, "_blank");
                         })
                         div.appendChild(button);
                         console.log("RoomReceived: ", button, eventData);
@@ -134,7 +132,7 @@ export class Signalling{
                 break;
             case "getOffer":
                 console.log("get offer:" + eventData.sdp);
-                await InitPC(this, eventData.id, peerConnections, appUI, positionsSocket, false, eventData.username);
+                await InitPC(this, eventData.id, peerConnections, positionsSocket, false, eventData.username);
                 await peerConnections[eventData.id].CreateAnswer(this, eventData.sdp, eventData.id);
                 break;
             case "getAnswer":
@@ -161,7 +159,7 @@ export class Signalling{
                     return;
                 }
 
-                await InitPC(this, eventData.id, peerConnections, appUI, positionsSocket, true, eventData.username);
+                await InitPC(this, eventData.id, peerConnections, positionsSocket, true, eventData.username);
                 await peerConnections[eventData.id].CreateOffer(this, eventData.id);
                 break;
             case "userCredentials":
