@@ -7,7 +7,6 @@ import {Init2DPlayerCharacter} from "./player-char-movement.js";
 import {PeerConnection} from "./peer-connection.js";
 import {Signalling} from "./signalling";
 import 'aframe';
-import {THREE} from "aframe";
 
 export function SignallingSend(signalling: Socket | MessagePort, message: any){
     if ("emit" in signalling) {
@@ -28,8 +27,9 @@ function InitPlayerCharacter(appUI: AppUI){
 }
 
 
-
-export function RoomJoin(isMobile: boolean, peerConnections: {[key: string] : PeerConnection}, appUI: AppUI, wsPositions: WebSocket) {
+export function RoomJoin(isMobile: boolean, peerConnections: {
+    [key: string]: PeerConnection
+}, appUI: AppUI, positionsSocket: WebSocket | null) {
     console.log("roomJoin");
 
     InitPlayerCharacter(appUI);
@@ -59,7 +59,7 @@ export function RoomJoin(isMobile: boolean, peerConnections: {[key: string] : Pe
     }
     let signalling: Signalling = new Signalling(comm);
 
-    signalling.BindEvents(appUI, IceCandidateQueue, peerConnections, wsPositions);
+    signalling.BindEvents(appUI, IceCandidateQueue, peerConnections, positionsSocket);
 
     signalling.Send({
         payload: {
@@ -89,7 +89,7 @@ export function CreateSampleSoundButton(appUI: AppUI) {
 export function AddCharacter(id: string, username: string, appUI: AppUI){
     console.log("Adding char for id: ", id);
     if (document.getElementById("aFrameScene")?.style.display != "none") {
-        let playerBox = document.createElement("a-box");
+        let playerBox = document.createElement("a-sphere");
         playerBox.setAttribute("id", "player-" + id);
         playerBox.setAttribute("position", {x: 0, y: Math.random() * 100 % 5, z: -2})
         playerBox.setAttribute('color', stringToColor(id));
@@ -134,7 +134,9 @@ export function Init3D(appUI: AppUI, wspositions: any) {
     console.log("loaded 3D");
 }
 
-export async function InitPC(signalling: Signalling, id : string, peerConnections: {[key: string] : PeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean, username: string) {
+export async function InitPC(signalling: Signalling, id: string, peerConnections: {
+    [key: string]: PeerConnection
+}, appUI: AppUI, positionsSocket: WebSocket | null, offer: boolean, username: string) {
     if (id in peerConnections) {
         console.log("id already in peer connections")
         return;
@@ -155,8 +157,8 @@ export async function InitPC(signalling: Signalling, id : string, peerConnection
                 },
             })
         const remoteVideo = document.createElement("canvas");
-        remoteVideo.width = 200;
-        remoteVideo.height = 100;
+        remoteVideo.width = 256;
+        remoteVideo.height = 128;
         remoteVideo.style.margin = "50px";
 
         const remoteAudio: HTMLAudioElement = document.createElement("audio");

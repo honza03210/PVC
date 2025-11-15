@@ -11,13 +11,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
+<dialog id="passwordDialogue">
+    <form method="dialog">
+        <label for="passwordInput">Password</label>
+        <input id="passwordInput" required type="password">
+
+        <button id="passwordInputCancel" value="cancel">Cancel</button>
+        <button id="submitPasswordButton" value="ok">OK</button>
+    </form>
+</dialog>
 
 <div id="container">
     <a-scene id="aFrameScene" style="display: none">
         <a-sky color="#ECECEC"></a-sky>
     </a-scene>
     <table id="main-menu-table">
-        <tr>
+
+    <tr>
             <td>
 
             </td>

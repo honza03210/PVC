@@ -1,8 +1,8 @@
-import {RoomJoin, Init3D} from "./p2p.js";
+import {Init3D, RoomJoin} from "./p2p.js";
 import {type AppUI} from "./interaces/app-ui.js";
 import {PeerConnection} from "./peer-connection.js";
 import {UIManager} from "./ui-manager";
-import {DragElement} from "./draggable";
+import {connectPositions} from "./ws-connect";
 
 document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
     await startup()
@@ -11,8 +11,12 @@ document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
 async function startup() {
     let uiManager = new UIManager();
 
-    // let wsPositions : WebSocket = connectPositions("ws://localhost:4242");
-    let wsPositions: any;
+    let positionsSocket: WebSocket | null = null;
+    try {
+        positionsSocket = connectPositions("ws://localhost:4242");
+    } catch (error) {
+        console.error("Failed to connect to a websocket connection for the positions feed");
+    }
 
     const peerConnections: { [key: string]: PeerConnection } = {};
 
@@ -82,26 +86,28 @@ async function startup() {
             }
         });
 
-    // const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
-    const init3DButton = create3DInitButton(appUI, wsPositions);
-    document.getElementById("main-menu")!.append(init3DButton);
+    const joinButton = createJoinButton(appUI, peerConnections, positionsSocket);
+    const init3DButton = create3DInitButton(appUI, positionsSocket);
+    //document.getElementById("main-menu")!.append(init3DButton);
 
-    // document.getElementById("main-menu")!.append(init3DButton, joinButton);
+    document.getElementById("main-menu")!.append(init3DButton, joinButton);
 
-    // uiManager.PrefillFieldsFromUrl(joinButton);
-    document.getElementById("main-menu")!.appendChild(createAudioInitButton(uiManager.appUI, peerConnections, wsPositions));
+    uiManager.PrefillFieldsFromUrl(joinButton);
+    //document.getElementById("main-menu")!.appendChild(createAudioInitButton(uiManager.appUI, peerConnections, positionsSocket));
 }
 
-function create3DInitButton(appUI: AppUI, wsPositions: any){
+function create3DInitButton(appUI: AppUI, positionsSocket: WebSocket | null) {
     let button = document.createElement("button");
     button.type = "button";
     button.classList.add("menu-button");
     button.innerText = "Go 3D";
-    button.addEventListener("click", () => Init3D(appUI, wsPositions));
+    button.addEventListener("click", () => Init3D(appUI, positionsSocket));
     return button;
 }
 
-function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: PeerConnection }, wsPositions: any): HTMLButtonElement {
+function createAudioInitButton(appUI: AppUI, peerConnections: {
+    [key: string]: PeerConnection
+}, positionsSocket: any): HTMLButtonElement {
     let audioButton = document.createElement("button");
     audioButton.innerText = "Initialize audio";
 
@@ -133,8 +139,8 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: P
                     appUI.localAudio.muted = true;
                 }
                 let canvasCtx = appUI.localVideo.getContext("2d")!;
-                appUI.localVideo.width = 200;
-                appUI.localVideo.height = 100;
+                appUI.localVideo.width = 256;
+                appUI.localVideo.height = 128;
                 appUI.localVideo.style.margin = "50px";
                 const WIDTH = appUI.localVideo.width;
                 const HEIGHT = appUI.localVideo.height;
@@ -173,14 +179,16 @@ function createAudioInitButton(appUI: AppUI, peerConnections: { [key: string]: P
                 }
             });
 
-        const joinButton = createJoinButton(appUI, peerConnections, wsPositions);
+        const joinButton = createJoinButton(appUI, peerConnections, positionsSocket);
 
         document.getElementById("main-menu")!.appendChild(joinButton);
     })
     return audioButton;
 }
 
-function createJoinButton(appUI: AppUI, peerConnections: { [key: string]: PeerConnection }, wsPositions:any): HTMLButtonElement {
+function createJoinButton(appUI: AppUI, peerConnections: {
+    [key: string]: PeerConnection
+}, positionsSocket: WebSocket | null): HTMLButtonElement {
     let joinButton = document.createElement("button");
     joinButton.innerText = "Join"
     joinButton.classList.add("menu-button");
@@ -196,9 +204,11 @@ function createJoinButton(appUI: AppUI, peerConnections: { [key: string]: PeerCo
     }
 
     joinButton.addEventListener('click', e => {
+        let passwordDialogue = document.getElementById("passwordDialogue")! as HTMLDialogElement;
+        // passwordDialogue.showModal();
         joinButton.remove();
         console.log("Join initiated - Shared worker: " + supportsSharedWorkers);
-        RoomJoin(supportsSharedWorkers, peerConnections, appUI, wsPositions)
+        RoomJoin(supportsSharedWorkers, peerConnections, appUI, positionsSocket)
     });
     return joinButton;
 }

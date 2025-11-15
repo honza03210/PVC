@@ -16,7 +16,6 @@ export class UIManager {
         distanceFalloff: document.getElementById("distanceFalloff") as HTMLInputElement,
         audioCtx: new AudioContext(),
     }
-
     PrefillFieldsFromUrl(joinButton: HTMLButtonElement){
         const urlParams = new URLSearchParams(window.location.search);
         this.appUI.nameInput.value = urlParams.get("username") ?? "";
@@ -42,6 +41,14 @@ export class UIManager {
             sampleSoundButton.remove();
         });
         return sampleSoundButton;
+    }
+
+    ShowPasswordDialogue() {
+        let popUp = document.createElement("div");
+        let passwordField = document.createElement("input");
+        passwordField.setAttribute("type", "text");
+        popUp.append(passwordField);
+        document.body.append()
     }
 
     CreateJoinButton(peerConnections: { [key: string]: PeerConnection }, wsPositions: WebSocket){

@@ -1,7 +1,6 @@
 import {DragElement} from "./draggable";
 import type {AppUI} from "./interaces/app-ui";
-import {SetPanNodeParams} from "./p2p";
-import {CreateSampleSoundButton} from "./p2p";
+import {CreateSampleSoundButton, SetPanNodeParams} from "./p2p";
 
 export async function AddSamplePlayer(id: string, appUI: AppUI, username: string) {
 
@@ -19,8 +18,8 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     sourceNode.start();
 
     const sampleVideo = document.createElement("canvas");
-    sampleVideo.width = 200;
-    sampleVideo.height = 100;
+    sampleVideo.width = 256;
+    sampleVideo.height = 128;
     sampleVideo.style.margin = "50px";
     let sampleVideoColor: string = "rgba(141,141,141, 0.05)"
     sampleVideo.id = "sampleVideo-" + id;

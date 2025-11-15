@@ -1,8 +1,7 @@
 import {Socket} from "socket.io-client";
 import {AppUI} from "./interaces/app-ui";
 import {PeerConnection} from "./peer-connection";
-import {InitPC, RoomJoin, useQueuedCandidates} from "./p2p";
-import { HandleUserDisconnect } from "./p2p";
+import {HandleUserDisconnect, InitPC, useQueuedCandidates} from "./p2p";
 
 export class Signalling{
     IceServers: RTCIceServer[];
@@ -35,20 +34,32 @@ export class Signalling{
                     }
                 },
                 peerConnections: {[key: string] : PeerConnection},
-                wsPositions: WebSocket){
+                positionsSocket: WebSocket | null) {
         if ("onAny" in this.communicator){
             this.communicator.onAny(async (ev, ...args) => {
-                await this.HandleSignallingEvent(ev.toString(), args[0], appUI, IceCandidateQueue, peerConnections, wsPositions);
+                await this.HandleSignallingEvent(ev.toString(), args[0], appUI, IceCandidateQueue, peerConnections, positionsSocket);
             })
         } else if ("addEventListener" in this.communicator){
             this.communicator.addEventListener("message", async (event) => {
-                await this.HandleSignallingEvent(event.data.type, event.data, appUI, IceCandidateQueue, peerConnections, wsPositions);
+                await this.HandleSignallingEvent(event.data.type, event.data, appUI, IceCandidateQueue, peerConnections, positionsSocket);
             });
         }
     }
 
 
-    async HandleSignallingEvent(eventName: string, eventData: any, appUI: AppUI, IceCandidateQueue: { [key: string]: { popped: boolean, queue: { candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]}}, peerConnections: { [key: string]: PeerConnection }, wsPositions: WebSocket) {
+    async HandleSignallingEvent(eventName: string,
+                                eventData: any,
+                                appUI: AppUI,
+                                IceCandidateQueue: {
+                                    [key: string]: {
+                                        popped: boolean,
+                                        queue: { candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]
+                                    }
+                                },
+                                peerConnections: {
+                                        [key: string]: PeerConnection
+                                    },
+                                positionsSocket: WebSocket | null) {
         switch (eventName) {
             case "connect":
                 console.log('Hello, successfully connected to the signaling server!');
@@ -123,7 +134,7 @@ export class Signalling{
                 break;
             case "getOffer":
                 console.log("get offer:" + eventData.sdp);
-                await InitPC(this, eventData.id, peerConnections, appUI, wsPositions, false, eventData.username);
+                await InitPC(this, eventData.id, peerConnections, appUI, positionsSocket, false, eventData.username);
                 await peerConnections[eventData.id].CreateAnswer(this, eventData.sdp, eventData.id);
                 break;
             case "getAnswer":
@@ -150,7 +161,7 @@ export class Signalling{
                     return;
                 }
 
-                await InitPC(this, eventData.id, peerConnections, appUI, wsPositions, true, eventData.username);
+                await InitPC(this, eventData.id, peerConnections, appUI, positionsSocket, true, eventData.username);
                 await peerConnections[eventData.id].CreateOffer(this, eventData.id);
                 break;
             case "userCredentials":
