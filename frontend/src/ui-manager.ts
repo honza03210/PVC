@@ -1,10 +1,14 @@
 import type {AppUI} from "./interaces/app-ui";
 import {PeerConnection} from "./peer-connection";
-import {Init3D, RoomJoin} from "./p2p";
+import {RoomJoin} from "./p2p";
 import {AddSamplePlayer} from "./add-sample-player";
+import {Init3D} from "./visualization";
 
 export class UIManager {
     static appUI: AppUI;
+    static Is3DOn(){
+        return document.getElementById("aFrameScene")?.style.display !== "none";
+    }
 
     static Initialize() {
         UIManager.appUI = {
@@ -74,7 +78,7 @@ export class UIManager {
         sampleSoundButton.style.fontSize = "32";
 
         sampleSoundButton.addEventListener('click', async e => {
-            await AddSamplePlayer("0", UIManager.appUI, "Sample");
+            await AddSamplePlayer("0", "Sample");
             sampleSoundButton.remove();
         });
         return sampleSoundButton;

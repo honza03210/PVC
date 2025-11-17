@@ -9,14 +9,14 @@ export function connectPositions(address: string) {
         console.log("Connection opened");
     }
 
-    // socket.onmessage = (event: { data: any; }) => {
-    //     console.log("Received:", event.data);
-    //     console.log(event.data);
-    // }
+    socket.onmessage = (event: { data: any; }) => {
+        console.log("Received:", event.data);
+        console.log(event.data);
+    }
 
     socket.onclose = () => {
         console.log("Connection closed");
-        setTimeout(connectPositions, 5000);
+        //setTimeout(connectPositions, 5000);
     }
 
     socket.onerror = (error: any) => {

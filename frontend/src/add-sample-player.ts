@@ -1,11 +1,12 @@
 import {DragElement} from "./draggable";
 import type {AppUI} from "./interaces/app-ui";
-import {SetPanNodeParams} from "./p2p";
+import {SetPanNodeParams, UpdatePannerNodeFromHtml} from "./p2p";
 import {UIManager} from "./ui-manager";
+import {DrawSoundVisualization} from "./visualization";
 
-export async function AddSamplePlayer(id: string, appUI: AppUI, username: string) {
+export async function AddSamplePlayer(id: string, username: string) {
 
-    const audioCtx = appUI.audioCtx;
+    const audioCtx = UIManager.appUI.audioCtx;
 
     // Load the MP3
     const response = await fetch('/assets/low-quality-guitar-sample.mp3');
@@ -25,9 +26,11 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     let sampleVideoColor: string = "rgba(141,141,141, 0.05)"
     sampleVideo.id = "sampleVideo-" + id;
 
-    if (appUI.videoContainer) {
-        appUI.videoContainer.appendChild(sampleVideo);
+    if (UIManager.appUI.videoContainer) {
+        UIManager.appUI.videoContainer.appendChild(sampleVideo);
     }
+
+    let strokeColor = "rgb(255,113,0)";
 
     let sampleCharacterContainer = document.createElement("div");
     sampleCharacterContainer.style.position = "absolute";
@@ -37,10 +40,10 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
 
     let nameLabel = document.createElement("div");
     nameLabel.textContent = username;
-    console.log("USERNAMMEEE: " + username);
+    console.log("Username: " + username);
     nameLabel.style.textAlign = "center";
     nameLabel.style.fontSize = "12px";
-    nameLabel.style.color = "rgb(255,113,0)";
+    nameLabel.style.color = strokeColor;
     nameLabel.style.fontWeight = "bold";
     sampleCharacterContainer.appendChild(nameLabel);
 
@@ -48,29 +51,27 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     peerCharacter.width = 30;
     peerCharacter.height = 30;
     peerCharacter.style.position = "absolute";
-    peerCharacter.style.backgroundColor = "rgb(255,113,0)";
+    peerCharacter.style.backgroundColor = strokeColor;
 
     sampleCharacterContainer.appendChild(peerCharacter);
     document.body.appendChild(sampleCharacterContainer);
 
-    DragElement(sampleCharacterContainer, appUI);
+    DragElement(sampleCharacterContainer, UIManager.appUI);
 
     let analyser = audioCtx.createAnalyser();
     let panNode = audioCtx.createPanner();
     SetPanNodeParams(panNode);
 
 
-    appUI.distanceFalloff.addEventListener("change", () => {
-        panNode.refDistance = appUI.distanceFalloff.valueAsNumber;
-        panNode.maxDistance = appUI.distanceFalloff.valueAsNumber
+    UIManager.appUI.distanceFalloff.addEventListener("change", () => {
+        panNode.refDistance = UIManager.appUI.distanceFalloff.valueAsNumber;
+        panNode.maxDistance = UIManager.appUI.distanceFalloff.valueAsNumber
     });
 
     sourceNode.connect(panNode);
 
 
     panNode.connect(analyser);
-    // const dest = audioCtx.createMediaStreamDestination();
-    // console.log("AAAAAAAAAAAAAAAAAAAAAAAA", dest)
     analyser.connect(audioCtx.destination);
     let muted = false;
     sampleVideo.onclick = () => {
@@ -109,58 +110,14 @@ export async function AddSamplePlayer(id: string, appUI: AppUI, username: string
     const WIDTH = sampleVideo.width;
     const HEIGHT = sampleVideo.height;
 
+    let canvasTexture: null = null;
     function draw() {
-        canvasCtx.clearRect(-1, -1, WIDTH + 2, HEIGHT + 2);
-        analyser.getByteTimeDomainData(dataArray);
-        // Fill solid color
-        canvasCtx.fillStyle = sampleVideoColor;
-        canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-        // Begin the path
-        canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = "rgb(255,113,0)";
-        canvasCtx.beginPath();
-        // Draw each point in the waveform
-        const sliceWidth = WIDTH / bufferLength;
-        let x = 0;
-        for (let i = 0; i < bufferLength; i++) {
-            const v = dataArray[i]! / 128.0;
-            const y = v * (HEIGHT / 2);
-
-            if (i === 0) {
-                canvasCtx.moveTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
-            } else {
-                canvasCtx.lineTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
-            }
-
-            x += sliceWidth;
-        }
-
-        // Finish the line
-        canvasCtx.lineTo(WIDTH, HEIGHT / 2);
-        canvasCtx.stroke();
+        DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, sampleVideoColor, strokeColor, bufferLength, canvasTexture);
         requestAnimationFrame(draw);
     }
 
-    function updateAudioPosition(timeDelta: DOMHighResTimeStamp, panNode: PannerNode, id: string) {
-        let peerChar = document.getElementById("remotePlayerCharacter-" + id);
-        let localChar = document.getElementById("playerCharacter");
-        if (!localChar || !peerChar) {
-            console.log("no peer char or local char");
-            return
-        }
-        let lCPositions = {
-            x: parseFloat(localChar.style.left) / 100 * window.innerWidth,
-            y: parseFloat(localChar.style.top) / 100 * window.innerHeight
-        };
-        let pCPositions = {
-            x: parseFloat(peerChar.style.left) / 100 * window.innerWidth,
-            y: parseFloat(peerChar.style.top) / 100 * window.innerHeight
-        };
-
-        panNode.positionX.setValueAtTime((pCPositions.x - lCPositions.x) / 100, 0);
-        panNode.positionZ.setValueAtTime((pCPositions.y - lCPositions.y) / 100, 0);
-
-        console.log("x: " + (pCPositions.x - lCPositions.x) / 100 + " y: " + (pCPositions.y - lCPositions.y) / 100);
+    function updateAudioPosition(delta: DOMHighResTimeStamp, panner: PannerNode, id: string) {
+        UpdatePannerNodeFromHtml(delta, panner, id);
         requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
     }
 

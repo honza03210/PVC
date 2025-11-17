@@ -1,6 +1,7 @@
 import {PeerConnection} from "./peer-connection.js";
 import {UIManager} from "./ui-manager";
 import {connectPositions} from "./ws-connect";
+import {BindStreamAnimation, DrawSoundVisualization} from "./visualization";
 
 document.addEventListener("DOMContentLoaded", async (): Promise<void> => {
     UIManager.Initialize();
@@ -24,55 +25,7 @@ async function startup() {
             audio: true,
         })
         .then(stream => {
-            var microphone = audioCtx.createMediaStreamSource(stream);
-            var analyser = audioCtx.createAnalyser();
-            microphone.connect(analyser);
-            analyser.fftSize = 512;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            requestAnimationFrame(draw);
-            if (UIManager.appUI.localAudio) {
-                UIManager.appUI.localAudio.muted = true;
-            }
-            let canvasCtx = UIManager.appUI.localVideo.getContext("2d")!;
-            UIManager.appUI.localVideo.width = 200;
-            UIManager.appUI.localVideo.height = 100;
-            UIManager.appUI.localVideo.style.margin = "50px";
-            const WIDTH = UIManager.appUI.localVideo.width;
-            const HEIGHT = UIManager.appUI.localVideo.height;
-
-            function draw() {
-                requestAnimationFrame(draw);
-                canvasCtx.clearRect(-1, -1, WIDTH + 2, HEIGHT + 2);
-                analyser.getByteTimeDomainData(dataArray);
-                // Fill solid color
-                // canvasCtx.fillStyle = "rgba(0 0 0 0.1)";
-                //
-                // canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-                // Begin the path
-                canvasCtx.lineWidth = 2;
-                canvasCtx.strokeStyle = "rgb(200 200 200)";
-                canvasCtx.beginPath();
-                // Draw each point in the waveform
-                const sliceWidth = WIDTH / bufferLength;
-                let x = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                    const v = dataArray[i]! / 128.0;
-                    const y = v * (HEIGHT / 2);
-
-                    if (i === 0) {
-                        canvasCtx.moveTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
-                    } else {
-                        canvasCtx.lineTo(Math.min(Math.max(x, 0), WIDTH - 1), Math.min(Math.max(y, 0), HEIGHT - 1));
-                    }
-
-                    x += sliceWidth;
-                }
-
-                // Finish the line
-                canvasCtx.lineTo(WIDTH, HEIGHT / 2);
-                canvasCtx.stroke();
-            }
+            BindStreamAnimation(stream, audioCtx);
         });
 
     const joinButton = UIManager.CreateJoinButton(peerConnections, positionsSocket);

@@ -1,6 +1,7 @@
 import {Signalling} from "./signalling";
-import {AddCharacter, HandleNewReceivedStream} from "./p2p";
+import {HandleNewReceivedStream} from "./p2p";
 import {UIManager} from "./ui-manager";
+import {AddCharacter} from "./visualization";
 
 export class PeerConnection extends RTCPeerConnection {
     async CreateOffer(signalling: Signalling, destID: string) {
