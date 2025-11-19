@@ -29,7 +29,10 @@
 
     <tr>
             <td>
-
+                <div id="audio-menu" class="menu menu-padding center-div flex-column">
+                    <canvas id="localVideo"></canvas>
+                    <audio id="localAudio" autoplay muted></audio>
+                </div>
             </td>
             <td>
                 <div id="main-menu" class="menu menu-padding center-div flex-column">
@@ -40,7 +43,13 @@
                     <input type="checkbox" id="manualPositions" name="manualPositions" class="checkbox"/>
                     <label for="distanceFalloff">Distance Falloff:</label>
                     <input type="number" id="distanceFalloff" name="distanceFalloff" min="0" max="8000" value="10"/>
+                    <button id="3DInitButton" class="menu-button hidden">3D View</button>
+                    <button id="initButton" class="menu-button hidden">Initialize</button>
+                    <button id="joinRoomButton" class="menu-button hidden">Join</button>
+                    <button id="leaveRoomButton" class="menu-button hidden">Leave</button>
                 </div>
+                <div id="videoContainer" class="center-div flex-row" style="width: 100%"></div>
+
             </td>
             <td>
                 <div id="rooms-list-menu" class="menu menu-padding flex-column fill-height">
@@ -62,10 +71,6 @@
     </table>
 
 
-    <div id="videoContainer" class="center-div flex-row" style="width: 100%">
-        <canvas id="localVideo"></canvas>
-        <audio id="localAudio" autoplay muted></audio>
-    </div>
     <div id="errorMsg"></div>
 </div>
 </body>

@@ -68,10 +68,12 @@ export async function InitPC(signalling: Signalling, id: string, peerConnections
         const remoteAudio: HTMLAudioElement = document.createElement("audio");
 
         remoteVideo.id = "remoteVideo-" + id;
+        remoteVideo.classList.add("roomBound");
         remoteAudio.id = "remoteAudio-" + id;
 
         remoteAudio.autoplay = true;
         remoteAudio.muted = false;
+        remoteAudio.classList.add("roomBound");
 
         if (UIManager.appUI.videoContainer) {
             UIManager.appUI.videoContainer.appendChild(remoteAudio);

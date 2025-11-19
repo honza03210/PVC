@@ -11,9 +11,10 @@ export function InitPlayerCharacter() {
     }
 }
 
-export function BindStreamAnimation(stream: MediaStream, audioCtx: AudioContext) {
-    var microphone = audioCtx.createMediaStreamSource(stream);
-    var analyser = audioCtx.createAnalyser();
+export function BindStreamAnimation(stream: MediaStream) {
+    let audioCtx = UIManager.appUI.audioCtx;
+    let microphone = audioCtx.createMediaStreamSource(stream);
+    let analyser = audioCtx.createAnalyser();
     microphone.connect(analyser);
     analyser.fftSize = 256;
     const bufferLength = analyser.frequencyBinCount;
@@ -22,8 +23,8 @@ export function BindStreamAnimation(stream: MediaStream, audioCtx: AudioContext)
         UIManager.appUI.localAudio.muted = true;
     }
     let canvasCtx = UIManager.appUI.localVideo.getContext("2d")!;
-    UIManager.appUI.localVideo.width = 200;
-    UIManager.appUI.localVideo.height = 100;
+    UIManager.appUI.localVideo.width = 256;
+    UIManager.appUI.localVideo.height = 128;
     UIManager.appUI.localVideo.style.margin = "50px";
     const WIDTH = UIManager.appUI.localVideo.width;
     const HEIGHT = UIManager.appUI.localVideo.height;
@@ -77,6 +78,7 @@ export function Init2DPlayerCharacter(){
     clientCharacterContainer.style.top = "75%";
     clientCharacterContainer.style.left = "50%";
     clientCharacterContainer.id = "playerCharacter";
+    clientCharacterContainer.classList.add("roomBound");
 
     let nameLabel = document.createElement("div");
     nameLabel.textContent = UIManager.appUI.nameInput.value;
@@ -109,12 +111,14 @@ export function AddCharacter(id: string, username: string) {
     if (document.getElementById("aFrameScene")?.style.display != "none") {
         let playerBox = document.createElement("a-sphere");
         playerBox.setAttribute("id", "player-" + id);
+        playerBox.classList.add("roomBound");
         playerBox.setAttribute("position", {x: 0, y: Math.random() * 100 % 5, z: -2})
         playerBox.setAttribute('color', StringToColor(id));
         let scene = document.getElementById("aFrameScene");
         scene?.append(playerBox);
     } else {
         let peerCharacterContainer = document.createElement("div");
+        peerCharacterContainer.classList.add("roomBound");
         peerCharacterContainer.style.position = "absolute";
         peerCharacterContainer.style.zIndex = "2";
         peerCharacterContainer.style.top = "50%";

@@ -20,6 +20,7 @@ export async function AddSamplePlayer(id: string, username: string) {
     sourceNode.start();
 
     const sampleVideo = document.createElement("canvas");
+    sampleVideo.classList.add("roomBound");
     sampleVideo.width = 256;
     sampleVideo.height = 128;
     sampleVideo.style.margin = "50px";
@@ -37,6 +38,7 @@ export async function AddSamplePlayer(id: string, username: string) {
     sampleCharacterContainer.style.top = "50%";
     sampleCharacterContainer.style.left = "50%";
     sampleCharacterContainer.id = "remotePlayerCharacter-" + id;
+    sampleCharacterContainer.classList.add("roomBound");
 
     let nameLabel = document.createElement("div");
     nameLabel.textContent = username;
@@ -89,7 +91,7 @@ export async function AddSamplePlayer(id: string, username: string) {
     }
 
     let cancelButton = document.createElement("button");
-    cancelButton.classList.add("menu-button");
+    cancelButton.classList.add("menu-button", "roomBound");
     cancelButton.textContent = "Cancel the Sample";
     cancelButton.addEventListener("click", async () => {
         sourceNode.stop();

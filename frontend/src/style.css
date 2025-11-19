@@ -85,6 +85,9 @@ input:checked{
   width: 33%;
   vertical-align: top;
 }
+.hidden{
+  display: none;
+}
 .center-text{
   text-align: center;
 }
@@ -93,6 +96,7 @@ input:checked{
   font-size: 2vh;
 }
 #main-menu-table{
+  margin-top: 1vh;
   width: 100%;
   border-collapse: collapse;
 }
@@ -125,4 +129,8 @@ input:checked{
   border-radius: 2vw;
   width: 5vh;
   height: 5vh;
+}
+#audio-menu{
+  width: fit-content;
+  margin: 0;
 }

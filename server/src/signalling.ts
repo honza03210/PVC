@@ -85,6 +85,7 @@ export function signalling(server : any) {
             // socket.broadcast.to(socket.data.roomId).emit("room_users", { id: socket.id, users: users.join(", ")});
             console.log("[joined] room:" + roomId + " name: " + data.name);
             usernames[socket.id] = data.name;
+            socket.emit("roomConnected", { selfID: socket.id, roomID: roomId });
             socket.broadcast.to(socket.data.roomId).emit("PeerJoined", { id: socket.id, username: data.name });
             await sendUserCredentials(socket, data.name);
             setTimeout(() =>{ listUserIDs(socket, socket.data.roomId) }, 5000)
@@ -114,31 +115,41 @@ export function signalling(server : any) {
             io.to(payload.dest).emit("getCandidate", {id: socket.id, candidate: payload});
             console.log("candidate from " + socket.id + payload.candidate);
         });
+        socket.on("roomLeave", () => {
+            socket.leave(socket.rooms.values().next().value!);
+            handleUserRoomDisconnected(socket);
+        });
         socket.on("disconnect", () => {
-            delete usernames[socket.id];
-            if (socket.data.roomId === undefined) {
-                console.error("User not present in any room");
-                return;
-            }
-            console.log("user left roomId: " + socket.data.roomId);
-            let room = rooms[socket.data.roomId];
-            if (room) {
-                delete rooms[socket.data.roomId]![socket.id];
-                // TODO - this doesn't delete empty rooms
-                if (Object.keys(rooms[socket.data.roomId]!).length === 0) {
-                    delete rooms[socket.data.roomId];
-                    console.log(socket.data.roomId + "deleted");
-                    return;
-                }
-            }
-            if (typeof room === "undefined") {
-                return;
-            }
-            console.log("userDisconnected broadcast")
-            socket.broadcast.to(Object.keys(rooms[socket.data.roomId]!)).emit("userDisconnected", {id: socket.id});
-            console.log(`[${socket.data.roomId}]: ${socket.id} exit`);
+            socket.leave(socket.rooms.values().next().value!);
+            handleUserRoomDisconnected(socket);
         });
     });
+
+    function handleUserRoomDisconnected(socket: any) {
+        delete usernames[socket.id];
+
+        if (socket.data.roomId === undefined) {
+            console.error("User not present in any room");
+            return;
+        }
+        console.log("user left roomId: " + socket.data.roomId);
+        let room = rooms[socket.data.roomId];
+        if (room) {
+            delete rooms[socket.data.roomId]![socket.id];
+            // TODO - this doesn't delete empty rooms
+            if (Object.keys(rooms[socket.data.roomId]!).length === 0) {
+                delete rooms[socket.data.roomId];
+                console.log(socket.data.roomId + "deleted");
+                return;
+            }
+        }
+        if (typeof room === "undefined") {
+            return;
+        }
+        console.log("userDisconnected broadcast")
+        socket.broadcast.to(Object.keys(rooms[socket.data.roomId]!)).emit("userDisconnected", {id: socket.id});
+        console.log(`[${socket.data.roomId}]: ${socket.id} exit`);
+    }
 
     function listUserIDs(socket: any, roomID: string) {
         try {

@@ -6,6 +6,19 @@ import {UIManager} from "./ui-manager";
 export class Signalling{
     IceServers: RTCIceServer[];
     communicator: Socket | MessagePort;
+    IceCandidateQueue: {
+        [p: string]: {
+            popped: boolean
+            queue: {
+                candidate: RTCIceCandidate
+                sdpMid: string
+                sdpMLineIndex: number
+            }[]
+        }
+    } | null = null;
+    peerConnections: {[key: string] : PeerConnection} | null = null;
+    positionsSocket: WebSocket | null = null;
+
 
     constructor(communicator: Socket | MessagePort) {
         this.communicator = communicator;
@@ -34,30 +47,37 @@ export class Signalling{
                 },
                 peerConnections: {[key: string] : PeerConnection},
                 positionsSocket: WebSocket | null) {
+        this.IceCandidateQueue = IceCandidateQueue;
+        this.positionsSocket = positionsSocket;
+        this.peerConnections = peerConnections;
+
         if ("onAny" in this.communicator){
+            this.communicator.offAny();
             this.communicator.onAny(async (ev, ...args) => {
-                await this.HandleSignallingEvent(ev.toString(), args[0], IceCandidateQueue, peerConnections, positionsSocket);
+                await this.HandleSignallingEvent(ev.toString(), args[0]);
             })
         } else if ("addEventListener" in this.communicator){
-            this.communicator.addEventListener("message", async (event) => {
-                await this.HandleSignallingEvent(event.data.type, event.data, IceCandidateQueue, peerConnections, positionsSocket);
-            });
+            this.communicator.removeEventListener("message", this.onMessageHandler);
+            this.communicator.addEventListener("message", this.onMessageHandler);
         }
+    }
+
+    onMessageHandler = async (event : any) => {
+        await this.HandleSignallingEvent(event.data.type, event.data);
+    }
+
+    Close(){
+        this.communicator.close();
+        console.log("signalling closed");
     }
 
 
     async HandleSignallingEvent(eventName: string,
-                                eventData: any,
-                                IceCandidateQueue: {
-                                    [key: string]: {
-                                        popped: boolean,
-                                        queue: { candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]
-                                    }
-                                },
-                                peerConnections: {
-                                        [key: string]: PeerConnection
-                                    },
-                                positionsSocket: WebSocket | null) {
+                                eventData: any) {
+        if (this.peerConnections == null || this.IceCandidateQueue == null) {
+            console.error("Skipping signalling event handling: ", this.peerConnections, this.IceCandidateQueue);
+            return;
+        }
         switch (eventName) {
             case "connect":
                 console.log('Hello, successfully connected to the signaling server!');
@@ -66,9 +86,14 @@ export class Signalling{
                 });
                 this.Send({type: "listRooms", payload: {}});
                 break;
+            case "roomConnected":
+                UIManager.inRoom = true;
+                UIManager.EnableDisconnectButton(this);
+                console.log("Successfully connected to room " + eventData.roomID)
+                break;
             case "userDisconnected":
                 this.Send({type: "listRooms", payload: {}});
-                await HandleUserDisconnect(eventData.id, peerConnections);
+                await HandleUserDisconnect(eventData.id, this.peerConnections);
                 console.log("disconnect:" + eventData);
                 break;
             case "error":
@@ -76,7 +101,7 @@ export class Signalling{
                 UIManager.appUI.errorMsgLabel.innerHTML = "Error" + eventData.message;
                 break;
             case "listRooms":
-                console.log("RoomsList: ", eventData);
+                console.log("listRooms: ", eventData);
                 document.getElementById("rooms-list")?.replaceChildren(...eventData.roomsList.map(
                     (room: {roomID : string, numberOfUsers: number}) => {
                         let div = document.createElement("div");
@@ -99,21 +124,21 @@ export class Signalling{
                 if (!eventData.candidate.candidate) {
                     return;
                 }
-                if (IceCandidateQueue[eventData.id] && IceCandidateQueue[eventData.id]!.popped) {
+                if (this.IceCandidateQueue[eventData.id] && this.IceCandidateQueue[eventData.id]!.popped) {
                     console.log("getCandidate", eventData.candidate.candidate);
-                    if (peerConnections[eventData.id]!.connectionState == "connected") {
+                    if (this.peerConnections[eventData.id]!.connectionState == "connected") {
                         console.log("getCandidate ignored - connected");
                         return;
                     }
                     if (eventData.candidate.candidate == "") return;
-                    peerConnections[eventData.id]!.addIceCandidate(new RTCIceCandidate(eventData.candidate.candidate)).then(() => {
+                    this.peerConnections[eventData.id]!.addIceCandidate(new RTCIceCandidate(eventData.candidate.candidate)).then(() => {
                         console.log("candidate add success");
                     });
                     return;
-                } else if (!IceCandidateQueue[eventData.id]) {
-                    IceCandidateQueue[eventData.id] = {popped: false, queue: []};
+                } else if (!this.IceCandidateQueue[eventData.id]) {
+                    this.IceCandidateQueue[eventData.id] = {popped: false, queue: []};
                 }
-                IceCandidateQueue[eventData.id]!.queue.push(eventData.candidate);
+                this.IceCandidateQueue[eventData.id]!.queue.push(eventData.candidate);
                 console.log("getCandidate -- pushed to queue: ", eventData.candidate);
                 break;
             case "listUsers":
@@ -122,45 +147,45 @@ export class Signalling{
                 break;
             case "getAnswerAck":
                 console.log("getAnswerAck");
-                if (IceCandidateQueue[eventData.id] == undefined) {
-                    IceCandidateQueue[eventData.id] = {popped: true, queue: []};
+                if (this.IceCandidateQueue[eventData.id] == undefined) {
+                    this.IceCandidateQueue[eventData.id] = {popped: true, queue: []};
                     console.log("undefined queue");
                     return;
                 }
-                await useQueuedCandidates(peerConnections, IceCandidateQueue, eventData.id)
-                IceCandidateQueue[eventData.id]!.popped = true;
+                await useQueuedCandidates(this.peerConnections, this.IceCandidateQueue, eventData.id)
+                this.IceCandidateQueue[eventData.id]!.popped = true;
                 break;
             case "getOffer":
                 console.log("get offer:" + eventData.sdp);
-                await InitPC(this, eventData.id, peerConnections, positionsSocket, false, eventData.username);
-                await peerConnections[eventData.id].CreateAnswer(this, eventData.sdp, eventData.id);
+                await InitPC(this, eventData.id, this.peerConnections, this.positionsSocket, false, eventData.username);
+                await this.peerConnections[eventData.id].CreateAnswer(this, eventData.sdp, eventData.id);
                 break;
             case "getAnswer":
                 console.log("get answer:" + eventData.sdp);
-                if (!peerConnections[eventData.id]!.remoteDescription || !peerConnections[eventData.id]!.remoteDescription!.type) {
+                if (!this.peerConnections[eventData.id]!.remoteDescription || !this.peerConnections[eventData.id]!.remoteDescription!.type) {
                     console.log("setting remote desc after getting an answer");
-                    await peerConnections[eventData.id]!.setRemoteDescription(eventData.sdp);
+                    await this.peerConnections[eventData.id]!.setRemoteDescription(eventData.sdp);
                 }
                 console.log("answerAck sent")
                 this.Send({payload: {dest: eventData.id}, type: "answerAck"});
-                if (!IceCandidateQueue[eventData.id]) {
+                if (!this.IceCandidateQueue[eventData.id]) {
                     console.log("NO QUEUE TO POP");
-                    IceCandidateQueue[eventData.id] = {popped: true, queue: []};
+                    this.IceCandidateQueue[eventData.id] = {popped: true, queue: []};
                     return;
                 }
                 console.log("getAnswerAck");
-                await useQueuedCandidates(peerConnections, IceCandidateQueue, eventData.id)
+                await useQueuedCandidates(this.peerConnections, this.IceCandidateQueue, eventData.id)
                 break;
             case "PeerJoined":
                 this.Send({type: "listRooms", payload: {}});
                 console.log("Peer joined: " + eventData.id);
-                if (peerConnections[eventData.id]) {
+                if (this.peerConnections[eventData.id]) {
                     console.log("peer already connected");
                     return;
                 }
 
-                await InitPC(this, eventData.id, peerConnections, positionsSocket, true, eventData.username);
-                await peerConnections[eventData.id].CreateOffer(this, eventData.id);
+                await InitPC(this, eventData.id, this.peerConnections, this.positionsSocket, true, eventData.username);
+                await this.peerConnections[eventData.id].CreateOffer(this, eventData.id);
                 break;
             case "userCredentials":
                 console.log("userCredentials received: ", eventData);

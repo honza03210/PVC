@@ -6,7 +6,7 @@ import {UIManager} from "./ui-manager";
 import 'aframe';
 import {DrawSoundVisualization, InitPlayerCharacter, StringToColor} from "./visualization";
 
-export function RoomJoin(isMobile: boolean, peerConnections: {
+export function RoomJoin(signalling: Signalling, peerConnections: {
     [key: string]: PeerConnection
 }, positionsSocket: WebSocket | null) {
     console.log("roomJoin");
@@ -19,23 +19,6 @@ export function RoomJoin(isMobile: boolean, peerConnections: {
             queue: { candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]
         }
     } = {};
-
-    let comm;
-
-    if (isMobile) {
-        comm = io(ServerConfig.url, {
-            transports: ['websocket', 'polling'],
-            withCredentials: true,
-        });
-    } else {
-        const worker = new SharedWorker(new URL('/src/shared-signalling-worker.ts', import.meta.url), {type: "module"});
-        console.log("worker " + worker);
-        comm = worker.port;
-
-        comm.start();
-        console.log("port " + comm + " ; ");
-    }
-    let signalling: Signalling = new Signalling(comm);
 
     signalling.BindEvents(IceCandidateQueue, peerConnections, positionsSocket);
 
@@ -109,11 +92,14 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     requestAnimationFrame(draw);
     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
 
+
     const boxEl = document.getElementById('player-' + id);
-    // @ts-ignore
-    boxEl!.getObject3D('mesh').material.map = canvasTexture;
-    // @ts-ignore
-    boxEl!.getObject3D('mesh').material.needsUpdate = true;
+    if (boxEl !== null) {
+        // @ts-ignore
+        boxEl!.getObject3D('mesh').material.map = canvasTexture;
+        // @ts-ignore
+        boxEl!.getObject3D('mesh').material.needsUpdate = true;
+    }
 }
 
 export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : PannerNode, id: string) {
