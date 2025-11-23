@@ -2,6 +2,7 @@ import {Socket} from "socket.io-client";
 import {InitPC, PeerConnection} from "./peer-connection";
 import {HandleUserDisconnect, useQueuedCandidates} from "./p2p";
 import {UIManager} from "./ui-manager";
+import {ClientPositions} from "./client-positions";
 
 export class Signalling{
     IceServers: RTCIceServer[];
@@ -17,7 +18,7 @@ export class Signalling{
         }
     } | null = null;
     peerConnections: {[key: string] : PeerConnection} | null = null;
-    positionsSocket: WebSocket | null = null;
+    positionsSocket: ClientPositions | null = null;
 
 
     constructor(communicator: Socket | MessagePort) {
@@ -36,17 +37,10 @@ export class Signalling{
     }
 
     BindEvents(IceCandidateQueue: {
-                    [p: string]: {
-                        popped: boolean
-                        queue: {
-                            candidate: RTCIceCandidate
-                            sdpMid: string
-                            sdpMLineIndex: number
-                        }[]
-                    }
-                },
-                peerConnections: {[key: string] : PeerConnection},
-                positionsSocket: WebSocket | null) {
+                   [p: string]: { popped: boolean; queue: { candidate: RTCIceCandidate; sdpMid: string; sdpMLineIndex: number }[] }
+               },
+               peerConnections: { [p: string]: PeerConnection },
+               positionsSocket: ClientPositions) {
         this.IceCandidateQueue = IceCandidateQueue;
         this.positionsSocket = positionsSocket;
         this.peerConnections = peerConnections;
@@ -62,7 +56,7 @@ export class Signalling{
         }
     }
 
-    onMessageHandler = async (event : any) => {
+    private onMessageHandler = async (event : any) => {
         await this.HandleSignallingEvent(event.data.type, event.data);
     }
 
@@ -78,11 +72,13 @@ export class Signalling{
             console.error("Skipping signalling event handling: ", this.peerConnections, this.IceCandidateQueue);
             return;
         }
+        console.log("EventName: ", eventName);
         switch (eventName) {
-            case "connect":
+            case "connected":
                 console.log('Hello, successfully connected to the signaling server!');
                 document.getElementById("rooms-refresh")?.addEventListener("click", () => {
                    this.Send({type: "listRooms", payload: {}});
+                   console.log("listRooms sent");
                 });
                 this.Send({type: "listRooms", payload: {}});
                 break;
@@ -142,7 +138,6 @@ export class Signalling{
                 console.log("getCandidate -- pushed to queue: ", eventData.candidate);
                 break;
             case "listUsers":
-                this.Send({type: "listRooms", payload: {}});
                 console.log("listUsers: ", eventData);
                 break;
             case "getAnswerAck":
@@ -157,7 +152,7 @@ export class Signalling{
                 break;
             case "getOffer":
                 console.log("get offer:" + eventData.sdp);
-                await InitPC(this, eventData.id, this.peerConnections, this.positionsSocket, false, eventData.username);
+                await InitPC(this, eventData.id, this.peerConnections, this.positionsSocket!, false, eventData.username);
                 await this.peerConnections[eventData.id].CreateAnswer(this, eventData.sdp, eventData.id);
                 break;
             case "getAnswer":
@@ -184,7 +179,7 @@ export class Signalling{
                     return;
                 }
 
-                await InitPC(this, eventData.id, this.peerConnections, this.positionsSocket, true, eventData.username);
+                await InitPC(this, eventData.id, this.peerConnections, this.positionsSocket!, true, eventData.username);
                 await this.peerConnections[eventData.id].CreateOffer(this, eventData.id);
                 break;
             case "userCredentials":

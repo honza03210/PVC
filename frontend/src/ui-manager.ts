@@ -7,6 +7,7 @@ import {io} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
 import {Signalling} from "./signalling";
 import {Startup} from "./main";
+import {ClientPositions} from "./client-positions";
 
 export class UIManager {
     static appUI: AppUI;
@@ -41,9 +42,7 @@ export class UIManager {
         }
     }
 
-    static EnableInitButton(peerConnections: {
-    [key: string]: PeerConnection
-}, positionsSocket: WebSocket | null) {
+    static EnableInitButton(peerConnections: { [p: string]: PeerConnection }, positionsSocket: ClientPositions) {
         // let initButton = document.createElement("button");
         // initButton.innerText = "Initialize"
         // initButton.classList.add("menu-button");
@@ -91,9 +90,7 @@ export class UIManager {
         initButton.style.display = "block";
     }
 
-    static EnableJoinButton(peerConnections: {
-        [key: string]: PeerConnection
-    }, positionsSocket: WebSocket | null,
+    static EnableJoinButton(peerConnections: { [p: string]: PeerConnection }, positionsSocket: ClientPositions,
                             signalling: Signalling) {
         let joinButton = document.getElementById("joinRoomButton") as HTMLButtonElement;
 
@@ -132,7 +129,7 @@ export class UIManager {
         document.getElementById("sampleSoundButton")!.remove();
     }
 
-    static Enable3DInitButton(positionsSocket: WebSocket | null) {
+    static Enable3DInitButton(positionsSocket: ClientPositions | null) {
         let button = document.getElementById("3DInitButton") as HTMLButtonElement;
         button.addEventListener("click", () => Init3D(positionsSocket));
         button.style.display = "block";

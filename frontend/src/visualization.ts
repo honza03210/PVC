@@ -2,6 +2,7 @@ import {DragElement} from "./draggable";
 import {UIManager} from "./ui-manager";
 import {PlayerMovementInit} from "./player-char-movement";
 import "aframe";
+import {ClientPositions} from "./client-positions";
 
 export function InitPlayerCharacter() {
     if (document.getElementById("aFrameScene")?.style.display == "none") {
@@ -39,7 +40,10 @@ export function BindStreamAnimation(stream: MediaStream) {
     requestAnimationFrame(draw);
 }
 
-export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoColor: string, remoteVideoStroke: string, bufferLength: number, canvasTexture: any) {
+export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoColor: string, remoteVideoStroke: string, bufferLength: number, canvasTexture: any) : boolean{
+    if (!CanvasRenderingContext2D) {
+        return false;
+    }
     canvasCtx.clearRect(-1, -1, WIDTH + 2, HEIGHT + 2);
     analyser.getByteTimeDomainData(dataArray);
     // Fill solid color
@@ -70,6 +74,7 @@ export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDT
     if (canvasTexture !== null){
         canvasTexture.needsUpdate = true;
     }
+    return true;
 }
 
 export function Init2DPlayerCharacter(){
@@ -148,7 +153,7 @@ export function AddCharacter(id: string, username: string) {
 }
 
 
-export function Init3D(wspositions: WebSocket | null) {
+export function Init3D(wspositions: ClientPositions | null) {
     let scene = document.getElementById("aFrameScene");
     if (scene) {
         scene.style.display = "block";

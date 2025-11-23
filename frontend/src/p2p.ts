@@ -5,10 +5,11 @@ import {Signalling} from "./signalling";
 import {UIManager} from "./ui-manager";
 import 'aframe';
 import {DrawSoundVisualization, InitPlayerCharacter, StringToColor} from "./visualization";
+import {ClientPositions} from "./client-positions";
 
 export function RoomJoin(signalling: Signalling, peerConnections: {
-    [key: string]: PeerConnection
-}, positionsSocket: WebSocket | null) {
+    [p: string]: PeerConnection
+}, positionsSocket: ClientPositions) {
     console.log("roomJoin");
 
     InitPlayerCharacter();
@@ -82,12 +83,14 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     const WIDTH = remoteVideo.width;
     const HEIGHT = remoteVideo.height;
     function draw() {
-        DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoColor, remoteVideoStroke, bufferLength, canvasTexture);
-        requestAnimationFrame(draw);
+        if (DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoColor, remoteVideoStroke, bufferLength, canvasTexture)){
+            requestAnimationFrame(draw);
+        }
     }
     function updateAudioPosition(delta: DOMHighResTimeStamp, panner: PannerNode, id: string) {
-        UpdatePannerNodeFromHtml(delta, panNode, id);
-        requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
+        if (UpdatePannerNodeFromHtml(delta, panNode, id)) {
+            requestAnimationFrame((time) => updateAudioPosition(time, panNode, id))
+        }
     }
     requestAnimationFrame(draw);
     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
@@ -102,7 +105,7 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     }
 }
 
-export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : PannerNode, id: string) {
+export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : PannerNode, id: string) : boolean{
     if (UIManager.Is3DOn()) {
         console.log()
     } else {
@@ -110,7 +113,7 @@ export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : P
         let localChar = document.getElementById("playerCharacter");
         if (!localChar || !remoteChar) {
             console.log("no peer char or local char");
-            return
+            return false;
         }
         let lCPositions = {
             x: parseFloat(localChar.style.left) / 100 * window.innerWidth,
@@ -126,6 +129,7 @@ export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : P
 
         console.log("x: " + (rCPositions.x - lCPositions.x) / 100 + " y: " + (rCPositions.y - lCPositions.y) / 100);
     }
+    return true;
 }
 
 export function SetPanNodeParams(panNode: PannerNode) {

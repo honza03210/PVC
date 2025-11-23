@@ -23,28 +23,32 @@ export function signalling(server : any) {
     // argon2 hashed
     let roomsPasswords: {[key: string]: string} = {};
 
-    function ListRooms(socket: any) : void {
-        socket.emit("listRooms", {
-            roomsList: Object.entries(rooms).map(([roomID, users]) =>
-                ({roomID, numberOfUsers: Object.keys(users).length}))
-        });
+    function ListRooms(socket: any, repeat: boolean) : void {
+        try {
+            socket.emit("listRooms", {
+                roomsList: Object.entries(rooms).map(([roomID, users]) =>
+                    ({roomID, numberOfUsers: Object.keys(users).length}))
+            });
+            if (repeat) {
+                setTimeout(() =>{ ListRooms(socket, true) }, 5000)
+                            }
+        } catch (err){
+            console.log("Error: ", err);
+        }
     }
 
     io.on("connection", socket => {
+        socket.emit("connected");
         console.log("new socket connected: " + socket.id);
+        ListRooms(socket, true);
+        console.log("Began list rooms loop");
         socket.on("listRooms", (data) => {
             console.log("LIST_ROOMS received", socket.id);
             console.log("listRooms: ", Object.entries(rooms).map(([roomID, users]) =>
                 ({roomID, numberOfUsers: Object.keys(users).length})));
-            // socket.emit("listRooms", { roomsList: Object.keys(rooms).join("\r\n") });
-            ListRooms(socket);
+            ListRooms(socket, false);
         });
 
-        // socket.on("ready", async data => {
-        //     console.log(socket.id + " ready")
-        //     const users = Object.values(rooms[socket.data.roomId]!);
-        //     socket.broadcast.to(socket.data.roomId).emit("PeerReady", { id: socket.id });
-        // });
         socket.on("join", async data => {
             console.log("got join from " + socket.id);
             if (socket.rooms.size > 1) {
@@ -89,12 +93,10 @@ export function signalling(server : any) {
             socket.broadcast.to(socket.data.roomId).emit("PeerJoined", { id: socket.id, username: data.name });
             await sendUserCredentials(socket, data.name);
             setTimeout(() =>{ listUserIDs(socket, socket.data.roomId) }, 5000)
-            ListRooms(socket);
         });
 
         socket.on("listRooms", (data) => {
             console.log("listRooms received");
-            ListRooms(socket);
         })
 
         socket.on("offer", (payload: {dest: string, sdp: any}) => {
@@ -136,7 +138,6 @@ export function signalling(server : any) {
         let room = rooms[socket.data.roomId];
         if (room) {
             delete rooms[socket.data.roomId]![socket.id];
-            // TODO - this doesn't delete empty rooms
             if (Object.keys(rooms[socket.data.roomId]!).length === 0) {
                 delete rooms[socket.data.roomId];
                 console.log(socket.data.roomId + "deleted");
