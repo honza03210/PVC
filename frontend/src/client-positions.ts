@@ -1,14 +1,18 @@
-/**
- * Connects to specified websocket, binds onopen, onmessage, onclose, onerror
- * @param address websocket to connect
- */
-export class ClientPositions {
+export class Position {
     Positions: {x: number, y: number, z: number} = {x: 0, y: 0, z: 0};
     Rotation: {vertical: number, horizontal: number} = {vertical: 0, horizontal: 0};
     PositionFormat: string | null = null;
     RawPositions: string = "";
+}
+
+/**
+ * Connects to specified websocket, binds onopen, onmessage, onclose, onerror
+ * @param address websocket to connect
+ */
+export class ClientPositions extends Position{
     socket: WebSocket | null = null;
     constructor(address: string) {
+        super();
         this.socket = new WebSocket(address);
 
         this.socket.addEventListener("open", () => {

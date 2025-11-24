@@ -7,7 +7,7 @@ import {io} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
 import {Signalling} from "./signalling";
 import {Startup} from "./main";
-import {ClientPositions} from "./client-positions";
+import {ClientPositions, Position} from "./client-positions";
 
 export class UIManager {
     static appUI: AppUI;
@@ -42,7 +42,7 @@ export class UIManager {
         }
     }
 
-    static EnableInitButton(peerConnections: { [p: string]: PeerConnection }, positionsSocket: ClientPositions) {
+    static EnableInitButton(peerConnections: { [p: string]: PeerConnection }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
         // let initButton = document.createElement("button");
         // initButton.innerText = "Initialize"
         // initButton.classList.add("menu-button");
@@ -79,18 +79,18 @@ export class UIManager {
         }
         let signalling: Signalling = new Signalling(comm);
         signalling.Send({type: "listRooms", payload: {}});
-        signalling.BindEvents({}, peerConnections, positionsSocket);
+        signalling.BindEvents({}, peerConnections, {}, positionsSocket);
 
         if (!this.buttonsBound) {
             initButton.addEventListener('click', e => {
-                this.EnableJoinButton(peerConnections, positionsSocket, signalling);
+                this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signalling);
                 initButton.style.display = "none";
             })
         }
         initButton.style.display = "block";
     }
 
-    static EnableJoinButton(peerConnections: { [p: string]: PeerConnection }, positionsSocket: ClientPositions,
+    static EnableJoinButton(peerConnections: { [p: string]: PeerConnection }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions,
                             signalling: Signalling) {
         let joinButton = document.getElementById("joinRoomButton") as HTMLButtonElement;
 
@@ -101,7 +101,7 @@ export class UIManager {
                 // passwordDialogue.showModal();
                 joinButton.style.display = "none";
                 document.getElementById("3DInitButton")!.style.display = "none";
-                RoomJoin(signalling, peerConnections, positionsSocket);
+                RoomJoin(signalling, peerConnections, peerPositions, positionsSocket);
             });
         }
         joinButton.style.display = "block";

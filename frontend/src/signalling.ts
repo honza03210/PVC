@@ -2,7 +2,7 @@ import {Socket} from "socket.io-client";
 import {InitPC, PeerConnection} from "./peer-connection";
 import {HandleUserDisconnect, useQueuedCandidates} from "./p2p";
 import {UIManager} from "./ui-manager";
-import {ClientPositions} from "./client-positions";
+import {ClientPositions, Position} from "./client-positions";
 
 export class Signalling{
     IceServers: RTCIceServer[];
@@ -18,6 +18,7 @@ export class Signalling{
         }
     } | null = null;
     peerConnections: {[key: string] : PeerConnection} | null = null;
+    peerPositions: {[p: string]: Position} | null = null;
     positionsSocket: ClientPositions | null = null;
 
 
@@ -40,10 +41,13 @@ export class Signalling{
                    [p: string]: { popped: boolean; queue: { candidate: RTCIceCandidate; sdpMid: string; sdpMLineIndex: number }[] }
                },
                peerConnections: { [p: string]: PeerConnection },
+               peerPositions: {[p: string]: Position},
                positionsSocket: ClientPositions) {
         this.IceCandidateQueue = IceCandidateQueue;
         this.positionsSocket = positionsSocket;
         this.peerConnections = peerConnections;
+        this.peerPositions = peerPositions;
+
 
         if ("onAny" in this.communicator){
             this.communicator.offAny();
@@ -152,7 +156,7 @@ export class Signalling{
                 break;
             case "getOffer":
                 console.log("get offer:" + eventData.sdp);
-                await InitPC(this, eventData.id, this.peerConnections, this.positionsSocket!, false, eventData.username);
+                await InitPC(this, eventData.id, this.peerConnections, this.peerPositions!, this.positionsSocket!, false, eventData.username);
                 await this.peerConnections[eventData.id].CreateAnswer(this, eventData.sdp, eventData.id);
                 break;
             case "getAnswer":
@@ -179,7 +183,7 @@ export class Signalling{
                     return;
                 }
 
-                await InitPC(this, eventData.id, this.peerConnections, this.positionsSocket!, true, eventData.username);
+                await InitPC(this, eventData.id, this.peerConnections, this.peerPositions!, this.positionsSocket!, true, eventData.username);
                 await this.peerConnections[eventData.id].CreateOffer(this, eventData.id);
                 break;
             case "userCredentials":

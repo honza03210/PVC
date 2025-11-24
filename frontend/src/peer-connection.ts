@@ -2,7 +2,7 @@ import {Signalling} from "./signalling";
 import {HandleNewReceivedStream} from "./p2p";
 import {UIManager} from "./ui-manager";
 import {AddCharacter} from "./visualization";
-import {ClientPositions} from "./client-positions";
+import {ClientPositions, Position} from "./client-positions";
 
 export class PeerConnection extends RTCPeerConnection {
     async CreateOffer(signalling: Signalling, destID: string) {
@@ -41,7 +41,7 @@ export class PeerConnection extends RTCPeerConnection {
 
 export async function InitPC(signalling: Signalling, id: string, peerConnections: {
     [p: string]: PeerConnection
-}, positionsSocket: ClientPositions, offer: boolean, username: string) {
+}, peerPositions: {[p: string]: Position}, clientPositions: ClientPositions, offer: boolean, username: string) {
     if (id in peerConnections) {
         console.log("id already in peer connections")
         return;
@@ -89,11 +89,11 @@ export async function InitPC(signalling: Signalling, id: string, peerConnections
 
         if (offer) {
             let dc = peerConnection.createDataChannel("positions", {ordered: true});
-            BindDataChannel(dc, id, positionsSocket);
+            BindDataChannel(dc, id, clientPositions, peerPositions);
         } else {
             peerConnection.ondatachannel = (e) => {
                 let dc = e.channel;
-                BindDataChannel(dc, id, positionsSocket);
+                BindDataChannel(dc, id, clientPositions, peerPositions);
             };
         }
 
@@ -121,7 +121,7 @@ export async function InitPC(signalling: Signalling, id: string, peerConnections
 
 
         peerConnection.ontrack = async ev => {
-            HandleNewReceivedStream(ev.streams[0], remoteAudio, remoteVideo, id);
+            HandleNewReceivedStream(ev.streams[0], remoteAudio, remoteVideo, id, clientPositions, peerPositions[id]);
         };
     } catch (e) {
         console.log(e);
@@ -130,14 +130,18 @@ export async function InitPC(signalling: Signalling, id: string, peerConnections
     peerConnections[id] = peerConnection;
 }
 
-export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions : ClientPositions) {
+export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions : ClientPositions, peerPositions: {[p: string]: Position}) {
     dc.onopen = () => {
+        console.log("DataChannel open");
+        peerPositions[id] = new Position();
         function sendPos() {
             setTimeout(() => {
                 if (clientPositions.PositionFormat !== null){
-                    dc.send(clientPositions.RawPositions);
+                    console.log("Sending positions in a raw format")
+                    dc.send(clientPositions.PositionFormat + ";" + clientPositions.RawPositions);
                 }
                 else if (document.getElementById("aFrameScene")?.style.display == "none") {
+                    console.log("Sending positions in 2D format")
                     let char = document.getElementById("playerCharacter");
                     dc.send("2DDemo;" + new URLSearchParams({x: char!.style.left, y: char!.style.top}).toString());
                 } else {
@@ -154,19 +158,36 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
         if (UIManager.appUI.manualPositions.checked) return;
         let data = event.data.split(";");
         let format = data[0];
+        peerPositions[id].PositionFormat = format;
+        peerPositions[id].RawPositions = data.slice(1).join(";");
+        try {
+            peerPositions[id].Positions.x = parseFloat(data[1]);
+            peerPositions[id].Positions.y = parseFloat(data[2]);
+            peerPositions[id].Positions.z = parseFloat(data[3]);
+            peerPositions[id].Rotation.horizontal = parseFloat(data[4]);
+            peerPositions[id].Rotation.vertical = parseFloat(data[5]);
+        } catch (e) {
+            // not all positions sent
+            console.error(e);
+        }
+        console.log("Position object of the peer: ", peerPositions[id]);
+        console.log("Received positions from ", id, format, data);
         if (format == "2DDemo" || format == "3DDemo") {
+            let positionData = data.slice(1).join(";");
             if (document.getElementById("aFrameScene")?.style.display == "none") {
+                console.log("setting position in 2D");
                 let char = document.getElementById("remotePlayerCharacter-" + id);
-                let data = Object.fromEntries(new URLSearchParams(event.data));
-                char!.style.top = data.top!;
-                char!.style.left = data.left!;
+                let data = Object.fromEntries(new URLSearchParams(positionData));
+                char!.style.top = data.y!;
+                char!.style.left = data.x!;
             } else {
+                console.log("setting position in 3D");
                 let char: any = document.getElementById("player-" + id);
-                console.log("Got 3D object position", event.data);
-                char.setAttribute("position", event.data);
+                console.log("Got 3D object position", positionData);
+                char.setAttribute("position", positionData);
             }
         } else {
-            console.log(`Received position in format: ${format}, data: ${data.slice(1, data.length).join(";")}`);
+            console.log(`Received position in format: ${format}, data: ${data.slice(1).join(";")}`);
         }
     }
 }

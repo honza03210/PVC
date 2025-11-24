@@ -5,11 +5,11 @@ import {Signalling} from "./signalling";
 import {UIManager} from "./ui-manager";
 import 'aframe';
 import {DrawSoundVisualization, InitPlayerCharacter, StringToColor} from "./visualization";
-import {ClientPositions} from "./client-positions";
+import {ClientPositions, Position} from "./client-positions";
 
 export function RoomJoin(signalling: Signalling, peerConnections: {
     [p: string]: PeerConnection
-}, positionsSocket: ClientPositions) {
+}, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
     console.log("roomJoin");
 
     InitPlayerCharacter();
@@ -21,7 +21,7 @@ export function RoomJoin(signalling: Signalling, peerConnections: {
         }
     } = {};
 
-    signalling.BindEvents(IceCandidateQueue, peerConnections, positionsSocket);
+    signalling.BindEvents(IceCandidateQueue, peerConnections, peerPositions, positionsSocket);
 
     signalling.Send({
         payload: {
@@ -35,7 +35,7 @@ export function RoomJoin(signalling: Signalling, peerConnections: {
     document.getElementById("main-menu")?.appendChild(sampleSoundButton);
 }
 
-export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, id: string) {
+export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, id: string, clientPositions: ClientPositions, peerPosition: Position) {
     if (remoteAudio) {
         remoteAudio.muted = true;
         remoteAudio.srcObject = stream;
@@ -88,7 +88,7 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
         }
     }
     function updateAudioPosition(delta: DOMHighResTimeStamp, panner: PannerNode, id: string) {
-        if (UpdatePannerNodeFromHtml(delta, panNode, id)) {
+        if (UpdatePannerNodeFromHtml(delta, panNode, id, clientPositions, peerPosition)) {
             requestAnimationFrame((time) => updateAudioPosition(time, panNode, id))
         }
     }
@@ -105,7 +105,9 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     }
 }
 
-export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : PannerNode, id: string) : boolean{
+export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : PannerNode, id: string, clientPosition : ClientPositions, peerPosition: Position) : boolean{
+    // TODO: Move all of this logic into the client and peer Positions - no need to have an intermediary in HTML elements
+    // ******************
     if (UIManager.Is3DOn()) {
         console.log()
     } else {
@@ -129,6 +131,7 @@ export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : P
 
         console.log("x: " + (rCPositions.x - lCPositions.x) / 100 + " y: " + (rCPositions.y - lCPositions.y) / 100);
     }
+    // ********************
     return true;
 }
 
