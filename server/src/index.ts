@@ -12,11 +12,15 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
-app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+app.get('/overlay/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dist/overlay.html'));
 });
+app.get('/game/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dist/game.html'));
+});
+
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
 const server = app.listen(3001, "0.0.0.0", () => {
     console.log('server is running on http://localhost:3001')
