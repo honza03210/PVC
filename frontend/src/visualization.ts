@@ -5,11 +5,7 @@ import "aframe";
 import {ClientPositions} from "./client-positions";
 
 export function InitPlayerCharacter() {
-    if (document.getElementById("aFrameScene")?.style.display == "none") {
-        Init2DPlayerCharacter();
-    } else {
-        //AddCharacter("USER", "You", UIManager.UIManager.appUI);
-    }
+    Init2DPlayerCharacter();
 }
 
 export function BindStreamAnimation(stream: MediaStream) {
@@ -113,53 +109,33 @@ export function Init2DPlayerCharacter(){
 
 export function AddCharacter(id: string, username: string) {
     console.log("Adding char for id: ", id);
-    if (document.getElementById("aFrameScene")?.style.display != "none") {
-        let playerBox = document.createElement("a-sphere");
-        playerBox.setAttribute("id", "player-" + id);
-        playerBox.classList.add("roomBound");
-        playerBox.setAttribute("position", {x: 0, y: Math.random() * 100 % 5, z: -2})
-        playerBox.setAttribute('color', StringToColor(id));
-        let scene = document.getElementById("aFrameScene");
-        scene?.append(playerBox);
-    } else {
-        let peerCharacterContainer = document.createElement("div");
-        peerCharacterContainer.classList.add("roomBound");
-        peerCharacterContainer.style.position = "absolute";
-        peerCharacterContainer.style.zIndex = "2";
-        peerCharacterContainer.style.top = "50%";
-        peerCharacterContainer.style.left = "50%";
-        peerCharacterContainer.id = "remotePlayerCharacter-" + id;
+    let peerCharacterContainer = document.createElement("div");
+    peerCharacterContainer.classList.add("roomBound");
+    peerCharacterContainer.style.position = "absolute";
+    peerCharacterContainer.style.zIndex = "2";
+    peerCharacterContainer.style.top = "50%";
+    peerCharacterContainer.style.left = "50%";
+    peerCharacterContainer.id = "remotePlayerCharacter-" + id;
 
-        let nameLabel = document.createElement("div");
-        nameLabel.textContent = username;
-        console.log("USERNAMMEEE: " + username);
-        nameLabel.style.textAlign = "center";
-        nameLabel.style.fontSize = "12px";
-        nameLabel.style.color = StringToColor(id);
-        nameLabel.style.fontWeight = "bold";
-        peerCharacterContainer.appendChild(nameLabel);
+    let nameLabel = document.createElement("div");
+    nameLabel.textContent = username;
+    console.log("USERNAMMEEE: " + username);
+    nameLabel.style.textAlign = "center";
+    nameLabel.style.fontSize = "12px";
+    nameLabel.style.color = StringToColor(id);
+    nameLabel.style.fontWeight = "bold";
+    peerCharacterContainer.appendChild(nameLabel);
 
-        let peerCharacter = document.createElement("canvas");
-        peerCharacter.width = 30;
-        peerCharacter.height = 30;
-        peerCharacter.style.position = "absolute";
-        peerCharacter.style.backgroundColor = StringToColor(id);
+    let peerCharacter = document.createElement("canvas");
+    peerCharacter.width = 30;
+    peerCharacter.height = 30;
+    peerCharacter.style.position = "absolute";
+    peerCharacter.style.backgroundColor = StringToColor(id);
 
-        peerCharacterContainer.appendChild(peerCharacter);
-        document.body.appendChild(peerCharacterContainer);
+    peerCharacterContainer.appendChild(peerCharacter);
+    document.body.appendChild(peerCharacterContainer);
 
-        DragElement(peerCharacterContainer, UIManager.appUI);
-    }
-}
-
-
-export function Init3D(wspositions: ClientPositions | null) {
-    let scene = document.getElementById("aFrameScene");
-    if (scene) {
-        scene.style.display = "block";
-        scene.style.zIndex = "-1";
-    }
-    console.log("loaded 3D");
+    DragElement(peerCharacterContainer, UIManager.appUI);
 }
 
 export function StringToColor(str: string) {

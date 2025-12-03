@@ -22,6 +22,5 @@ export async function Startup() {
 
     UIManager.EnableInitButton(peerConnections, peerPositions, clientPositions);
     document.getElementById("initButton")?.click();
-    UIManager.Enable3DInitButton(clientPositions);
     UIManager.PrefillFieldsFromUrl();
 }

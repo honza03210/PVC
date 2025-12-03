@@ -3,6 +3,7 @@ import type {AppUI} from "./interaces/app-ui";
 import {SetPanNodeParams, UpdatePannerNodeFromHtml} from "./p2p";
 import {UIManager} from "./ui-manager";
 import {DrawSoundVisualization} from "./visualization";
+import {Position} from "./client-positions";
 
 export async function AddSamplePlayer(id: string, username: string) {
 

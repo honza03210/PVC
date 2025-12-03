@@ -2,7 +2,6 @@ import type {AppUI} from "./interaces/app-ui";
 import {PeerConnection} from "./peer-connection";
 import {RoomJoin} from "./p2p";
 import {AddSamplePlayer} from "./add-sample-player";
-import {Init3D} from "./visualization";
 import {io} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
 import {Signalling} from "./signalling";
@@ -129,11 +128,6 @@ export class UIManager {
         document.getElementById("sampleSoundButton")!.remove();
     }
 
-    static Enable3DInitButton(positionsSocket: ClientPositions | null) {
-        let button = document.getElementById("3DInitButton") as HTMLButtonElement;
-        button.addEventListener("click", () => Init3D(positionsSocket));
-        button.style.display = "block";
-    }
 
     static CreateSampleSoundButton() {
         let sampleSoundButton = document.createElement("button");

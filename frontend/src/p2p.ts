@@ -1,11 +1,9 @@
-import {io} from "socket.io-client";
-import {ServerConfig} from "./configs/server-config";
 import {PeerConnection} from "./peer-connection.js";
 import {Signalling} from "./signalling";
 import {UIManager} from "./ui-manager";
 import 'aframe';
-import {DrawSoundVisualization, InitPlayerCharacter, StringToColor} from "./visualization";
-import {ClientPositions, Position} from "./client-positions";
+import { DrawSoundVisualization, InitPlayerCharacter, StringToColor } from "./visualization";
+import { ClientPositions, Position } from "./client-positions";
 
 export function RoomJoin(signalling: Signalling, peerConnections: {
     [p: string]: PeerConnection
@@ -86,52 +84,52 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
         if (DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoColor, remoteVideoStroke, bufferLength, canvasTexture)){
             requestAnimationFrame(draw);
         }
+        // TODO: Handle the crash meaningfully
     }
+
     function updateAudioPosition(delta: DOMHighResTimeStamp, panner: PannerNode, id: string) {
-        if (UpdatePannerNodeFromHtml(delta, panNode, id, clientPositions, peerPosition)) {
+        UpdatePannerNodeFromPositions(delta, panner, clientPositions, peerPosition);
+
+        if (UpdatePannerNodeFromHtml(delta, panNode, id)) {
             requestAnimationFrame((time) => updateAudioPosition(time, panNode, id))
         }
+        // TODO: Handle the crash meaningfully
+    }
+
+    function updatePositionVisualization(id: string, clientPositions: ClientPositions){
+        requestAnimationFrame(() => {updatePositionVisualization(id, clientPositions)});
     }
     requestAnimationFrame(draw);
     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
-
-
-    const boxEl = document.getElementById('player-' + id);
-    if (boxEl !== null) {
-        // @ts-ignore
-        boxEl!.getObject3D('mesh').material.map = canvasTexture;
-        // @ts-ignore
-        boxEl!.getObject3D('mesh').material.needsUpdate = true;
-    }
+    requestAnimationFrame(() => updatePositionVisualization(id, clientPositions));
 }
 
-export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : PannerNode, id: string, clientPosition : ClientPositions, peerPosition: Position) : boolean{
-    // TODO: Move all of this logic into the client and peer Positions - no need to have an intermediary in HTML elements
-    // ******************
-    if (UIManager.Is3DOn()) {
-        console.log()
-    } else {
-        let remoteChar = document.getElementById("remotePlayerCharacter-" + id);
-        let localChar = document.getElementById("playerCharacter");
-        if (!localChar || !remoteChar) {
-            console.log("no peer char or local char");
-            return false;
-        }
-        let lCPositions = {
-            x: parseFloat(localChar.style.left) / 100 * window.innerWidth,
-            y: parseFloat(localChar.style.top) / 100 * window.innerHeight
-        };
-        let rCPositions = {
-            x: parseFloat(remoteChar.style.left) / 100 * window.innerWidth,
-            y: parseFloat(remoteChar.style.top) / 100 * window.innerHeight
-        };
+export function UpdatePannerNodeFromPositions(delta: DOMHighResTimeStamp, panner: PannerNode, clientPositions: ClientPositions, peerPosition: Position) {
+    panner.positionX.value = (peerPosition.Positions.x - clientPositions.Positions.x) / 100;
+    panner.positionY.value = (peerPosition.Positions.y - clientPositions.Positions.y) / 100;
+    panner.positionZ.value = (peerPosition.Positions.z - clientPositions.Positions.z) / 100;
+}
 
-        panner.positionX.value = (rCPositions.x - lCPositions.x) / 100;
-        panner.positionZ.value = (rCPositions.y - lCPositions.y) / 100;
-
-        console.log("x: " + (rCPositions.x - lCPositions.x) / 100 + " y: " + (rCPositions.y - lCPositions.y) / 100);
+export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : PannerNode, id: string) : boolean{
+    let remoteChar = document.getElementById("remotePlayerCharacter-" + id);
+    let localChar = document.getElementById("playerCharacter");
+    if (!localChar || !remoteChar) {
+        console.log("no peer char or local char");
+        return false;
     }
-    // ********************
+    let lCPositions = {
+        x: parseFloat(localChar.style.left) / 100 * window.innerWidth,
+        y: parseFloat(localChar.style.top) / 100 * window.innerHeight
+    };
+    let rCPositions = {
+        x: parseFloat(remoteChar.style.left) / 100 * window.innerWidth,
+        y: parseFloat(remoteChar.style.top) / 100 * window.innerHeight
+    };
+
+    panner.positionX.value = (rCPositions.x - lCPositions.x) / 100;
+    panner.positionZ.value = (rCPositions.y - lCPositions.y) / 100;
+
+    console.log("x: " + (rCPositions.x - lCPositions.x) / 100 + " y: " + (rCPositions.y - lCPositions.y) / 100);
     return true;
 }
 

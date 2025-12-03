@@ -9,7 +9,7 @@ export class Position {
  * Connects to specified websocket, binds onopen, onmessage, onclose, onerror
  * @param address websocket to connect
  */
-export class ClientPositions extends Position{
+export class ClientPositions extends Position {
     socket: WebSocket | null = null;
     constructor(address: string) {
         super();

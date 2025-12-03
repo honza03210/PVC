@@ -131,6 +131,17 @@ export async function InitPC(signalling: Signalling, id: string, peerConnections
 }
 
 export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions : ClientPositions, peerPositions: {[p: string]: Position}) {
+    if (clientPositions.socket) {
+        clientPositions.socket!.addEventListener("message", (event: { data: string; }) => {
+            console.log("Received:", event.data);
+            let data = event.data.split(";");
+            if (data[0] == "GAME_EVENT" && dc.readyState == "open") {
+                console.log("Sent GAME_EVENT message: ", event.data);
+                dc.send(event.data);
+                return;
+            }
+        });
+    }
     dc.onopen = () => {
         console.log("DataChannel open");
         peerPositions[id] = new Position();
@@ -158,6 +169,11 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
         if (UIManager.appUI.manualPositions.checked) return;
         let data = event.data.split(";");
         let format = data[0];
+        if (format == "GAME_EVENT" && clientPositions.socket && clientPositions.socket.readyState == clientPositions.socket.OPEN) {
+            console.log("Received GAME_EVENT message: ", event.data);
+            clientPositions.socket.send(event.data);
+            return;
+        }
         peerPositions[id].PositionFormat = format;
         peerPositions[id].RawPositions = data.slice(1).join(";");
         try {
@@ -173,19 +189,12 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
         console.log("Position object of the peer: ", peerPositions[id]);
         console.log("Received positions from ", id, format, data);
         if (format == "2DDemo" || format == "3DDemo") {
-            let positionData = data.slice(1).join(";");
-            if (document.getElementById("aFrameScene")?.style.display == "none") {
-                console.log("setting position in 2D");
-                let char = document.getElementById("remotePlayerCharacter-" + id);
-                let data = Object.fromEntries(new URLSearchParams(positionData));
-                char!.style.top = data.y!;
-                char!.style.left = data.x!;
-            } else {
-                console.log("setting position in 3D");
-                let char: any = document.getElementById("player-" + id);
-                console.log("Got 3D object position", positionData);
-                char.setAttribute("position", positionData);
-            }
+            let positionData : string = data.slice(1).join(";");
+            console.log("setting position in 2D");
+            let char = document.getElementById("remotePlayerCharacter-" + id);
+            let dataParsed = Object.fromEntries(new URLSearchParams(positionData));
+            char!.style.top = dataParsed.y!;
+            char!.style.left = dataParsed.x!;
         } else {
             console.log(`Received position in format: ${format}, data: ${data.slice(1).join(";")}`);
         }
