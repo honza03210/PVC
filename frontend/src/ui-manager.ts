@@ -1,7 +1,6 @@
 import type {AppUI} from "./interaces/app-ui";
 import {PeerConnection} from "./peer-connection";
 import {RoomJoin} from "./p2p";
-import {AddSamplePlayer} from "./add-sample-player";
 import {io} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
 import {Signalling} from "./signalling";
@@ -122,21 +121,6 @@ export class UIManager {
     static CleanButtonsForStartup(){
         document.getElementById("leaveRoomButton")!.style.display = "none";
         document.getElementById("sampleSoundButton")!.remove();
-    }
-
-
-    static CreateSampleSoundButton() {
-        let sampleSoundButton = document.createElement("button");
-        sampleSoundButton.id = "sampleSoundButton";
-        sampleSoundButton.innerText = "Add a sample VC member";
-        sampleSoundButton.classList.add("menu-button");
-        sampleSoundButton.style.fontSize = "32";
-
-        sampleSoundButton.addEventListener('click', async e => {
-            await AddSamplePlayer("0", "Sample");
-            sampleSoundButton.remove();
-        });
-        return sampleSoundButton;
     }
 
     static ShowPasswordDialogue() {

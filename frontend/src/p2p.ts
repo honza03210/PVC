@@ -10,8 +10,6 @@ export function RoomJoin(signalling: Signalling, peerConnections: {
 }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
     console.log("roomJoin");
 
-    InitPlayerCharacter();
-
     let IceCandidateQueue: {
         [key: string]: {
             popped: boolean,
@@ -29,11 +27,11 @@ export function RoomJoin(signalling: Signalling, peerConnections: {
         }, type: "join"
     });
     console.log("join posted");
-    const sampleSoundButton = UIManager.CreateSampleSoundButton();
-    document.getElementById("main-menu")?.appendChild(sampleSoundButton);
+    // const sampleSoundButton = UIManager.CreateSampleSoundButton();
+    // document.getElementById("main-menu")?.appendChild(sampleSoundButton);
 }
 
-export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, id: string, clientPositions: ClientPositions, peerPosition: Position) {
+export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, id: string, clientPositions: ClientPositions, peerPositions: {[p: string]: Position}) {
     if (remoteAudio) {
         remoteAudio.muted = true;
         remoteAudio.srcObject = stream;
@@ -87,51 +85,61 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
         // TODO: Handle the crash meaningfully
     }
 
-    function updateAudioPosition(delta: DOMHighResTimeStamp, panner: PannerNode, id: string) {
-        UpdatePannerNodeFromPositions(delta, panner, clientPositions, peerPosition);
+    // function updateAudioPosition(delta: DOMHighResTimeStamp, panner: PannerNode, id: string) {
+    //     UpdatePannerNodeFromPositions(delta, panner, clientPositions, peerPositions, id);
+    //     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
 
-        if (UpdatePannerNodeFromHtml(delta, panNode, id)) {
-            requestAnimationFrame((time) => updateAudioPosition(time, panNode, id))
-        }
-        // TODO: Handle the crash meaningfully
-    }
 
-    function updatePositionVisualization(id: string, clientPositions: ClientPositions){
-        requestAnimationFrame(() => {updatePositionVisualization(id, clientPositions)});
-    }
+
+        // if (UpdatePannerNodeFromHtml(delta, panNode, id)) {
+        //     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id))
+        // }
+
+    //}
+
+    // function updatePositionVisualization(id: string, clientPositions: ClientPositions){
+    //     requestAnimationFrame(() => {updatePositionVisualization(id, clientPositions)});
+    // }
+    setInterval(UpdatePannerNodeFromPositions, 100, panNode, clientPositions, peerPositions, id)
     requestAnimationFrame(draw);
-    requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
-    requestAnimationFrame(() => updatePositionVisualization(id, clientPositions));
+    // requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
+    // requestAnimationFrame(() => updatePositionVisualization(id, clientPositions));
 }
 
-export function UpdatePannerNodeFromPositions(delta: DOMHighResTimeStamp, panner: PannerNode, clientPositions: ClientPositions, peerPosition: Position) {
-    panner.positionX.value = (peerPosition.Positions.x - clientPositions.Positions.x) / 100;
-    panner.positionY.value = (peerPosition.Positions.y - clientPositions.Positions.y) / 100;
-    panner.positionZ.value = (peerPosition.Positions.z - clientPositions.Positions.z) / 100;
-}
+export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPositions: ClientPositions, peerPositions: {[p: string]: Position}, id: string) {
 
-export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : PannerNode, id: string) : boolean{
-    let remoteChar = document.getElementById("remotePlayerCharacter-" + id);
-    let localChar = document.getElementById("playerCharacter");
-    if (!localChar || !remoteChar) {
-        console.log("no peer char or local char");
-        return false;
+    // console.log("Update PannerNodeFromPositions", peerPosition, clientPositions);
+    if (!peerPositions[id]){
+        return;
     }
-    let lCPositions = {
-        x: parseFloat(localChar.style.left) / 100 * window.innerWidth,
-        y: parseFloat(localChar.style.top) / 100 * window.innerHeight
-    };
-    let rCPositions = {
-        x: parseFloat(remoteChar.style.left) / 100 * window.innerWidth,
-        y: parseFloat(remoteChar.style.top) / 100 * window.innerHeight
-    };
-
-    panner.positionX.value = (rCPositions.x - lCPositions.x) / 100;
-    panner.positionZ.value = (rCPositions.y - lCPositions.y) / 100;
-
-    console.log("x: " + (rCPositions.x - lCPositions.x) / 100 + " y: " + (rCPositions.y - lCPositions.y) / 100);
-    return true;
+    panner.positionX.value = (peerPositions[id].Positions.x - clientPositions.Positions.x);
+    panner.positionY.value = (peerPositions[id].Positions.y - clientPositions.Positions.y);
+    panner.positionZ.value = (peerPositions[id].Positions.z - clientPositions.Positions.z);
+    console.log(panner.positionX, panner.positionY, panner.positionZ);
 }
+
+// export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : PannerNode, id: string) : boolean{
+//     let remoteChar = document.getElementById("remotePlayerCharacter-" + id);
+//     let localChar = document.getElementById("playerCharacter");
+//     if (!localChar || !remoteChar) {
+//         console.log("no peer char or local char");
+//         return false;
+//     }
+//     let lCPositions = {
+//         x: parseFloat(localChar.style.left) / 100 * window.innerWidth,
+//         y: parseFloat(localChar.style.top) / 100 * window.innerHeight
+//     };
+//     let rCPositions = {
+//         x: parseFloat(remoteChar.style.left) / 100 * window.innerWidth,
+//         y: parseFloat(remoteChar.style.top) / 100 * window.innerHeight
+//     };
+//
+//     panner.positionX.value = (rCPositions.x - lCPositions.x) / 100;
+//     panner.positionZ.value = (rCPositions.y - lCPositions.y) / 100;
+//
+//     console.log("x: " + (rCPositions.x - lCPositions.x) / 100 + " y: " + (rCPositions.y - lCPositions.y) / 100);
+//     return true;
+// }
 
 export function SetPanNodeParams(panNode: PannerNode) {
     panNode.panningModel = "HRTF";
@@ -145,7 +153,6 @@ export function SetPanNodeParams(panNode: PannerNode) {
 }
 
 export async function HandleUserDisconnect(userID: string, peerConnections: {[key: string] : PeerConnection}){
-    document.getElementById("remotePlayerCharacter-" + userID)?.remove();
     document.getElementById("remoteVideo-" + userID)?.remove();
     document.getElementById("remoteAudio-" + userID)?.remove();
     peerConnections[userID].close();

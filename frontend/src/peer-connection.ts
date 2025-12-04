@@ -85,13 +85,13 @@ export async function InitPC(signalling: Signalling, id: string, peerConnections
             peerConnection.addTrack(track, stream);
         });
 
-        AddCharacter(id, username);
-
         if (offer) {
+            console.log("creating data channel");
             let dc = peerConnection.createDataChannel("positions", {ordered: true});
             BindDataChannel(dc, id, clientPositions, peerPositions);
         } else {
             peerConnection.ondatachannel = (e) => {
+                console.log("got data channel");
                 let dc = e.channel;
                 BindDataChannel(dc, id, clientPositions, peerPositions);
             };
@@ -121,7 +121,7 @@ export async function InitPC(signalling: Signalling, id: string, peerConnections
 
 
         peerConnection.ontrack = async ev => {
-            HandleNewReceivedStream(ev.streams[0], remoteAudio, remoteVideo, id, clientPositions, peerPositions[id]);
+            HandleNewReceivedStream(ev.streams[0], remoteAudio, remoteVideo, id, clientPositions, peerPositions);
         };
     } catch (e) {
         console.log(e);
@@ -148,23 +148,25 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
     dc.onopen = () => {
         console.log("DataChannel open");
         peerPositions[id] = new Position();
+        console.log("peerPositions:", id, peerPositions[id]);
+        let lastPosition = "";
         function sendPos() {
             setTimeout(() => {
-                if (clientPositions.PositionFormat !== null){
-                    console.log("Sending positions in a raw format")
+                if (lastPosition != clientPositions.RawPositions){
                     dc.send(clientPositions.PositionFormat + ";" + clientPositions.RawPositions);
+                    lastPosition = clientPositions.RawPositions;
                 }
-                else if (document.getElementById("aFrameScene")?.style.display == "none") {
-                    console.log("Sending positions in 2D format")
-                    let char = document.getElementById("playerCharacter");
-                    dc.send("2DDemo;" + new URLSearchParams({x: char!.style.left, y: char!.style.top}).toString());
-                } else {
-                    const playerPosition: any = document.querySelector('[camera]')!.getAttribute("position");
-                    console.log("Sent 3D object position", `${playerPosition!.x} ${playerPosition!.y} ${playerPosition!.z}`);
-                    dc.send(`3DDemo;${playerPosition!.x} ${playerPosition!.y} ${playerPosition!.z}`);
-                }
+                // else if (document.getElementById("aFrameScene")?.style.display == "none") {
+                //     console.log("Sending positions in 2D format")
+                //     let char = document.getElementById("playerCharacter");
+                //     dc.send("2DDemo;" + new URLSearchParams({x: char!.style.left, y: char!.style.top}).toString());
+                // } else {
+                //     const playerPosition: any = document.querySelector('[camera]')!.getAttribute("position");
+                //     console.log("Sent 3D object position", `${playerPosition!.x} ${playerPosition!.y} ${playerPosition!.z}`);
+                //     dc.send(`3DDemo;${playerPosition!.x} ${playerPosition!.y} ${playerPosition!.z}`);
+                // }
                 sendPos()
-            }, 10)
+            }, 100)
         }
         sendPos();
     };
@@ -191,15 +193,15 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
         }
         console.log("Position object of the peer: ", peerPositions[id]);
         console.log("Received positions from ", id, format, data);
-        if (format == "2DDemo" || format == "3DDemo") {
-            let positionData : string = data.slice(1).join(";");
-            console.log("setting position in 2D");
-            let char = document.getElementById("remotePlayerCharacter-" + id);
-            let dataParsed = Object.fromEntries(new URLSearchParams(positionData));
-            char!.style.top = dataParsed.y!;
-            char!.style.left = dataParsed.x!;
-        } else {
-            console.log(`Received position in format: ${format}, data: ${data.slice(1).join(";")}`);
-        }
+        // if (format == "2DDemo" || format == "3DDemo") {
+        //     let positionData : string = data.slice(1).join(";");
+        //     console.log("setting position in 2D");
+        //     let char = document.getElementById("remotePlayerCharacter-" + id);
+        //     let dataParsed = Object.fromEntries(new URLSearchParams(positionData));
+        //     char!.style.top = dataParsed.y!;
+        //     char!.style.left = dataParsed.x!;
+        // } else {
+        //     console.log(`Received position in format: ${format}, data: ${data.slice(1).join(";")}`);
+        // }
     }
 }
