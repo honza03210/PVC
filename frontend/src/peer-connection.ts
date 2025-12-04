@@ -47,7 +47,7 @@ export async function InitPeerConnection(signalling: Signalling, id: string, pee
     }
 
     let peerConnection: PeerConnection = new PeerConnection({...signalling.IceServers, iceTransportPolicy: "all"});
-
+    clientPositions.SendServerEvent(`PLAYER_JOIN;${username};${id}`);
     console.log("render videos");
     try {
         const stream = await navigator.mediaDevices
@@ -155,17 +155,9 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
                     dc.send(clientPositions.PositionFormat + ";" + clientPositions.RawPositions);
                     lastPosition = clientPositions.RawPositions;
                 }
-                // else if (document.getElementById("aFrameScene")?.style.display == "none") {
-                //     console.log("Sending positions in 2D format")
-                //     let char = document.getElementById("playerCharacter");
-                //     dc.send("2DDemo;" + new URLSearchParams({x: char!.style.left, y: char!.style.top}).toString());
-                // } else {
-                //     const playerPosition: any = document.querySelector('[camera]')!.getAttribute("position");
-                //     console.log("Sent 3D object position", `${playerPosition!.x} ${playerPosition!.y} ${playerPosition!.z}`);
-                //     dc.send(`3DDemo;${playerPosition!.x} ${playerPosition!.y} ${playerPosition!.z}`);
-                // }
+
                 sendPos()
-            }, 100)
+            }, 10)
         }
         sendPos();
     };
@@ -189,6 +181,9 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
         } catch (e) {
             // not all positions sent
             console.error(e);
+        }
+        if (clientPositions.sendPeerPositionsBack) {
+            clientPositions.SendServerEvent(`POSITION;${id};${peerPositions[id].RawPositions}`);
         }
         console.log("Position object of the peer: ", peerPositions[id]);
         console.log("Received positions from ", id, format, data);

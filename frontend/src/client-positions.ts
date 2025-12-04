@@ -23,6 +23,7 @@ export class Position {
 export class ClientPositions extends Position {
     communicator: WebSocket | Window | null = null;
     parentWindow: Window | null = null;
+    sendPeerPositionsBack: boolean = false;
     constructor(communicator: string | Window) {
         super();
         if (typeof communicator === "string") {
@@ -47,7 +48,7 @@ export class ClientPositions extends Position {
         if (this.communicator instanceof WebSocket) {
             this.communicator.send(data)
         } else if (this.communicator instanceof Window) {
-            this.parentWindow!.postMessage(data);
+            this.parentWindow!.postMessage(data, "*");
         }
     }
 
@@ -83,6 +84,15 @@ export class ClientPositions extends Position {
 
             // this will be handled and bound upon data channel creation with every peer
             if (data[0] == "GAME_EVENT") return;
+
+            if (data[0] == "SERVER_EVENT") {
+                switch (data[1]){
+                    case "SEND_PEER_POSITIONS":
+                        this.sendPeerPositionsBack = data[2] == "true";
+                        break;
+                }
+                return;
+            }
 
             this.RawPositions = data.slice(1, data.length).join(";");
             try {

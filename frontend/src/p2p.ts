@@ -21,11 +21,12 @@ export function RoomJoin(signalling: Signalling, peerConnections: {
 
     signalling.Send({
         payload: {
-            roomId: UIManager.appUI.roomIDInput.value != "" ? UIManager.appUI.roomIDInput.value : `room-${Math.random().toString(36).substring(2, 10)}`,
+            roomId: UIManager.appUI.roomIDInput.value,
             name: UIManager.appUI.nameInput.value != "" ? UIManager.appUI.nameInput.value : `user-${Math.random().toString(36).substring(2, 10)}`,
             password: UIManager.appUI.passwordInput.value
         }, type: "join"
     });
+
     console.log("join posted");
 }
 
@@ -109,10 +110,11 @@ export function SetPanNodeParams(panNode: PannerNode) {
     panNode.coneOuterGain = 1;
 }
 
-export async function HandleUserDisconnect(userID: string, peerConnections: {[key: string] : PeerConnection}){
+export async function HandleUserDisconnect(userID: string, peerConnections: {[key: string] : PeerConnection}, clientPositions: ClientPositions | null) {
     document.getElementById("remoteVideo-" + userID)?.remove();
     document.getElementById("remoteAudio-" + userID)?.remove();
     peerConnections[userID].close();
+    clientPositions?.SendServerEvent(`PLAYER_LEFT;${userID}`);
     delete peerConnections[userID];
 }
 
