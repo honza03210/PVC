@@ -1,7 +1,3 @@
-import type {AppUI} from "./interaces/app-ui";
-import {DragElement} from "./draggable";
-import {UIManager} from "./ui-manager";
-
 
 export function Create2DPlayerCharacter(name : string) : HTMLDivElement {
     let clientCharacterContainer = document.createElement("div");

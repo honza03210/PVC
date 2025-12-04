@@ -2,8 +2,8 @@ import {PeerConnection} from "./peer-connection.js";
 import {Signalling} from "./signalling";
 import {UIManager} from "./ui-manager";
 import 'aframe';
-import { DrawSoundVisualization, InitPlayerCharacter, StringToColor } from "./visualization";
-import { ClientPositions, Position } from "./client-positions";
+import {DrawSoundVisualization, StringToColor} from "./visualization";
+import {ClientPositions, Position} from "./client-positions";
 
 export function RoomJoin(signalling: Signalling, peerConnections: {
     [p: string]: PeerConnection
@@ -27,8 +27,6 @@ export function RoomJoin(signalling: Signalling, peerConnections: {
         }, type: "join"
     });
     console.log("join posted");
-    // const sampleSoundButton = UIManager.CreateSampleSoundButton();
-    // document.getElementById("main-menu")?.appendChild(sampleSoundButton);
 }
 
 export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, id: string, clientPositions: ClientPositions, peerPositions: {[p: string]: Position}) {
@@ -85,61 +83,20 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
         // TODO: Handle the crash meaningfully
     }
 
-    // function updateAudioPosition(delta: DOMHighResTimeStamp, panner: PannerNode, id: string) {
-    //     UpdatePannerNodeFromPositions(delta, panner, clientPositions, peerPositions, id);
-    //     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
-
-
-
-        // if (UpdatePannerNodeFromHtml(delta, panNode, id)) {
-        //     requestAnimationFrame((time) => updateAudioPosition(time, panNode, id))
-        // }
-
-    //}
-
-    // function updatePositionVisualization(id: string, clientPositions: ClientPositions){
-    //     requestAnimationFrame(() => {updatePositionVisualization(id, clientPositions)});
-    // }
-    setInterval(UpdatePannerNodeFromPositions, 100, panNode, clientPositions, peerPositions, id)
+    setInterval(UpdatePannerNodeFromPositions, 50, panNode, clientPositions, peerPositions, id)
     requestAnimationFrame(draw);
-    // requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
-    // requestAnimationFrame(() => updatePositionVisualization(id, clientPositions));
 }
 
 export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPositions: ClientPositions, peerPositions: {[p: string]: Position}, id: string) {
 
-    // console.log("Update PannerNodeFromPositions", peerPosition, clientPositions);
     if (!peerPositions[id]){
         return;
     }
-    panner.positionX.value = (peerPositions[id].Positions.x - clientPositions.Positions.x);
-    panner.positionY.value = (peerPositions[id].Positions.y - clientPositions.Positions.y);
-    panner.positionZ.value = (peerPositions[id].Positions.z - clientPositions.Positions.z);
-    console.log(panner.positionX, panner.positionY, panner.positionZ);
+    // there could be some interpolation at the cost of latency
+    panner.positionX.value = (peerPositions[id].x - clientPositions.x);
+    panner.positionY.value = (peerPositions[id].y - clientPositions.y);
+    panner.positionZ.value = (peerPositions[id].z - clientPositions.z);
 }
-
-// export function UpdatePannerNodeFromHtml(delta : DOMHighResTimeStamp, panner : PannerNode, id: string) : boolean{
-//     let remoteChar = document.getElementById("remotePlayerCharacter-" + id);
-//     let localChar = document.getElementById("playerCharacter");
-//     if (!localChar || !remoteChar) {
-//         console.log("no peer char or local char");
-//         return false;
-//     }
-//     let lCPositions = {
-//         x: parseFloat(localChar.style.left) / 100 * window.innerWidth,
-//         y: parseFloat(localChar.style.top) / 100 * window.innerHeight
-//     };
-//     let rCPositions = {
-//         x: parseFloat(remoteChar.style.left) / 100 * window.innerWidth,
-//         y: parseFloat(remoteChar.style.top) / 100 * window.innerHeight
-//     };
-//
-//     panner.positionX.value = (rCPositions.x - lCPositions.x) / 100;
-//     panner.positionZ.value = (rCPositions.y - lCPositions.y) / 100;
-//
-//     console.log("x: " + (rCPositions.x - lCPositions.x) / 100 + " y: " + (rCPositions.y - lCPositions.y) / 100);
-//     return true;
-// }
 
 export function SetPanNodeParams(panNode: PannerNode) {
     panNode.panningModel = "HRTF";

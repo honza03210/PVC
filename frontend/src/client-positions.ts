@@ -1,13 +1,24 @@
+/**
+ * Base class representing the position object
+ *
+ */
 export class Position {
-    Positions: {x: number, y: number, z: number} = {x: 0, y: 0, z: 0};
-    Rotation: {vertical: number, horizontal: number} = {vertical: 0, horizontal: 0};
+    x: number = 0;
+    y: number = 0;
+    z: number = 0;
+    pitch: number = 90;
+    yaw: number = 0;
     PositionFormat: string | null = null;
     RawPositions: string = "";
 }
 
 /**
- * Connects to specified websocket, binds onopen, onmessage, onclose, onerror
- * @param address websocket to connect
+ * Connects to specified websocket (or window), binds onopen, onmessage, onclose, onerror
+ * @param communicator websocket | window to connect
+ * The data sent to the communicator has to be in the string format "format;x;y;z;pitch;yaw"
+ * If the communicator receives message "GAME_EVENT;*" it will forward this whole message to the connected peers
+ * When a peer receives such message, it will forward it to the communicator
+ * this can be used to create simple arbitrary data exchange between two connected peers
  */
 export class ClientPositions extends Position {
     communicator: WebSocket | Window | null = null;
@@ -23,19 +34,37 @@ export class ClientPositions extends Position {
         this.BindWebSocketMessages();
     }
 
-    Send(data: any) {
+    /**
+     * Sends the data string to the communicator
+     * @param data
+     * @constructor
+     */
+    Send(data: string) {
         if (!this.communicator){
             return;
         }
 
         if (this.communicator instanceof WebSocket) {
-            this.communicator.send(JSON.stringify(data))
+            this.communicator.send(data)
         } else if (this.communicator instanceof Window) {
             this.parentWindow!.postMessage(data);
         }
     }
 
+    /**
+     * Sends the data string to the communicator with the 'SERVER_EVENT' format
+     * @param data
+     * @constructor
+     */
+    SendServerEvent(data: string) {
+        this.Send("SERVER_EVENT;" + data);
+    }
 
+
+    /**
+     * Binds basic open, message, close end error events of the communicator - on message will fill its position
+     * @constructor
+     */
     BindWebSocketMessages() {
         console.log("BindWebSocketMessages", this.communicator);
         if (!this.communicator) {
@@ -52,16 +81,19 @@ export class ClientPositions extends Position {
             console.log("Received:", event.data);
             let data = event.data.split(";");
 
+            // this will be handled and bound upon data channel creation with every peer
             if (data[0] == "GAME_EVENT") return;
 
             this.RawPositions = data.slice(1, data.length).join(";");
             try {
                 this.PositionFormat = data[0];
-                this.Positions.x = parseFloat(data[1]);
-                this.Positions.y = parseFloat(data[2]);
-                this.Positions.z = parseFloat(data[3]);
-                this.Rotation.horizontal = parseFloat(data[4]);
-                this.Rotation.vertical = parseFloat(data[5]);
+                this.x = parseFloat(data[1]);
+                this.y = parseFloat(data[2]);
+                this.z = parseFloat(data[3]);
+                // clamp the pitch and yaw
+                this.pitch = Math.max(Math.min(90, parseFloat(data[4])), -90);
+                // TODO: Some engines use -180 to 180, some 0 to 360 - add this to the format?
+                this.yaw = Math.max(Math.min(360, parseFloat(data[5])), -180);
             } catch (e) {
                 // The websocket doesn't need to send all positions (2d games, games with no rotation,...)
                 // console.error(e);
@@ -71,11 +103,13 @@ export class ClientPositions extends Position {
         this.communicator.addEventListener("close", () => {
             console.log("Connection closed");
             this.PositionFormat = null;
+            this.communicator = null;
         });
 
         this.communicator.addEventListener("error", (error: any) => {
             console.error("WebSocket error:", error);
             this.communicator?.close();
+            this.communicator = null;
         });
         console.log("EndBindWebSocketMessages");
     }

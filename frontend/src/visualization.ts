@@ -1,13 +1,12 @@
-import {DragElement} from "./draggable";
 import {UIManager} from "./ui-manager";
-import {PlayerMovementInit} from "./player-char-movement";
 import "aframe";
-import {ClientPositions} from "./client-positions";
 
-export function InitPlayerCharacter() {
-    Init2DPlayerCharacter();
-}
 
+/**
+ * Binds the sound visualization for the local user
+ * @param stream
+ * @constructor
+ */
 export function BindStreamAnimation(stream: MediaStream) {
     let audioCtx = UIManager.appUI.audioCtx;
     let microphone = audioCtx.createMediaStreamSource(stream);
@@ -36,6 +35,23 @@ export function BindStreamAnimation(stream: MediaStream) {
     requestAnimationFrame(draw);
 }
 
+
+/**
+ *
+ * @param canvasCtx
+ * @param WIDTH
+ * @param HEIGHT
+ * @param analyser
+ * @param dataArray
+ * @param remoteVideoColor
+ * @param remoteVideoStroke
+ * @param bufferLength
+ * @param canvasTexture
+ * @constructor
+ */
+
+// code from https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
+// with minor changes
 export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoColor: string, remoteVideoStroke: string, bufferLength: number, canvasTexture: any) : boolean{
     if (!CanvasRenderingContext2D) {
         return false;
@@ -73,71 +89,11 @@ export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDT
     return true;
 }
 
-export function Init2DPlayerCharacter(){
-    let clientCharacterContainer = document.createElement("div");
-    clientCharacterContainer.style.position = "absolute";
-    clientCharacterContainer.style.top = "75%";
-    clientCharacterContainer.style.left = "50%";
-    clientCharacterContainer.id = "playerCharacter";
-    clientCharacterContainer.classList.add("roomBound");
-
-    let nameLabel = document.createElement("div");
-    nameLabel.textContent = UIManager.appUI.nameInput.value;
-    nameLabel.style.textAlign = "center";
-    nameLabel.style.fontSize = "12px";
-    nameLabel.style.color = "orange";
-    nameLabel.style.fontWeight = "bold";
-    clientCharacterContainer.appendChild(nameLabel);
-
-    let clientCharacter = document.createElement("canvas");
-    clientCharacter.id = "playerCharacterCanvas";
-    clientCharacter.width = 30;
-    clientCharacter.height = 30;
-    clientCharacter.style.position = "absolute";
-    clientCharacter.style.backgroundColor = "blue";
-    clientCharacter.style.border = "3px solid orange";
-
-    clientCharacterContainer.appendChild(clientCharacter);
-
-    document.getElementById("container")!.appendChild(clientCharacterContainer);
-
-    DragElement(clientCharacterContainer, UIManager.appUI);
-
-    PlayerMovementInit();
-}
-
-
-export function AddCharacter(id: string, username: string) {
-    console.log("Adding char for id: ", id);
-    let peerCharacterContainer = document.createElement("div");
-    peerCharacterContainer.classList.add("roomBound");
-    peerCharacterContainer.style.position = "absolute";
-    peerCharacterContainer.style.zIndex = "2";
-    peerCharacterContainer.style.top = "50%";
-    peerCharacterContainer.style.left = "50%";
-    peerCharacterContainer.id = "remotePlayerCharacter-" + id;
-
-    let nameLabel = document.createElement("div");
-    nameLabel.textContent = username;
-    console.log("USERNAMMEEE: " + username);
-    nameLabel.style.textAlign = "center";
-    nameLabel.style.fontSize = "12px";
-    nameLabel.style.color = StringToColor(id);
-    nameLabel.style.fontWeight = "bold";
-    peerCharacterContainer.appendChild(nameLabel);
-
-    let peerCharacter = document.createElement("canvas");
-    peerCharacter.width = 30;
-    peerCharacter.height = 30;
-    peerCharacter.style.position = "absolute";
-    peerCharacter.style.backgroundColor = StringToColor(id);
-
-    peerCharacterContainer.appendChild(peerCharacter);
-    document.body.appendChild(peerCharacterContainer);
-
-    DragElement(peerCharacterContainer, UIManager.appUI);
-}
-
+/**
+ * takes a string, creates a simple hash and deterministically returns "rgb(x, y, z)" for the select string
+ * @param str
+ * @constructor
+ */
 export function StringToColor(str: string) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {

@@ -1,9 +1,14 @@
 import {Socket} from "socket.io-client";
-import {InitPC, PeerConnection} from "./peer-connection";
+import {InitPeerConnection, PeerConnection} from "./peer-connection";
 import {HandleUserDisconnect, useQueuedCandidates} from "./p2p";
 import {UIManager} from "./ui-manager";
 import {ClientPositions, Position} from "./client-positions";
 
+
+/**
+ * The class handling the communication with the signalling server (for supported devices
+ * through a shared worker to offload work)
+ */
 export class Signalling{
     IceServers: RTCIceServer[];
     communicator: Socket | MessagePort;
@@ -27,6 +32,11 @@ export class Signalling{
         this.IceServers = [];
     }
 
+    /**
+     * Sends the message to the signalling server
+     * @param message
+     * @constructor
+     */
     Send(message: any){
         if ("emit" in this.communicator) {
             this.communicator.emit(message.type, message.payload);
@@ -37,6 +47,14 @@ export class Signalling{
         }
     }
 
+    /**
+     * Binds the events of the communicator (message, open, ...)
+     * @param IceCandidateQueue
+     * @param peerConnections
+     * @param peerPositions
+     * @param positionsSocket
+     * @constructor
+     */
     BindEvents(IceCandidateQueue: {
                    [p: string]: { popped: boolean; queue: { candidate: RTCIceCandidate; sdpMid: string; sdpMLineIndex: number }[] }
                },
@@ -60,16 +78,21 @@ export class Signalling{
         }
     }
 
-    private onMessageHandler = async (event : any) => {
-        await this.HandleSignallingEvent(event.data.type, event.data);
-    }
-
+    /**
+     * Closes the communicator
+     * @constructor
+     */
     Close(){
         this.communicator.close();
         console.log("signalling closed");
     }
 
-
+    /**
+     * Handles all relevant events received from communicator
+     * @param eventName
+     * @param eventData
+     * @constructor
+     */
     async HandleSignallingEvent(eventName: string,
                                 eventData: any) {
         if (this.peerConnections == null || this.IceCandidateQueue == null) {
@@ -156,7 +179,7 @@ export class Signalling{
                 break;
             case "getOffer":
                 console.log("get offer:" + eventData.sdp);
-                await InitPC(this, eventData.id, this.peerConnections, this.peerPositions!, this.positionsSocket!, false, eventData.username);
+                await InitPeerConnection(this, eventData.id, this.peerConnections, this.peerPositions!, this.positionsSocket!, false, eventData.username);
                 await this.peerConnections[eventData.id].CreateAnswer(this, eventData.sdp, eventData.id);
                 break;
             case "getAnswer":
@@ -183,7 +206,7 @@ export class Signalling{
                     return;
                 }
 
-                await InitPC(this, eventData.id, this.peerConnections, this.peerPositions!, this.positionsSocket!, true, eventData.username);
+                await InitPeerConnection(this, eventData.id, this.peerConnections, this.peerPositions!, this.positionsSocket!, true, eventData.username);
                 await this.peerConnections[eventData.id].CreateOffer(this, eventData.id);
                 break;
             case "userCredentials":
@@ -194,5 +217,17 @@ export class Signalling{
                 console.log("Undefined message received: ", eventName, eventData);
                 break;
         }
+    }
+
+    /**
+     *
+     * @param event
+     */
+    private onMessageHandler = async (event : any) => {
+        if (!event.data || !event.data.type) {
+            console.error("signalling received invalid message: ", event);
+            return;
+        }
+        await this.HandleSignallingEvent(event.data.type, event.data);
     }
 }

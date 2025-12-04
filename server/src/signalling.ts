@@ -1,7 +1,6 @@
-import { Server } from "socket.io";
+import {Server} from "socket.io";
 import argon2id from "argon2";
 import {GenerateTurnCredentials} from "./generate-turn-credentials.js";
-import {response} from "express";
 
 
 // TODO - server typing
@@ -177,12 +176,3 @@ export function signalling(server : any) {
     }
 
 }
-
-// function getRoom(socket: any){
-//     let rooms = [...socket.rooms].filter(r => r != socket.id);
-//     console.log(rooms.join(";") + "rooms of the " + socket.id);
-//     if (rooms.length == 0) {
-//         return undefined;
-//     }
-//     return rooms[0];
-// }

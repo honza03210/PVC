@@ -1,7 +1,6 @@
 import {Signalling} from "./signalling";
 import {HandleNewReceivedStream} from "./p2p";
 import {UIManager} from "./ui-manager";
-import {AddCharacter} from "./visualization";
 import {ClientPositions, Position} from "./client-positions";
 
 export class PeerConnection extends RTCPeerConnection {
@@ -39,7 +38,7 @@ export class PeerConnection extends RTCPeerConnection {
     }
 }
 
-export async function InitPC(signalling: Signalling, id: string, peerConnections: {
+export async function InitPeerConnection(signalling: Signalling, id: string, peerConnections: {
     [p: string]: PeerConnection
 }, peerPositions: {[p: string]: Position}, clientPositions: ClientPositions, offer: boolean, username: string) {
     if (id in peerConnections) {
@@ -182,11 +181,11 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
         peerPositions[id].PositionFormat = format;
         peerPositions[id].RawPositions = data.slice(1).join(";");
         try {
-            peerPositions[id].Positions.x = parseFloat(data[1]);
-            peerPositions[id].Positions.y = parseFloat(data[2]);
-            peerPositions[id].Positions.z = parseFloat(data[3]);
-            peerPositions[id].Rotation.horizontal = parseFloat(data[4]);
-            peerPositions[id].Rotation.vertical = parseFloat(data[5]);
+            peerPositions[id].x = parseFloat(data[1]);
+            peerPositions[id].y = parseFloat(data[2]);
+            peerPositions[id].z = parseFloat(data[3]);
+            peerPositions[id].pitch = parseFloat(data[4]);
+            peerPositions[id].yaw = parseFloat(data[5]);
         } catch (e) {
             // not all positions sent
             console.error(e);
