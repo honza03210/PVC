@@ -11,7 +11,7 @@ await navigator.mediaDevices
     .then(stream => {
         BindStreamAnimation(stream);
     });
-let clientPositions = new ClientPositions("ws://localhost:4242");
+let clientPositions = new ClientPositions(window.parent);
 
 await Startup();
 

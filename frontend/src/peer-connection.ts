@@ -131,8 +131,11 @@ export async function InitPC(signalling: Signalling, id: string, peerConnections
 }
 
 export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions : ClientPositions, peerPositions: {[p: string]: Position}) {
-    if (clientPositions.socket) {
-        clientPositions.socket!.addEventListener("message", (event: { data: string; }) => {
+    if (clientPositions.communicator) {
+        clientPositions.communicator!.addEventListener("message", (event: any) => {
+            if (!event.data) {
+                return;
+            }
             console.log("Received:", event.data);
             let data = event.data.split(";");
             if (data[0] == "GAME_EVENT" && dc.readyState == "open") {
@@ -169,9 +172,9 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
         if (UIManager.appUI.manualPositions.checked) return;
         let data = event.data.split(";");
         let format = data[0];
-        if (format == "GAME_EVENT" && clientPositions.socket && clientPositions.socket.readyState == clientPositions.socket.OPEN) {
+        if (format == "GAME_EVENT" && clientPositions.communicator) {
             console.log("Received GAME_EVENT message: ", event.data);
-            clientPositions.socket.send(event.data);
+            clientPositions.Send(event.data);
             return;
         }
         peerPositions[id].PositionFormat = format;

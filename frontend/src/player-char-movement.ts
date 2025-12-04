@@ -1,6 +1,40 @@
 import type {AppUI} from "./interaces/app-ui";
 import {DragElement} from "./draggable";
+import {UIManager} from "./ui-manager";
 
+
+export function Create2DPlayerCharacter(name : string) : HTMLDivElement {
+    let clientCharacterContainer = document.createElement("div");
+    clientCharacterContainer.style.position = "absolute";
+    clientCharacterContainer.style.top = "75%";
+    clientCharacterContainer.style.left = "50%";
+    clientCharacterContainer.id = "playerCharacter";
+    clientCharacterContainer.classList.add("roomBound");
+
+    let nameLabel = document.createElement("div");
+    nameLabel.textContent = name;
+    nameLabel.style.textAlign = "center";
+    nameLabel.style.fontSize = "12px";
+    nameLabel.style.color = "orange";
+    nameLabel.style.fontWeight = "bold";
+    clientCharacterContainer.appendChild(nameLabel);
+
+    let clientCharacter = document.createElement("canvas");
+    clientCharacter.id = "playerCharacterCanvas";
+    clientCharacter.width = 30;
+    clientCharacter.height = 30;
+    clientCharacter.style.position = "absolute";
+    clientCharacter.style.backgroundColor = "blue";
+    clientCharacter.style.border = "3px solid orange";
+
+    clientCharacterContainer.appendChild(clientCharacter);
+
+    document.getElementById("container")!.appendChild(clientCharacterContainer);
+
+    PlayerMovementInit();
+
+    return clientCharacterContainer;
+}
 
 export function PlayerMovementInit() {
     const pageWidth = document.documentElement.scrollWidth;

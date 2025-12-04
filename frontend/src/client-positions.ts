@@ -10,18 +10,50 @@ export class Position {
  * @param address websocket to connect
  */
 export class ClientPositions extends Position {
-    socket: WebSocket | null = null;
-    constructor(address: string) {
+    communicator: WebSocket | Window | null = null;
+    parentWindow: Window | null = null;
+    constructor(communicator: string | Window) {
         super();
-        this.socket = new WebSocket(address);
+        if (typeof communicator === "string") {
+            this.communicator = new WebSocket(communicator);
+        } else {
+            this.communicator = window;
+            this.parentWindow = communicator;
+        }
+        this.BindWebSocketMessages();
+    }
 
-        this.socket.addEventListener("open", () => {
+    Send(data: any) {
+        if (!this.communicator){
+            return;
+        }
+
+        if (this.communicator instanceof WebSocket) {
+            this.communicator.send(JSON.stringify(data))
+        } else if (this.communicator instanceof Window) {
+            this.parentWindow!.postMessage(data);
+        }
+    }
+
+
+    BindWebSocketMessages() {
+        console.log("BindWebSocketMessages", this.communicator);
+        if (!this.communicator) {
+            return;
+        }
+        this.communicator.addEventListener("open", () => {
             console.log("Connection opened");
         });
 
-        this.socket.addEventListener("message", (event: { data: string; }) => {
+        this.communicator.addEventListener("message", (event: any) => {
+            if (!event.data) {
+                return;
+            }
             console.log("Received:", event.data);
             let data = event.data.split(";");
+
+            if (data[0] == "GAME_EVENT") return;
+
             this.RawPositions = data.slice(1, data.length).join(";");
             try {
                 this.PositionFormat = data[0];
@@ -36,14 +68,15 @@ export class ClientPositions extends Position {
             }
         });
 
-        this.socket.addEventListener("close", () => {
+        this.communicator.addEventListener("close", () => {
             console.log("Connection closed");
             this.PositionFormat = null;
         });
 
-        this.socket.addEventListener("error", (error: any) => {
+        this.communicator.addEventListener("error", (error: any) => {
             console.error("WebSocket error:", error);
-            this.socket?.close();
+            this.communicator?.close();
         });
+        console.log("EndBindWebSocketMessages");
     }
 }

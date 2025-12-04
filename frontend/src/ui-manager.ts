@@ -5,16 +5,12 @@ import {AddSamplePlayer} from "./add-sample-player";
 import {io} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
 import {Signalling} from "./signalling";
-import {Startup} from "./main";
 import {ClientPositions, Position} from "./client-positions";
 
 export class UIManager {
     static appUI: AppUI;
     static inRoom: boolean = false;
     static buttonsBound = false;
-    static Is3DOn(){
-        return document.getElementById("aFrameScene")?.style.display !== "none";
-    }
 
     static Initialize() {
         UIManager.appUI = {
@@ -116,7 +112,7 @@ export class UIManager {
                 document.querySelectorAll(".roomBound").forEach((elem) => {elem.remove()})
                 signalling.Send({type: "roomLeave"});
                 this.CleanButtonsForStartup();
-                await Startup();
+                //await Startup();
             })
         }
         disconnectButton.style.display = "block";
