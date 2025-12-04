@@ -81,7 +81,6 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
         if (DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoColor, remoteVideoStroke, bufferLength, canvasTexture)){
             requestAnimationFrame(draw);
         }
-        // TODO: Handle the crash meaningfully
     }
 
     setInterval(UpdatePannerNodeFromPositions, 50, panNode, clientPositions, peerPositions, id)

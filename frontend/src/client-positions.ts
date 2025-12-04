@@ -24,9 +24,12 @@ export class ClientPositions extends Position {
     communicator: WebSocket | Window | null = null;
     parentWindow: Window | null = null;
     sendPeerPositionsBack: boolean = false;
+    address: string | null = null;
     constructor(communicator: string | Window) {
         super();
         if (typeof communicator === "string") {
+            // will be needed if connection fails
+            this.address = communicator;
             this.communicator = new WebSocket(communicator);
         } else {
             this.communicator = window;
@@ -117,8 +120,14 @@ export class ClientPositions extends Position {
         });
 
         this.communicator.addEventListener("error", (error: any) => {
+            if (this.parentWindow) {
+                return;
+            }
             console.error("WebSocket error:", error);
-            this.communicator?.close();
+            setTimeout(() => {
+                this.communicator = new WebSocket(this.address!);
+                this.BindWebSocketMessages();
+                }, 5000)
             this.communicator = null;
         });
         console.log("EndBindWebSocketMessages");
