@@ -10,7 +10,6 @@ async function sendPosition() {
     }
     lastPositionSent = position;
     iframe.contentWindow!.postMessage(position, "*");
-
 }
 
 /**

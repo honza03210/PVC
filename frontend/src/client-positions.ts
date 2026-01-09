@@ -43,7 +43,7 @@ export class ClientPositions extends Position {
      * @param data
      * @constructor
      */
-    Send(data: string) {
+    public Send(data: string) {
         if (!this.communicator){
             return;
         }
@@ -75,7 +75,7 @@ export class ClientPositions extends Position {
             return;
         }
         this.communicator.addEventListener("open", () => {
-            console.log("Connection opened");
+            console.log("Positions Connection opened");
         });
 
         this.communicator.addEventListener("message", (event: any) => {
