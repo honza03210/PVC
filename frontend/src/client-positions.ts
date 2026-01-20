@@ -6,10 +6,22 @@ export class Position {
     x: number = 0;
     y: number = 0;
     z: number = 0;
+    heading: {x: number, y : number, z : number} = {x: 0, y: 0, z : 0};
     pitch: number = 90;
     yaw: number = 0;
     PositionFormat: string | null = null;
     RawPositions: string = "";
+}
+
+function getHeadingVector(pitch: number, yaw: number) {
+    const pitchRad = pitch * Math.PI / 180;
+    const yawRad   = yaw * Math.PI / 180;
+
+    const x = Math.cos(pitchRad) * Math.sin(yawRad);
+    const y = Math.sin(pitchRad);
+    const z = Math.cos(pitchRad) * Math.cos(yawRad);
+
+    return {x, y, z};
 }
 
 /**
@@ -111,6 +123,7 @@ export class ClientPositions extends Position {
                 this.pitch = Math.max(Math.min(90, parseFloat(data[4])), -90);
                 // TODO: Some engines use -180 to 180, some 0 to 360 - add this to the format?
                 this.yaw = Math.max(Math.min(360, parseFloat(data[5])), -180);
+                this.heading = getHeadingVector(this.pitch, this.yaw);
             } catch (e) {
                 // The websocket doesn't need to send all positions (2d games, games with no rotation,...)
                 // console.error(e);
