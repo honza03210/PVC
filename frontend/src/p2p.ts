@@ -91,9 +91,9 @@ export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPosition
         return;
     }
     // there could be some interpolation at the cost of latency
-    panner.positionX.value = (!Number.isNaN(panner.positionX.value)) ? (peerPositions[id].x - clientPositions.x) : 0;
-    panner.positionY.value = (!Number.isNaN(panner.positionY.value)) ? (peerPositions[id].y - clientPositions.y) : 0;
-    panner.positionZ.value = (!Number.isNaN(panner.positionZ.value)) ? (peerPositions[id].z - clientPositions.z) : 0;
+    panner.positionX.value = (!Number.isNaN(peerPositions[id].x - clientPositions.x)) ? (peerPositions[id].x - clientPositions.x) : 0;
+    panner.positionY.value = (!Number.isNaN(peerPositions[id].y - clientPositions.y)) ? (peerPositions[id].y - clientPositions.y) : 0;
+    panner.positionZ.value = (!Number.isNaN(peerPositions[id].z - clientPositions.z)) ? (peerPositions[id].z - clientPositions.z) : 0;
 }
 
 export function SetPanNodeParams(panNode: PannerNode) {
