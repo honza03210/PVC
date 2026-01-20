@@ -123,6 +123,8 @@ export class ClientPositions extends Position {
                 this.pitch = Math.max(Math.min(90, parseFloat(data[4])), -90);
                 // TODO: Some engines use -180 to 180, some 0 to 360 - add this to the format?
                 this.yaw = Math.max(Math.min(360, parseFloat(data[5])), -180);
+                if (Number.isNaN(this.pitch)) this.pitch = 0;
+                if (Number.isNaN(this.yaw)) this.yaw = 0;
                 this.heading = getHeadingVector(this.pitch, this.yaw);
             } catch (e) {
                 // The websocket doesn't need to send all positions (2d games, games with no rotation,...)
