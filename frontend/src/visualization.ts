@@ -1,5 +1,4 @@
 import {UIManager} from "./ui-manager";
-import "aframe";
 
 
 /**
