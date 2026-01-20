@@ -31,9 +31,10 @@ export class UIManager {
         const urlParams = new URLSearchParams(window.location.search);
         UIManager.appUI.nameInput.value = urlParams.get("username") ?? "";
         UIManager.appUI.roomIDInput.value = urlParams.get("room_id") ?? "";
-        if (urlParams.get("autojoin") && !this.buttonsBound) {
-            document.getElementById("joinRoomButton")?.click();
-        }
+        UIManager.appUI.passwordInput.value = urlParams.get("password-INSECURE") ?? "";
+        // if (urlParams.get("autojoin") && !this.buttonsBound) {
+        //     document.getElementById("joinRoomButton")?.click();
+        // }
     }
 
     static EnableInitButton(peerConnections: { [p: string]: PeerConnection }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
