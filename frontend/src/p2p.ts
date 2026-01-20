@@ -94,6 +94,11 @@ export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPosition
     panner.positionX.value = (peerPositions[id].x - clientPositions.x);
     panner.positionY.value = (peerPositions[id].y - clientPositions.y);
     panner.positionZ.value = (peerPositions[id].z - clientPositions.z);
+
+    if (Number.isNaN(panner.positionX.value)) panner.positionX.value = 0;
+    if (Number.isNaN(panner.positionY.value)) panner.positionY.value = 0;
+    if (Number.isNaN(panner.positionZ.value)) panner.positionZ.value = 0;
+
 }
 
 export function SetPanNodeParams(panNode: PannerNode) {
