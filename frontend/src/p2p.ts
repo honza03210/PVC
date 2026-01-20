@@ -99,9 +99,11 @@ export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPosition
     // panner.positionX.value = (!Number.isNaN(peerPositions[id].x - clientPositions.x)) ? (peerPositions[id].x - clientPositions.x) : 0;
     // panner.positionY.value = (!Number.isNaN(peerPositions[id].y - clientPositions.y)) ? (peerPositions[id].y - clientPositions.y) : 0;
     // panner.positionZ.value = (!Number.isNaN(peerPositions[id].z - clientPositions.z)) ? (peerPositions[id].z - clientPositions.z) : 0;
-    UIManager.appUI.audioCtx.listener.forwardX.value = (!Number.isNaN(clientPositions.heading.x)) ? -clientPositions.heading.x : 0;
-    UIManager.appUI.audioCtx.listener.forwardY.value = (!Number.isNaN(clientPositions.heading.y)) ? -clientPositions.heading.y : 0;
-    UIManager.appUI.audioCtx.listener.forwardZ.value = (!Number.isNaN(clientPositions.heading.z)) ? -clientPositions.heading.z : 0;
+    let headX = (!Number.isNaN(clientPositions.heading.x)) ? -clientPositions.heading.x : 0;
+    let headY = (!Number.isNaN(clientPositions.heading.y)) ? -clientPositions.heading.y : 0;
+    let headZ = (!Number.isNaN(clientPositions.heading.z)) ? -clientPositions.heading.z : 0;
+    UIManager.appUI.audioCtx.listener.setOrientation(headX, headZ, headY, 0, 1, 0);
+
     console.log(panner);
 
 }
