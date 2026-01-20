@@ -44,6 +44,7 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     UIManager.appUI.distanceFalloff.addEventListener("change", () => {
         panNode.refDistance = UIManager.appUI.distanceFalloff.valueAsNumber;
         panNode.maxDistance = UIManager.appUI.distanceFalloff.valueAsNumber * 10;
+        console.log("changed distance to:", panNode.refDistance, panNode.maxDistance);
     });
 
     microphone.connect(panNode);
@@ -98,9 +99,9 @@ export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPosition
 
 export function SetPanNodeParams(panNode: PannerNode) {
     panNode.panningModel = "HRTF";
-    panNode.distanceModel = "exponential";
-    panNode.refDistance = 5;
-    panNode.maxDistance = 500;
+    panNode.distanceModel = "linear";
+    panNode.refDistance = 1;
+    panNode.maxDistance = 10;
     panNode.rolloffFactor = 1;
     panNode.coneInnerAngle = 360;
     panNode.coneOuterAngle = 360;
