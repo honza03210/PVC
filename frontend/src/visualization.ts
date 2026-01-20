@@ -29,7 +29,7 @@ export function BindStreamAnimation(stream: MediaStream) {
     let strokeColor = 'rgba(255, 255, 255, 0.8)'
     let canvasTexture : null = null;
     function draw() {
-        DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, backgroundColor, strokeColor, bufferLength, canvasTexture);
+        DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, backgroundColor, strokeColor, bufferLength);
         requestAnimationFrame(draw);
     }
     requestAnimationFrame(draw);
@@ -52,7 +52,7 @@ export function BindStreamAnimation(stream: MediaStream) {
 
 // code from https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
 // with minor changes
-export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoColor: string, remoteVideoStroke: string, bufferLength: number, canvasTexture: any) : boolean{
+export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoColor: string, remoteVideoStroke: string, bufferLength: number) : boolean{
     if (!CanvasRenderingContext2D) {
         return false;
     }
@@ -83,9 +83,6 @@ export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDT
 
     canvasCtx.lineTo(WIDTH, HEIGHT / 2);
     canvasCtx.stroke();
-    if (canvasTexture !== null){
-        canvasTexture.needsUpdate = true;
-    }
     return true;
 }
 

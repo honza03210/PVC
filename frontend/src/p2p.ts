@@ -1,7 +1,6 @@
 import {PeerConnection} from "./peer-connection.js";
 import {Signalling} from "./signalling";
 import {UIManager} from "./ui-manager";
-import 'aframe';
 import {DrawSoundVisualization, StringToColor} from "./visualization";
 import {ClientPositions, Position} from "./client-positions";
 
@@ -74,11 +73,10 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     let canvasCtx = remoteVideo.getContext("2d")!;
-    const canvasTexture = new AFRAME.THREE.CanvasTexture(remoteVideo);
     const WIDTH = remoteVideo.width;
     const HEIGHT = remoteVideo.height;
     function draw() {
-        if (DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoColor, remoteVideoStroke, bufferLength, canvasTexture)){
+        if (DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoColor, remoteVideoStroke, bufferLength)){
             requestAnimationFrame(draw);
         }
     }
