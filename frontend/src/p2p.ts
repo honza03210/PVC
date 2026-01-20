@@ -98,9 +98,9 @@ export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPosition
     // panner.positionX.value = (!Number.isNaN(peerPositions[id].x - clientPositions.x)) ? (peerPositions[id].x - clientPositions.x) : 0;
     // panner.positionY.value = (!Number.isNaN(peerPositions[id].y - clientPositions.y)) ? (peerPositions[id].y - clientPositions.y) : 0;
     // panner.positionZ.value = (!Number.isNaN(peerPositions[id].z - clientPositions.z)) ? (peerPositions[id].z - clientPositions.z) : 0;
-    panner.orientationX.value = (!Number.isNaN(peerPositions[id].heading.x)) ? peerPositions[id].heading.x : 0;
-    panner.orientationY.value = (!Number.isNaN(peerPositions[id].heading.y)) ? peerPositions[id].heading.y : 0;
-    panner.orientationZ.value = (!Number.isNaN(peerPositions[id].heading.z)) ? peerPositions[id].heading.z : 0;
+    panner.orientationX.value = (!Number.isNaN(clientPositions.heading.x)) ? clientPositions.heading.x : 0;
+    panner.orientationY.value = (!Number.isNaN(clientPositions.heading.y)) ? clientPositions.heading.y : 0;
+    panner.orientationZ.value = (!Number.isNaN(clientPositions.heading.z)) ? clientPositions.heading.z : 0;
     console.log(panner);
 
 }
