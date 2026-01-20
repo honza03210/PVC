@@ -103,6 +103,10 @@ export class ClientPositions extends Position {
                 this.x = parseFloat(data[1]);
                 this.y = parseFloat(data[2]);
                 this.z = parseFloat(data[3]);
+                if (Number.isNaN(this.x)) this.x = 0;
+                if (Number.isNaN(this.y)) this.y = 0;
+                if (Number.isNaN(this.z)) this.z = 0;
+
                 // clamp the pitch and yaw
                 this.pitch = Math.max(Math.min(90, parseFloat(data[4])), -90);
                 // TODO: Some engines use -180 to 180, some 0 to 360 - add this to the format?

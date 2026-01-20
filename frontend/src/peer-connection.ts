@@ -176,8 +176,15 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
             peerPositions[id].x = parseFloat(data[1]);
             peerPositions[id].y = parseFloat(data[2]);
             peerPositions[id].z = parseFloat(data[3]);
+            if (peerPositions[id].x) peerPositions[id].x = 0;
+            if (peerPositions[id].y) peerPositions[id].y = 0;
+            if (peerPositions[id].z) peerPositions[id].z = 0;
+
+
             peerPositions[id].pitch = parseFloat(data[4]);
             peerPositions[id].yaw = parseFloat(data[5]);
+            if (peerPositions[id].pitch) peerPositions[id].pitch = 0;
+            if (peerPositions[id].yaw) peerPositions[id].yaw = 0;
         } catch (e) {
             // not all positions sent
             console.error(e);
