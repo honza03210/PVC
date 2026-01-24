@@ -45,7 +45,21 @@ export function signalling(server : any) {
 
     io.on("connection", socket => {
         socketBucketsCount.set(socket.id, {});
+        socket.use((packet, next) => {
+            const event = packet[0];
+            const counts = socketBucketsCount.get(socket.id)!;
 
+            counts[event] = (counts[event] ?? 0) + 1;
+
+            if (
+                (event === "join" && counts[event] > RATE_LIMIT.join) ||
+                (["offer","answer","candidate"].includes(event) &&
+                    counts[event] > RATE_LIMIT.signal)
+            ) {
+                return next(new Error("Rate limit exceeded"));
+            }
+            next();
+        });
 
         socket.emit("connected");
         console.log("new socket connected: " + socket.id);
