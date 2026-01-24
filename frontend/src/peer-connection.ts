@@ -53,12 +53,11 @@ export async function InitPeerConnection(signalling: Signalling, id: string, pee
         const stream = await navigator.mediaDevices
             .getUserMedia({
                 audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false,
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
                     channelCount: 1,
-                    sampleRate: 48000,
-                },
+                }
             })
         const remoteVideo = document.createElement("canvas");
         remoteVideo.width = 256;
