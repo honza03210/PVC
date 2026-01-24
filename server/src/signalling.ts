@@ -1,13 +1,20 @@
 import {Server} from "socket.io";
 import argon2id from "argon2";
 import {GenerateTurnCredentials} from "./generate-turn-credentials.js";
+import {allowedOrigins} from "./allowed-origins.js";
 
 
-// TODO - server typing
+const RATE_LIMIT = {
+    join: 10,
+    signal: 100
+}
+
+let socketBucketsCount = new Map<string, Record<string, number>>();
+
 export function signalling(server : any) {
     const io = new Server(server, {
         cors: {
-            origin: ["*"],
+            origin: allowedOrigins,
             methods: ["GET", "POST"],
             credentials: true
         },
@@ -37,6 +44,9 @@ export function signalling(server : any) {
     }
 
     io.on("connection", socket => {
+        socketBucketsCount.set(socket.id, {});
+
+
         socket.emit("connected");
         console.log("new socket connected: " + socket.id);
         ListRooms(socket, true);

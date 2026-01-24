@@ -102,9 +102,7 @@ export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPosition
     let headX = (!Number.isNaN(clientPositions.heading.x)) ? -clientPositions.heading.x : 0;
     let headY = (!Number.isNaN(clientPositions.heading.y)) ? -clientPositions.heading.y : 0;
     let headZ = (!Number.isNaN(clientPositions.heading.z)) ? -clientPositions.heading.z : 0;
-    UIManager.appUI.audioCtx.listener.setOrientation(headX, headZ, headY, 0, 1, 0);
-
-    console.log(panner);
+    //UIManager.appUI.audioCtx.listener.setOrientation(headX, headZ, headY, 0, 1, 0);
 
 }
 

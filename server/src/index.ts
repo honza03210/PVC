@@ -6,12 +6,22 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { signalling } from "./signalling.js"
+import {allowedOrigins} from "./allowed-origins.js";
+import rateLimit from "express-rate-limit";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(cors());
+
+app.use(rateLimit({
+    windowMs: 5 * 60 * 1000,
+    limit: 20,
+}));
+
+app.use(cors({
+    origin: allowedOrigins,
+}));
 
 app.get('/overlay/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/dist/overlay.html'));

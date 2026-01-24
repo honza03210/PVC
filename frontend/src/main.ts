@@ -4,13 +4,6 @@ import {ClientPositions, Position} from "./client-positions";
 import {BindStreamAnimation} from "./visualization";
 
 UIManager.Initialize();
-await navigator.mediaDevices
-    .getUserMedia({
-        audio: true,
-    })
-    .then(stream => {
-        BindStreamAnimation(stream);
-    });
 const urlParams = new URLSearchParams(window.location.search);
 
 let clientPositions = new ClientPositions(urlParams.get("websocket_address") ?? "ws://localhost:4242");
@@ -34,6 +27,14 @@ async function Startup() {
 
     const peerConnections: { [key: string]: PeerConnection } = {};
     const peerPositions: { [key: string]: Position } = {};
+
+    await navigator.mediaDevices
+        .getUserMedia({
+            audio: true,
+        })
+        .then(stream => {
+            BindStreamAnimation(stream);
+    });
 
     UIManager.EnableInitButton(peerConnections, peerPositions, clientPositions);
     document.getElementById("initButton")?.click();
