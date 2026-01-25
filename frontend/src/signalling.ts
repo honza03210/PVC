@@ -145,6 +145,7 @@ export class Signalling{
                 break;
             case "getCandidate":
                 if (!eventData.candidate.candidate) {
+                    console.log("!candidate")
                     return;
                 }
                 if (this.IceCandidateQueue[eventData.id] && this.IceCandidateQueue[eventData.id]!.popped) {
@@ -160,6 +161,7 @@ export class Signalling{
                     return;
                 } else if (!this.IceCandidateQueue[eventData.id]) {
                     this.IceCandidateQueue[eventData.id] = {popped: false, queue: []};
+                    console.log("Initiated queue");
                 }
                 this.IceCandidateQueue[eventData.id]!.queue.push(eventData.candidate);
                 console.log("getCandidate -- pushed to queue: ", eventData.candidate);

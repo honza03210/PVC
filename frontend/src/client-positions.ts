@@ -60,7 +60,7 @@ export class ClientPositions extends Position {
             return;
         }
 
-        if (this.communicator instanceof WebSocket) {
+        if (this.communicator instanceof WebSocket && this.communicator.readyState == WebSocket.OPEN) {
             this.communicator.send(data)
         } else if (this.communicator instanceof Window) {
             this.parentWindow!.postMessage(data, "*");

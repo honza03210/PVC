@@ -20,6 +20,15 @@ export function signalling(server : any) {
         },
     });
 
+    io.engine.on("connection_error", (err) => {
+        console.error("socket io engine error", {
+            code: err.code,
+            message: err.message,
+            context: err.context,
+        });
+    });
+
+
     // socketID : username
     let usernames : {[key: string]: string} = {};
 
