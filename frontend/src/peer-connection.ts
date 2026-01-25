@@ -46,7 +46,7 @@ export async function InitPeerConnection(signalling: Signalling, id: string, pee
         return;
     }
 
-    let peerConnection: PeerConnection = new PeerConnection({...signalling.IceServers, iceTransportPolicy: "all"});
+    let peerConnection: PeerConnection = new PeerConnection({...signalling.IceServers, iceTransportPolicy: "relay"});
     clientPositions.SendServerEvent(`PLAYER_JOIN;${username};${id}`);
     console.log("render videos");
     try {

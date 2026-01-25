@@ -182,7 +182,9 @@ export class Signalling{
             case "getOffer":
                 console.log("get offer:" + eventData.sdp);
                 await InitPeerConnection(this, eventData.id, this.peerConnections, this.peerPositions!, this.clientPositions!, false, eventData.username);
+                console.log("Initiated connection", this.peerConnections[eventData.id]!);
                 await this.peerConnections[eventData.id].CreateAnswer(this, eventData.sdp, eventData.id);
+                console.log("Created answer", this.peerConnections[eventData.id]!);
                 break;
             case "getAnswer":
                 console.log("get answer:" + eventData.sdp);
