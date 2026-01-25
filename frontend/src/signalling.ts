@@ -168,6 +168,12 @@ export class Signalling{
                 break;
             case "listUsers":
                 console.log("listUsers: ", eventData);
+                for (let userID of eventData.userIDs){
+                    if ((userID !in this.peerConnections && userID > eventData.selfID) || this.peerConnections[userID].connectionState == "failed") {
+                        await InitPeerConnection(this, userID, this.peerConnections, this.peerPositions!, this.clientPositions!, true, userID);
+                        await this.peerConnections[userID].CreateOffer(this, userID);
+                    }
+                }
                 break;
             case "getAnswerAck":
                 console.log("getAnswerAck");
