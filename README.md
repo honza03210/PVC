@@ -8,7 +8,7 @@ The game generates an url that passes the important parameters to the browser.
 
 ```VOICE_CHAT_URL/?username=PLAYER_USERNAME&room_id=ROOM_NAME&websocket_address=POSITIONS_WEBSOCKET_ADDRESS:%d&user_token=USER_TOKEN&password-INSECURE=ROOM_PASSWORD&autojoin```
 
-Version of the voice chat working between players on LAN is [here](https://jaguar-magnetic-deer.ngrok-free.app/).
+Demo version of the voice chat working between players on LAN is [here](https://jaguar-magnetic-deer.ngrok-free.app/).
 
 For a version working fully and reliably on the internet a TURN server is needed as a fallback when direct connection between peers fails (strict firewalls, NATs).
 
