@@ -1,96 +1,166 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+    --primary-color: rgb(36, 36, 36);
+    --primary-color-light: rgb(50, 50, 50);
+    --secondary-color: rgb(200, 200, 200);
+    --mid-color: rgb(136, 136, 136);
+    --text-anti-primary: rgb(230, 230, 230);
+    --text-anti-secondary: rgb(250, 250, 250);
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+input {
+    margin-bottom: 10px;
+    color: white;
+    width: 150px;
+    background-color: var(--mid-color);
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+label {
+    text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vanilla:hover {
-  filter: drop-shadow(0 0 2em #3178c6aa);
+.menu-button {
+    color: black;
+    background-color: var(--secondary-color);
+    width: 150px;
+    padding: 10px;
+    border-radius: 0.3vw;
 }
 
-.card {
-  padding: 2em;
+.checkbox {
+    height: 15px;
+    width: 15px;
 }
 
-.read-the-docs {
-  color: #888;
+input:checked {
+    background-color: var(--secondary-color);
+    color: black;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.center-div {
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.draggable {
+    cursor: grab;
+}
+
+.menu {
+    width: auto;
+    border-radius: 2vw;
+    background-color: var(--primary-color-light);
+}
+
+.menu-padding {
+    padding: 2vh;
+}
+
+.fill-height {
+    height: max-content;
+}
+
+.fill-width {
+    width: 100%;
+}
+
+.align-top {
+    vertical-align: top;
+}
+
+.container {
+    align-content: end;
+}
+
+.vertical-align-center {
+    vertical-align: center;
+}
+
+.menu-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.menu-table td {
+    width: 33%;
+    vertical-align: top;
+}
+
+.hidden {
+    display: none;
+}
+
+.center-text {
+    text-align: center;
+}
+
+#rooms-header {
+    margin: auto 0;
+    font-size: 2vh;
+}
+
+#main-menu-table {
+    margin-top: 1vh;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#main-menu-table td {
+    width: 33%;
+    height: 100%;
+    padding: 2vh 2vw;
+    vertical-align: top;
+}
+
+#rooms-list {
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    padding: 1vh 0;
+}
+
+#rooms-list > div {
+    margin: 0.2vw;
+}
+
+#rooms-list-menu {
+    display: flex;
+    flex-direction: column;
+}
+
+#main-menu {
+    margin: 0 5vw;
+}
+
+#rooms-refresh {
+    align-self: flex-end;
+    font-size: 2vh;
+    margin-right: 0;
+    border-radius: 2vw;
+    width: 5vh;
+    height: 5vh;
+}
+
+#audio-menu {
+    width: fit-content;
+    margin: 0;
 }

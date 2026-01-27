@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PVC</title>
+    <title>Title</title>
     <script type="module" src="/src/main.ts"></script>
+<!--    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>-->
     <link rel="stylesheet" href="/src/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +22,9 @@
 </dialog>
 
 <div id="container">
+    <a-scene id="aFrameScene" style="display: none">
+        <a-sky color="#ECECEC"></a-sky>
+    </a-scene>
     <table id="main-menu-table">
 
     <tr>
@@ -34,7 +38,7 @@
                 <div id="main-menu" class="menu menu-padding center-div flex-column">
                     <label for="name">Username</label><input type="text" id="name"/>
                     <label for="roomID">Room Name</label><input type="text" id="roomID"/>
-                    <label for="password">Password</label><input type="password" id="password"/>
+                    <label for="password">ashdaushdsaukdhakdahd</label><input type="password" id="password"/>
                     <label for="manualPositions">Set Positions Manually</label>
                     <input type="checkbox" id="manualPositions" name="manualPositions" class="checkbox"/>
                     <label for="distanceFalloff">Distance Falloff:</label>

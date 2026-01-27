@@ -1,467 +1,186 @@
-import { PCConfig } from "./configs/pc-config.js";
-import { type AppUI } from "./interaces/app-ui.js";
-import { PlayerMovementInit } from "./player-char-movement.js";
-import { DragElement } from "./draggable.js";
-
-async function createOffer(wWPort: MessagePort, destID: string, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined) {
-    if (!peerConnection) {
-        console.error("create offer failed - peer connection undefined");
-        return;
-    }
-    console.log("create offer");
-    peerConnection
-        .createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true})
-        .then(async sdp => {
-            // sdp.sdp = sdp.sdp!.replace(/a=fmtp:111 minptime=10;useinbandfec=1/g,
-            //     'a=fmtp:111 minptime=10;useinbandfec=1;maxaveragebitrate=96000');
-
-            await peerConnection.setLocalDescription(sdp);
-            wWPort.postMessage({message: {dest: destID, sdp: sdp}, type: "offer"});
-        })
-        .catch(error => {
-            console.log(error);
-        });
-
-}
-
-async function createAnswer(wWPort: MessagePort, peerConnections: {[key: string] : RTCPeerConnection}, peerConnection: RTCPeerConnection | undefined, sdp: string | RTCSessionDescription, destID: string) {
-    if (peerConnection === undefined) {
-        console.error("create answer failed - peer connection undefined");
-        return;
-    }
-    console.log("create answer");
-    peerConnection.setRemoteDescription(<RTCSessionDescriptionInit>sdp).then(() => {
-        console.log("answer set remote description success");
-        peerConnection
-            .createAnswer({
-                offerToReceiveVideo: true,
-                offerToReceiveAudio: true,
-                offerToReceivePositions: true,
-            })
-            .then(async sdp1 => {
-                await peerConnection.setLocalDescription(sdp1);
-                wWPort.postMessage({message: {dest: destID, sdp: sdp1}, type: "answer"});
-            })
-            .catch(error => {
-                console.log(error);
-            });
-    });
-}
+import {PeerConnection} from "./peer-connection.js";
+import {Signaling} from "./signaling";
+import {UIManager} from "./ui-manager";
+import {DrawSoundVisualization, StringToColor} from "./visualization";
+import {ClientPositions, Position} from "./client-positions";
 
 
-export function roomJoin(peerConnections: {[key: string] : RTCPeerConnection}, appUI: AppUI, wsPositions: WebSocket) {
+/**
+ * Called upon user requesting a room join
+ * @param signalling
+ * @param peerConnections
+ * @param peerPositions
+ * @param positionsSocket
+ * @constructor
+ */
+export function RoomJoin(signalling: Signaling, peerConnections: {
+    [p: string]: PeerConnection
+}, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
     console.log("roomJoin");
 
-    let audioCtx = new AudioContext();
-
-    let clientCharacterContainer = document.createElement("div");
-    clientCharacterContainer.style.position = "absolute";
-    clientCharacterContainer.style.top = "50%";
-    clientCharacterContainer.style.left = "50%";
-    clientCharacterContainer.id = "playerCharacter";
-
-    let nameLabel = document.createElement("div");
-    nameLabel.textContent = "Me";
-    nameLabel.style.textAlign = "center";
-    nameLabel.style.fontSize = "12px";
-    nameLabel.style.color = "blue";
-    nameLabel.style.fontWeight = "bold";
-    clientCharacterContainer.appendChild(nameLabel);
-
-    let clientCharacter = document.createElement("canvas");
-    clientCharacter.width = 30;
-    clientCharacter.height = 30;
-    clientCharacter.style.position = "absolute";
-    clientCharacter.style.backgroundColor = "blue";
-
-    clientCharacterContainer.appendChild(clientCharacter);
-
-    document.getElementById("container")!.appendChild(clientCharacterContainer);
-
-    DragElement(clientCharacterContainer, appUI);
-
-    PlayerMovementInit();
-
-    let IceCandidateQueue: {[key: string] : {popped: boolean, queue: {candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]}} = {};
-
-    const worker = new SharedWorker(new URL('/src/signalling-worker.ts', import.meta.url), {type: "module"});
-    console.log("worker " + worker);
-    const wWPort = worker.port;
-
-    wWPort.start();
-    console.log("port " + wWPort + " ; ");
-
-    wWPort.addEventListener("message", async (event) => {
-        console.log("message", event.data);
-        switch (event.data.type) {
-            case "connect":
-                wWPort.postMessage({ type: "listRooms" });
-                console.log('Hello, successfully connected to the signaling server!');
-                break;
-            case "disconnect":
-                console.log("disconnect:" + event.data);
-                break;
-            case "error":
-                console.log("Error: " + event.data.message);
-                appUI.errorMsgLabel.innerHTML = "Error" + event.data.message;
-                break;
-            case "listRooms":
-                appUI.roomList.innerHTML = "Rooms: \n" + event.data.roomsList;
-                break;
-            case "sharedWorkerMessage":
-                console.log("SharedWorker says: " + event.data.message);
-                break;
-            case "getCandidate":
-                if (!event.data.candidate.candidate) {
-                    return;
-                }
-                if (IceCandidateQueue[event.data.id] && IceCandidateQueue[event.data.id]!.popped) {
-                    console.log("getCandidate", event.data.candidate.candidate);
-                    if (peerConnections[event.data.id]!.connectionState == "connected"){
-                        console.log("getCandidate ignored - connected");
-                        return;
-                    }
-                    if (event.data.candidate.candidate == "") return;
-                    peerConnections[event.data.id]!.addIceCandidate(new RTCIceCandidate(event.data.candidate.candidate)).then(() => {
-                        console.log("candidate add success");
-                    });
-                    return;
-                }
-                else if (!IceCandidateQueue[event.data.id]) {
-                    IceCandidateQueue[event.data.id] = {popped: false, queue: []};
-                }
-                IceCandidateQueue[event.data.id]!.queue.push(event.data.candidate);
-                console.log("getCandidate -- pushed to queue: ", event.data.candidate);
-                break;
-            case "listUsers":
-                console.log("listUsers");
-                for (const userID of event.data.userIDs) {
-                    if (userID < event.data.selfID && (!(userID in peerConnections || peerConnections[userID]!.connectionState != "connected"))) {
-                        console.log("found disconnected user");
-                        await pinit(wWPort, userID, peerConnections, appUI, wsPositions, true, "DISCONNECTED USER PLACEHOLDER");
-                        await createOffer(wWPort, userID, peerConnections, peerConnections[userID]);
-                    }
-                }
-                break;
-            case "getAnswerAck":
-                console.log("getAnswerAck");
-                for (const cand of IceCandidateQueue[event.data.id]!.queue) {
-                    if (peerConnections[event.data.id]!.connectionState == "connected"){
-                        console.log("getCandidate ignored - connected");
-                        return;
-                    }
-                    console.log("popped from queue");
-                    if (cand.candidate.candidate == "") return;
-                    await peerConnections[event.data.id]!.addIceCandidate(new RTCIceCandidate(cand.candidate));
-                }
-                IceCandidateQueue[event.data.id]!.popped = true;
-                break;
-            case "getOffer":
-                console.log("get offer:" + event.data.sdp);
-                await pinit(wWPort, event.data.id, peerConnections, appUI, wsPositions, false, event.data.username);
-                await createAnswer(wWPort, peerConnections, peerConnections[event.data.id], event.data.sdp, event.data.id);
-                break;
-            case "getAnswer":
-                console.log("get answer:" + event.data.sdp);
-                if (!peerConnections[event.data.id]!.remoteDescription || !peerConnections[event.data.id]!.remoteDescription!.type){
-                    console.log("setting remote desc after getting an answer");
-                    await peerConnections[event.data.id]!.setRemoteDescription(event.data.sdp);
-                }
-                console.log("answerAck sent")
-                wWPort.postMessage({message: {dest: event.data.id}, type: "answerAck"});
-                if (!IceCandidateQueue[event.data.id]){
-                    console.log("NO QUEUE TO POP");
-                    IceCandidateQueue[event.data.id] = {popped: true, queue: []};
-                    return;
-                }
-                console.log("getAnswerAck");
-                for (const cand of IceCandidateQueue[event.data.id]!.queue) {
-                    if (peerConnections[event.data.id]!.connectionState == "connected"){
-                        console.log("getCandidate ignored - connected");
-                        return;
-                    }
-                    console.log("popped from queue");
-                    if (cand.candidate.candidate == "") return;
-                    await peerConnections[event.data.id]!.addIceCandidate(new RTCIceCandidate(cand.candidate));
-                }
-                IceCandidateQueue[event.data.id]!.popped = true;
-                // break;
-                // useQueuedCandidates(IceCandidateQueue[event.data.id], peerConnections[event.data.id]);
-                break;
-            case "PeerJoined":
-                console.log("Peer joined: " + event.data.id);
-                if (peerConnections[event.data.id]){
-                    console.log("peer already connected");
-                    return;
-                }
-                await pinit(wWPort, event.data.id, peerConnections, appUI, wsPositions, true, event.data.username);
-                await createOffer(wWPort, event.data.id, peerConnections, peerConnections[event.data.id]);
-                break;
-
+    let IceCandidateQueue: {
+        [key: string]: {
+            popped: boolean,
+            queue: { candidate: RTCIceCandidate, sdpMid: string, sdpMLineIndex: number }[]
         }
-    })
+    } = {};
 
-    wWPort.postMessage({message: {
-        roomId: appUI.roomIDInput.value,
-        name: appUI.nameInput.value,
-        password: appUI.passwordInput.value
-        }, type: "join"});
+    signalling.BindEvents(IceCandidateQueue, peerConnections, peerPositions, positionsSocket);
+
+    signalling.Send({
+        payload: {
+            roomId: UIManager.appUI.roomIDInput.value,
+            name: UIManager.appUI.nameInput.value != "" ? UIManager.appUI.nameInput.value : `user-${Math.random().toString(36).substring(2, 10)}`,
+            password: UIManager.appUI.passwordInput.value
+        }, type: "join"
+    });
+
     console.log("join posted");
+}
 
-async function pinit(wWPort: MessagePort, id : string, peerConnections: {[key: string] : RTCPeerConnection}, appUI: AppUI, wsPositions: WebSocket, offer: boolean, username: string) {
-    if (id in peerConnections) {
-        console.log("id already in peer connections")
+/**
+ * Handles new audio stream - visualization and spatial audio updates
+ * @param stream
+ * @param remoteAudio
+ * @param remoteVideo
+ * @param id
+ * @param clientPositions
+ * @param peerPositions
+ * @constructor
+ */
+export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, id: string, clientPositions: ClientPositions, peerPositions: {[p: string]: Position}) {
+    if (remoteAudio) {
+        remoteAudio.muted = true;
+        remoteAudio.srcObject = stream;
+    }
+    let audioCtx = UIManager.appUI.audioCtx;
+    let microphone = audioCtx.createMediaStreamSource(stream);
+    let analyser = audioCtx.createAnalyser();
+    let panNode = audioCtx.createPanner();
+
+    SetPanNodeParams(panNode);
+
+    UIManager.appUI.distanceFalloff.addEventListener("change", () => {
+        panNode.refDistance = UIManager.appUI.distanceFalloff.valueAsNumber;
+        panNode.maxDistance = UIManager.appUI.distanceFalloff.valueAsNumber * 10;
+        console.log("changed distance to:", panNode.refDistance, panNode.maxDistance);
+    });
+
+    microphone.connect(panNode);
+    panNode.connect(analyser);
+    analyser.connect(audioCtx.destination);
+
+    let remoteVideoColor: string = "rgba(141,141,141, 0.05)";
+    let remoteVideoStroke: string = StringToColor(id);
+
+    let muted = false;
+
+    remoteVideo.onclick = () => {
+        if (muted) {
+            console.log("unmuted");
+            remoteVideoColor = "rgba(141,141,141, 0.05)";
+            muted = false;
+            analyser.connect(audioCtx.destination);
+        } else {
+            console.log("muted");
+            remoteVideoColor = "rgba(255,0,0,0.28)";
+            muted = true;
+            analyser.disconnect(audioCtx.destination);
+        }
+    }
+
+    analyser.fftSize = 512;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    let canvasCtx = remoteVideo.getContext("2d")!;
+    const WIDTH = remoteVideo.width;
+    const HEIGHT = remoteVideo.height;
+    function draw() {
+        if (DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoColor, remoteVideoStroke, bufferLength)){
+            requestAnimationFrame(draw);
+        }
+    }
+
+    setInterval(UpdatePannerNodeFromPositions, 50, panNode, clientPositions, peerPositions, id)
+    requestAnimationFrame(draw);
+}
+
+/**
+ * Updates panner node from the client and peer positions
+ * @param panner
+ * @param clientPositions
+ * @param peerPositions
+ * @param id
+ * @constructor
+ */
+export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPositions: ClientPositions, peerPositions: {[p: string]: Position}, id: string) {
+    if (!peerPositions[id]){
         return;
     }
+    // there could be some interpolation at the cost of latency
+    panner.positionX.setTargetAtTime(peerPositions[id].x - clientPositions.x, 0, 0.05);
+    panner.positionY.setTargetAtTime(peerPositions[id].y - clientPositions.y, 0, 0.05);
+    panner.positionZ.setTargetAtTime(peerPositions[id].z - clientPositions.z, 0, 0.05);
 
-    let peerConnection = new RTCPeerConnection({...PCConfig, iceTransportPolicy: "relay"});
+    // panner.positionX.value = (!Number.isNaN(peerPositions[id].x - clientPositions.x)) ? (peerPositions[id].x - clientPositions.x) : 0;
+    // panner.positionY.value = (!Number.isNaN(peerPositions[id].y - clientPositions.y)) ? (peerPositions[id].y - clientPositions.y) : 0;
+    // panner.positionZ.value = (!Number.isNaN(peerPositions[id].z - clientPositions.z)) ? (peerPositions[id].z - clientPositions.z) : 0;
+    let headX = (!Number.isNaN(clientPositions.heading.x)) ? -clientPositions.heading.x : 0;
+    let headY = (!Number.isNaN(clientPositions.heading.y)) ? -clientPositions.heading.y : 0;
+    let headZ = (!Number.isNaN(clientPositions.heading.z)) ? -clientPositions.heading.z : 0;
+    //UIManager.appUI.audioCtx.listener.setOrientation(headX, headZ, headY, 0, 1, 0);
 
-    console.log("render videos");
-    try {
-        await navigator.mediaDevices
-            .getUserMedia({
-                audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false,
-                    channelCount: 1,
-                    sampleRate: 48000,
-                },
-                // audio: true
-            })
-            .then(stream => {
-                const remoteVideo = document.createElement("canvas");
-                const remoteAudio = document.createElement("audio");
-
-
-                remoteVideo.id = "remoteVideo-" + id;
-                remoteAudio.id = "remoteAudio-" + id;
-
-                remoteAudio.autoplay = true;
-                remoteAudio.muted = false;
-
-                if (appUI.videoContainer) {
-                    appUI.videoContainer.appendChild(remoteAudio);
-                    appUI.videoContainer.appendChild(remoteVideo);
-                }
-
-                stream.getTracks().forEach(track => {
-                    peerConnection.addTrack(track, stream);
-                });
-
-                let peerCharacterContainer = document.createElement("div");
-                peerCharacterContainer.style.position = "absolute";
-                peerCharacterContainer.style.top = "50%";
-                peerCharacterContainer.style.left = "50%";
-                peerCharacterContainer.id = "remotePlayerCharacter-" + id;
-
-                let nameLabel = document.createElement("div");
-                nameLabel.textContent = username;
-                console.log("USERNAMMEEE: " + username);
-                nameLabel.style.textAlign = "center";
-                nameLabel.style.fontSize = "12px";
-                nameLabel.style.color = "green";
-                nameLabel.style.fontWeight = "bold";
-                peerCharacterContainer.appendChild(nameLabel);
-
-                let peerCharacter = document.createElement("canvas");
-                peerCharacter.width = 30;
-                peerCharacter.height = 30;
-                peerCharacter.style.position = "absolute";
-                peerCharacter.style.backgroundColor = "green";
-
-                peerCharacterContainer.appendChild(peerCharacter);
-                document.body.appendChild(peerCharacterContainer);
-
-                DragElement(peerCharacterContainer, appUI);
-
-
-                if (offer) {
-                    let dc = peerConnection.createDataChannel("positions", {ordered: true});
-                    dc.onopen = () => {
-                        function sendPos() {
-                            setTimeout(()=>{
-                                let char = document.getElementById("playerCharacter");
-                                dc.send(new URLSearchParams({top: char!.style.top, left: char!.style.left}).toString());
-                                sendPos()
-                            }, 10)
-                        }
-                        sendPos();
-                    };
-                    dc.onmessage = (event: { data: any }) => {
-                        if (appUI.manualPositions.checked) return;
-
-                        let char = document.getElementById("remotePlayerCharacter-" + id);
-                        //console.log("received position message: ", event.data);
-                        let data = Object.fromEntries(new URLSearchParams(event.data));
-                        char!.style.top = data.top!;
-                        char!.style.left = data.left!;
-                    }
-                } else {
-                    peerConnection.ondatachannel = (e) => {
-                        let dc = e.channel;
-                        dc.onopen = () => {
-                            function sendPos() {
-                                setTimeout(()=>{
-                                    let char = document.getElementById("playerCharacter");
-                                    dc.send(new URLSearchParams({top: char!.style.top, left: char!.style.left}).toString());
-                                    sendPos()
-                                }, 10)
-                            }
-                            sendPos();
-                        };
-                        dc.onmessage = (event: { data: any }) => {
-                            if (appUI.manualPositions.checked) return;
-
-                            let char = document.getElementById("remotePlayerCharacter-" + id);
-                            console.log("received position message: ", event.data);
-                            let data = Object.fromEntries(new URLSearchParams(event.data));
-                            char!.style.top = data.top!;
-                            char!.style.left = data.left!;
-                        }
-                    };
-                }
-
-                peerConnection.onicecandidate = e => {
-                    console.log("onicecandidate");
-
-                    if (e.candidate) {
-                        console.log("candidate: " + e.candidate);
-                        wWPort.postMessage({message: {dest: id, candidate: {candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid,
-                                    sdpMLineIndex: e.candidate.sdpMLineIndex,
-                                    usernameFragment: (e.candidate as any).usernameFragment,}}, type: "candidate"});
-                    } else {
-                        console.log("no candidate")
-                    }
-                };
-
-                peerConnection.oniceconnectionstatechange = e => {
-                    console.log(e);
-                };
-
-
-                peerConnection.ontrack = async ev => {
-                    console.log("STREAAAMS: " + ev.streams);
-                    let microphone = audioCtx.createMediaStreamSource(ev.streams[0]!);
-                    let analyser = audioCtx.createAnalyser();
-                    let panNode = audioCtx.createPanner();
-                    panNode.panningModel = "HRTF";
-                    panNode.distanceModel = "inverse";
-                    panNode.refDistance = 50;
-                    panNode.maxDistance = 500;
-                    panNode.rolloffFactor = 1;
-
-                    appUI.distanceFalloff.addEventListener("change", () => {
-                        panNode.refDistance = appUI.distanceFalloff.valueAsNumber;
-                        panNode.maxDistance = appUI.distanceFalloff.valueAsNumber
-                    });
-
-                    microphone.connect(panNode);
-                    panNode.connect(analyser);
-                    const dest = audioCtx.createMediaStreamDestination();
-                    panNode.connect(audioCtx.destination);
-
-                    analyser.fftSize = 512;
-                    const bufferLength = analyser.frequencyBinCount;
-                    const dataArray = new Uint8Array(bufferLength);
-                    let canvasCtx = remoteVideo.getContext("2d")!;
-                    const WIDTH = 200;
-                    const HEIGHT = 100;
-                    function draw() {
-                        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-                        analyser.getByteTimeDomainData(dataArray);
-                        // Fill solid color
-                        canvasCtx.fillStyle = "rgb(200 200 200)";
-                        canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-                        // Begin the path
-                        canvasCtx.lineWidth = 2;
-                        canvasCtx.strokeStyle = "rgb(0 0 0)";
-                        canvasCtx.beginPath();
-                        // Draw each point in the waveform
-                        const sliceWidth = WIDTH / bufferLength;
-                        let x = 0;
-                        for (let i = 0; i < bufferLength; i++) {
-                            const v = dataArray[i]! / 128.0;
-                            const y = v * (HEIGHT / 2);
-
-                            if (i === 0) {
-                                canvasCtx.moveTo(x, y);
-                            } else {
-                                canvasCtx.lineTo(x, y);
-                            }
-
-                            x += sliceWidth;
-                        }
-
-                        // Finish the line
-                        canvasCtx.lineTo(WIDTH, HEIGHT / 2);
-                        canvasCtx.stroke();
-                        requestAnimationFrame(draw);
-                    }
-                    function updateAudioPosition(timeDelta: DOMHighResTimeStamp, panNode: PannerNode, id: string) {
-                        requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
-                        let peerChar = document.getElementById("remotePlayerCharacter-" + id);
-                        let localChar = document.getElementById("playerCharacter");
-                        if (!localChar || !peerChar) {
-                            console.log("no peer char or local char");
-                            return
-                        }
-                        let lCPositions = {
-                            x: parseFloat(localChar.style.left) / 100 * window.innerWidth,
-                            y: parseFloat(localChar.style.top) / 100 * window.innerHeight
-                        };
-                        let pCPositions = {
-                            x: parseFloat(peerChar.style.left) / 100 * window.innerWidth,
-                            y: parseFloat(peerChar.style.top) / 100 * window.innerHeight
-                        };
-
-                        panNode.positionX.linearRampToValueAtTime(pCPositions.x - lCPositions.x, 0.05);
-                        panNode.positionY.linearRampToValueAtTime(pCPositions.y - lCPositions.y, 0.05);
-
-
-                    }
-                    requestAnimationFrame((time) => draw());
-                    requestAnimationFrame((time) => updateAudioPosition(time, panNode, id));
-                    console.log("add remote track success");
-                    if (remoteAudio)
-                        remoteAudio.srcObject = dest.stream;
-                    else {
-                        console.log("remote track failed");
-                    }
-                };
-
-            })
-            .catch(error => {
-                console.log(`getUserMedia error: ${error}`);
-            });
-
-    } catch (e) {
-        console.log(e);
-    }
-    console.log("set new peerConnection");
-    peerConnections[id] = peerConnection;
 }
+
+/**
+ * Initial PannerNode params
+ * @param panNode
+ * @constructor
+ */
+export function SetPanNodeParams(panNode: PannerNode) {
+    // TODO: Pull from some config file
+    panNode.panningModel = "HRTF";
+    panNode.distanceModel = "linear";
+    panNode.refDistance = 1;
+    panNode.maxDistance = 10;
+    panNode.rolloffFactor = 1;
+    panNode.coneInnerAngle = 360;
+    panNode.coneOuterAngle = 360;
+    panNode.coneOuterGain = 1;
 }
 
 
+/**
+ * Cleans up after a peer disconnects
+ * @param userID
+ * @param peerConnections
+ * @param clientPositions
+ * @constructor
+ */
+export async function HandleUserDisconnect(userID: string, peerConnections: {[key: string] : PeerConnection}, clientPositions: ClientPositions | null) {
+    document.getElementById("remoteVideo-" + userID)?.remove();
+    document.getElementById("remoteAudio-" + userID)?.remove();
+    peerConnections[userID].close();
+    clientPositions?.SendServerEvent(`PLAYER_LEFT;${userID}`);
+    delete peerConnections[userID];
+}
 
-async function useQueuedCandidates (queue: { popped: boolean, queue: { candidate: RTCIceCandidate; sdpMid: string; sdpMLineIndex: number }[] } | undefined , peerConnection: RTCPeerConnection | undefined) {
-    if (queue === undefined) {
-        console.error("pop candidates from queue failed - queue not initialized");
-        return;
-    }
-    if (peerConnection === undefined) {
-        console.error("pop candidates from queue failed - peerConnection undefined");
-        return;
-    }
-    for (const candidate of queue.queue) {
-        if (peerConnection.connectionState == "connected"){
-            console.error("pop candidates from queue ignored - peerConnection state is already connected");
+
+/**
+ * Reads and applies the queued ICE candidates received before being ready to process them
+ * @param peerConnections
+ * @param iceCandidateQueue
+ * @param id
+ */
+export async function useQueuedCandidates (peerConnections: { [p: string]: RTCPeerConnection }, iceCandidateQueue:any, id: string) {
+    for (const cand of iceCandidateQueue[id]!.queue) {
+        if (peerConnections[id]!.connectionState == "connected") {
+            console.log("getCandidate ignored - connected");
             return;
         }
-        console.log("popped an ICE candidate from queue");
-        if (candidate.candidate.candidate == "") return;
-        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate.candidate));
+        console.log("popped from queue");
+        if (cand.candidate.candidate == "") return;
+        await peerConnections[id]!.addIceCandidate(new RTCIceCandidate(cand.candidate));
     }
-    queue.popped = true;
+    iceCandidateQueue[id]!.popped = true;
 }

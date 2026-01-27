@@ -1,118 +1,48 @@
-import { connectPositions } from "./ws-connect.js";
-import {roomJoin} from "./p2p.js";
-import { type AppUI } from "./interaces/app-ui.js";
-// import {BindSignallingSocket} from "./bind-signalling.js";
-// import {sign} from "node:crypto";
+import {PeerConnection} from "./peer-connection.js";
+import {UIManager} from "./ui-manager";
+import {ClientPositions, Position} from "./client-positions";
+import {BindStreamAnimation} from "./visualization";
 
-document.addEventListener("DOMContentLoaded", () : void => {startup()})
+/**
+ * Entry file for the main voice chat client page
+ * TODO: Cluttered mess -> Rewrite
+ */
 
-async function startup() {
-    let urlParams : URLSearchParams = new URLSearchParams(window.location.search);
-
-    console.log(urlParams.get("username") + " is trying to connect to room associated with server " + urlParams.get("server_id"));
-
-    // let wsPositions : WebSocket = connectPositions("ws://localhost:4242");
-    let wsPositions: any;
-
-    const appUI : AppUI = {
-        localVideo: document.getElementById('localVideo') as HTMLCanvasElement,
-        localAudio: document.getElementById('localAudio') as HTMLAudioElement,
-        nameInput: document.getElementById('name') as HTMLInputElement,
-        passwordInput: document.getElementById("password") as HTMLInputElement,
-        roomIDInput: document.getElementById("roomID") as HTMLInputElement,
-        roomList: document.getElementById("roomList") as HTMLDivElement,
-        errorMsgLabel: document.getElementById("errorMsg") as HTMLDivElement,
-        videoContainer: document.getElementById("videoContainer") as HTMLDivElement,
-        manualPositions: document.getElementById("manualPositions") as HTMLInputElement,
-        distanceFalloff: document.getElementById("distanceFalloff") as HTMLInputElement,
-    }
-    const PeerConnections: {[key: string] : RTCPeerConnection} = {}
-
-    let joined = false;
-
-    const audioButton = document.createElement("button");
-    audioButton.innerText = "Initialize audio";
-
-    audioButton.addEventListener("click", async () => {
-        audioButton.disabled = true;
-
-        let audioCtx = new AudioContext()
-
-        if (audioCtx.state === "suspended") {
-            await audioCtx.resume();
-        }
-
-        await navigator.mediaDevices
-            .getUserMedia({
-                audio: true,
-            })
-            .then(stream => {
-                var microphone = audioCtx.createMediaStreamSource(stream);
-                var analyser = audioCtx.createAnalyser();
-                microphone.connect(analyser);
-                analyser.fftSize = 512;
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
-                requestAnimationFrame(draw);
-                if (appUI.localAudio) {
-                    appUI.localAudio.muted = true;
-                }
-                let canvasCtx = appUI.localVideo.getContext("2d")!;
-                const WIDTH = 200;
-                const HEIGHT = 100;
-
-                function draw() {
-                    requestAnimationFrame(draw);
-                    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-                    analyser.getByteTimeDomainData(dataArray);
-                    // Fill solid color
-                    canvasCtx.fillStyle = "rgb(200 200 200)";
-                    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-                    // Begin the path
-                    canvasCtx.lineWidth = 2;
-                    canvasCtx.strokeStyle = "rgb(0 0 0)";
-                    canvasCtx.beginPath();
-                    // Draw each point in the waveform
-                    const sliceWidth = WIDTH / bufferLength;
-                    let x = 0;
-                    for (let i = 0; i < bufferLength; i++) {
-                        const v = dataArray[i]! / 128.0;
-                        const y = v * (HEIGHT / 2);
-
-                        if (i === 0) {
-                            canvasCtx.moveTo(x, y);
-                        } else {
-                            canvasCtx.lineTo(x, y);
-                        }
-
-                        x += sliceWidth;
-                    }
-
-                    // Finish the line
-                    canvasCtx.lineTo(WIDTH, HEIGHT / 2);
-                    canvasCtx.stroke();
-                }
-            });
-
-        const joinButton = document.createElement("button");
-        joinButton.innerText = "Join"
-        joinButton.style.fontSize = "32";
-
-        joinButton.addEventListener('click', e => {
-            if (!joined) {
-                joined = true;
-                roomJoin(PeerConnections, appUI, wsPositions)
-            }
-        });
-
-        document.getElementById("container")?.appendChild(joinButton);
-
+UIManager.Initialize();
+await navigator.mediaDevices
+    .getUserMedia({
+        audio: true,
     })
-    document.body.appendChild(audioButton);
+    .then(stream => {
+        BindStreamAnimation(stream);
+    });
+const urlParams = new URLSearchParams(window.location.search);
+
+let clientPositions = new ClientPositions(urlParams.get("websocket_address") ?? "ws://localhost:4242");
+
+if (urlParams.get("user_token") != null && clientPositions.communicator instanceof WebSocket) {
+    console.log("token sending", clientPositions.communicator);
+    if (clientPositions.communicator.readyState === WebSocket.OPEN) {
+        clientPositions.Send(JSON.stringify({token: urlParams.get("user_token")}));
+    } else {
+        clientPositions.communicator.addEventListener("open", () => clientPositions.Send(JSON.stringify({token: urlParams.get("user_token")})), { once: true });
+    }
+
+    console.log("token sent");
+} else {
+    console.log("token not sent");
 }
 
+await Startup();
+
+async function Startup() {
+
+    const peerConnections: { [key: string]: PeerConnection } = {};
+    const peerPositions: { [key: string]: Position } = {};
 
 
 
-
-
+    UIManager.EnableInitButton(peerConnections, peerPositions, clientPositions);
+    document.getElementById("initButton")?.click();
+    UIManager.PrefillFieldsFromUrl();
+}
