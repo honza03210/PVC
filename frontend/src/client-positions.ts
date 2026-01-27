@@ -79,6 +79,7 @@ export class ClientPositions extends Position {
 
     /**
      * Binds basic open, message, close end error events of the communicator - on message will fill its position
+     * Special SERVER and GAME events are also transmitted and handled -> can be used as a networking layer for some arbitrary data exchange
      * @constructor
      */
     BindWebSocketMessages() {

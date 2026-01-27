@@ -1,5 +1,12 @@
+/**
+ * (Very old) functions for a moving squares visualization (players can control squares moving on the screen, nothing else)
+ * @param name
+ * @constructor
+ */
 
 export function Create2DPlayerCharacter(name : string) : HTMLDivElement {
+    // Very painful code written >5 years ago
+    // TODO: rewrite
     let clientCharacterContainer = document.createElement("div");
     clientCharacterContainer.style.position = "absolute";
     clientCharacterContainer.style.top = "75%";

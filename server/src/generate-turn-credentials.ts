@@ -8,7 +8,7 @@ import {IceServers} from "./backup-ice-server-array.js";
  * @param user
  * @constructor
  */
-export async function GenerateTurnCredentials(user: string): Promise<RTCIceServer[]>{
+export async function GenerateTurnCredentials(user: string): Promise<RTCIceServer[]> {
     try {
         let response = await fetch(`https://mla2.metered.live/api/v1/turn/credentials?apiKey=${SECRET_KEY}`);
         if (!response.ok) {

@@ -1,5 +1,3 @@
-import {Create2DPlayerCharacter} from "./player-char-movement";
-
 /**
  * Sends the current player position to the voice chat iframe if it differs from the last sent
  */
@@ -24,5 +22,5 @@ function getPlayerPosition(): string {
 
 let lastPositionSent = "";
 let iframe = document.getElementById("voice-chat-overlay") as HTMLIFrameElement;
-setInterval(sendPosition , 10);
+setInterval(sendPosition, 10);
 

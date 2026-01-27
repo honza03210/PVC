@@ -47,7 +47,7 @@ window.addEventListener("message", async (event) => {
                 document.body.appendChild(l);
                 break;
             case "PLAYER_LEFT":
-                for (const node of document.querySelectorAll(`.user-${data[2]}`)){
+                for (const node of document.querySelectorAll(`.user-${data[2]}`)) {
                     node.remove()
                 }
                 break;
@@ -71,6 +71,6 @@ window.addEventListener("message", async (event) => {
 let char = Create2DPlayerCharacter("You");
 document.body.append(char);
 
-setInterval(sendPosition , 10);
+setInterval(sendPosition, 10);
 setInterval(() => iframe.contentWindow!.postMessage("SERVER_EVENT;SEND_PEER_POSITIONS;true", "*"), 5000);
 

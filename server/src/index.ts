@@ -1,11 +1,10 @@
-
 // https://getstream.io/resources/projects/webrtc/basics/signaling-server/
 
 import express from "express";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath } from "url";
-import { signalling } from "./signalling.js"
+import {fileURLToPath} from "url";
+import {signalling} from "./signalling.js"
 import {allowedOrigins} from "./allowed-origins.js";
 import rateLimit from "express-rate-limit";
 

@@ -3,9 +3,11 @@ import {PeerConnection} from "./peer-connection";
 import {RoomJoin} from "./p2p";
 import {io} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
-import {Signalling} from "./signalling";
+import {Signaling} from "./signaling";
 import {ClientPositions, Position} from "./client-positions";
 
+
+// TODO: This whole class should be rewritten, it doesn't make much sense to do it like this
 export class UIManager {
     static appUI: AppUI;
     static inRoom: boolean = false;
@@ -65,14 +67,14 @@ export class UIManager {
                 withCredentials: true,
             });
         } else {
-            const worker = new SharedWorker(new URL('/src/shared-signalling-worker.ts', import.meta.url), {type: "module"});
+            const worker = new SharedWorker(new URL('/src/shared-signaling-worker.ts', import.meta.url), {type: "module"});
             console.log("worker " + worker);
             comm = worker.port;
 
             comm.start();
             console.log("port " + comm + " ; ");
         }
-        let signalling: Signalling = new Signalling(comm);
+        let signalling: Signaling = new Signaling(comm);
         signalling.Send({type: "listRooms", payload: {}});
         signalling.BindEvents({}, peerConnections, {}, positionsSocket);
 
@@ -86,7 +88,7 @@ export class UIManager {
     }
 
     static EnableJoinButton(peerConnections: { [p: string]: PeerConnection }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions,
-                            signalling: Signalling) {
+                            signalling: Signaling) {
         let joinButton = document.getElementById("joinRoomButton") as HTMLButtonElement;
 
         if (!this.buttonsBound) {
@@ -102,7 +104,7 @@ export class UIManager {
         joinButton.style.display = "block";
     }
 
-    static EnableDisconnectButton(signalling: Signalling){
+    static EnableDisconnectButton(signalling: Signaling) {
         let disconnectButton = document.getElementById("leaveRoomButton") as HTMLButtonElement;
 
         if (!this.buttonsBound) {
@@ -124,6 +126,7 @@ export class UIManager {
         document.getElementById("sampleSoundButton")!.remove();
     }
 
+    // TODO: Create a password popup for better autojoin handling
     static ShowPasswordDialogue() {
         let popUp = document.createElement("div");
         let passwordField = document.createElement("input");

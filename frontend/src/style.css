@@ -1,136 +1,166 @@
 :root {
-  --primary-color: rgb(36, 36, 36);
-  --primary-color-light: rgb(50, 50, 50);
-  --secondary-color: rgb(200, 200, 200);
-  --mid-color: rgb(136, 136, 136);
-  --text-anti-primary: rgb(230, 230, 230);
-  --text-anti-secondary: rgb(250, 250, 250);
+    --primary-color: rgb(36, 36, 36);
+    --primary-color-light: rgb(50, 50, 50);
+    --secondary-color: rgb(200, 200, 200);
+    --mid-color: rgb(136, 136, 136);
+    --text-anti-primary: rgb(230, 230, 230);
+    --text-anti-secondary: rgb(250, 250, 250);
 }
+
 body {
-  background-color: var(--primary-color);
-  color: var(--secondary-color);
-  font-family: "Inter", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 500;
-  font-style: normal;
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    font-family: "Inter", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
 }
-input{
-  margin-bottom: 10px;
-  color: white;
-  width: 150px;
-  background-color: var(--mid-color);
+
+input {
+    margin-bottom: 10px;
+    color: white;
+    width: 150px;
+    background-color: var(--mid-color);
 }
-label{
-  text-align: center;
+
+label {
+    text-align: center;
 }
-.menu-button{
-  color: black;
-  background-color: var(--secondary-color);
-  width: 150px;
-  padding: 10px;
-  border-radius: 0.3vw;
+
+.menu-button {
+    color: black;
+    background-color: var(--secondary-color);
+    width: 150px;
+    padding: 10px;
+    border-radius: 0.3vw;
 }
-.checkbox{
-  height: 15px;
-  width: 15px;
+
+.checkbox {
+    height: 15px;
+    width: 15px;
 }
-input:checked{
-  background-color: var(--secondary-color);
-  color: black;
+
+input:checked {
+    background-color: var(--secondary-color);
+    color: black;
 }
-.center-div{
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
+
+.center-div {
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
 }
-.flex-column{
-  display: flex;
-  flex-direction: column;
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
 }
-.flex-row{
-  display: flex;
-  flex-direction: row;
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
 }
-.draggable{
-  cursor: grab;
+
+.draggable {
+    cursor: grab;
 }
-.menu{
-  width: auto;
-  border-radius: 2vw;
-  background-color: var(--primary-color-light);
+
+.menu {
+    width: auto;
+    border-radius: 2vw;
+    background-color: var(--primary-color-light);
 }
-.menu-padding{
-  padding: 2vh;
+
+.menu-padding {
+    padding: 2vh;
 }
-.fill-height{
-  height: max-content;
+
+.fill-height {
+    height: max-content;
 }
-.fill-width{
-  width: 100%;
+
+.fill-width {
+    width: 100%;
 }
-.align-top{
-  vertical-align: top;
+
+.align-top {
+    vertical-align: top;
 }
-.container{
-  align-content: end;
+
+.container {
+    align-content: end;
 }
-.vertical-align-center{
-  vertical-align: center;
+
+.vertical-align-center {
+    vertical-align: center;
 }
-.menu-table{
-  width: 100%;
-  border-collapse: collapse;
+
+.menu-table {
+    width: 100%;
+    border-collapse: collapse;
 }
-.menu-table td{
-  width: 33%;
-  vertical-align: top;
+
+.menu-table td {
+    width: 33%;
+    vertical-align: top;
 }
-.hidden{
-  display: none;
+
+.hidden {
+    display: none;
 }
-.center-text{
-  text-align: center;
+
+.center-text {
+    text-align: center;
 }
-#rooms-header{
-  margin: auto 0;
-  font-size: 2vh;
+
+#rooms-header {
+    margin: auto 0;
+    font-size: 2vh;
 }
-#main-menu-table{
-  margin-top: 1vh;
-  width: 100%;
-  border-collapse: collapse;
+
+#main-menu-table {
+    margin-top: 1vh;
+    width: 100%;
+    border-collapse: collapse;
 }
-#main-menu-table td{
-  width: 33%;
-  height: 100%;
-  padding: 2vh 2vw;
-  vertical-align: top;
+
+#main-menu-table td {
+    width: 33%;
+    height: 100%;
+    padding: 2vh 2vw;
+    vertical-align: top;
 }
-#rooms-list{
-  display: flex;
-  flex-direction: column;
-  width: auto;
-  padding: 1vh 0;
+
+#rooms-list {
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    padding: 1vh 0;
 }
-#rooms-list > div{
-  margin: 0.2vw;
+
+#rooms-list > div {
+    margin: 0.2vw;
 }
-#rooms-list-menu{
-  display: flex;
-  flex-direction: column;
+
+#rooms-list-menu {
+    display: flex;
+    flex-direction: column;
 }
-#main-menu{
-  margin: 0 5vw;
+
+#main-menu {
+    margin: 0 5vw;
 }
-#rooms-refresh{
-  align-self: flex-end;
-  font-size: 2vh;
-  margin-right: 0;
-  border-radius: 2vw;
-  width: 5vh;
-  height: 5vh;
+
+#rooms-refresh {
+    align-self: flex-end;
+    font-size: 2vh;
+    margin-right: 0;
+    border-radius: 2vw;
+    width: 5vh;
+    height: 5vh;
 }
-#audio-menu{
-  width: fit-content;
-  margin: 0;
+
+#audio-menu {
+    width: fit-content;
+    margin: 0;
 }

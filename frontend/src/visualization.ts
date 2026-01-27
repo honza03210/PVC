@@ -11,6 +11,9 @@ export function BindStreamAnimation(stream: MediaStream) {
     let microphone = audioCtx.createMediaStreamSource(stream);
     let analyser = audioCtx.createAnalyser();
     microphone.connect(analyser);
+
+    // Audio visualization from https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
+    // TODO: create a custom one
     analyser.fftSize = 256;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
@@ -26,7 +29,7 @@ export function BindStreamAnimation(stream: MediaStream) {
 
     let backgroundColor = 'rgba(255, 255, 255, 0.1)'
     let strokeColor = 'rgba(255, 255, 255, 0.8)'
-    let canvasTexture : null = null;
+
     function draw() {
         DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, backgroundColor, strokeColor, bufferLength);
         requestAnimationFrame(draw);
@@ -45,12 +48,12 @@ export function BindStreamAnimation(stream: MediaStream) {
  * @param remoteVideoColor
  * @param remoteVideoStroke
  * @param bufferLength
- * @param canvasTexture
  * @constructor
  */
 
 // code from https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
 // with minor changes
+// TODO: Create a custom one
 export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoColor: string, remoteVideoStroke: string, bufferLength: number) : boolean{
     if (!CanvasRenderingContext2D) {
         return false;

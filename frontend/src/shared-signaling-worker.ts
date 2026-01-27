@@ -2,7 +2,10 @@
 import {io} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
 
-
+/**
+ * Shared worker running on another thread used to offload network communication from the main JavaScript thread
+ * @param event
+ */
 (self as unknown as SharedWorkerGlobalScope).onconnect = (event: MessageEvent) => {
     const port = event.ports[0];
 

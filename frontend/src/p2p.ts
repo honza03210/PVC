@@ -1,10 +1,19 @@
 import {PeerConnection} from "./peer-connection.js";
-import {Signalling} from "./signalling";
+import {Signaling} from "./signaling";
 import {UIManager} from "./ui-manager";
 import {DrawSoundVisualization, StringToColor} from "./visualization";
 import {ClientPositions, Position} from "./client-positions";
 
-export function RoomJoin(signalling: Signalling, peerConnections: {
+
+/**
+ * Called upon user requesting a room join
+ * @param signalling
+ * @param peerConnections
+ * @param peerPositions
+ * @param positionsSocket
+ * @constructor
+ */
+export function RoomJoin(signalling: Signaling, peerConnections: {
     [p: string]: PeerConnection
 }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
     console.log("roomJoin");
@@ -29,6 +38,16 @@ export function RoomJoin(signalling: Signalling, peerConnections: {
     console.log("join posted");
 }
 
+/**
+ * Handles new audio stream - visualization and spatial audio updates
+ * @param stream
+ * @param remoteAudio
+ * @param remoteVideo
+ * @param id
+ * @param clientPositions
+ * @param peerPositions
+ * @constructor
+ */
 export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, id: string, clientPositions: ClientPositions, peerPositions: {[p: string]: Position}) {
     if (remoteAudio) {
         remoteAudio.muted = true;
@@ -86,8 +105,15 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     requestAnimationFrame(draw);
 }
 
+/**
+ * Updates panner node from the client and peer positions
+ * @param panner
+ * @param clientPositions
+ * @param peerPositions
+ * @param id
+ * @constructor
+ */
 export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPositions: ClientPositions, peerPositions: {[p: string]: Position}, id: string) {
-
     if (!peerPositions[id]){
         return;
     }
@@ -106,7 +132,13 @@ export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPosition
 
 }
 
+/**
+ * Initial PannerNode params
+ * @param panNode
+ * @constructor
+ */
 export function SetPanNodeParams(panNode: PannerNode) {
+    // TODO: Pull from some config file
     panNode.panningModel = "HRTF";
     panNode.distanceModel = "linear";
     panNode.refDistance = 1;
@@ -117,6 +149,14 @@ export function SetPanNodeParams(panNode: PannerNode) {
     panNode.coneOuterGain = 1;
 }
 
+
+/**
+ * Cleans up after a peer disconnects
+ * @param userID
+ * @param peerConnections
+ * @param clientPositions
+ * @constructor
+ */
 export async function HandleUserDisconnect(userID: string, peerConnections: {[key: string] : PeerConnection}, clientPositions: ClientPositions | null) {
     document.getElementById("remoteVideo-" + userID)?.remove();
     document.getElementById("remoteAudio-" + userID)?.remove();
@@ -125,6 +165,13 @@ export async function HandleUserDisconnect(userID: string, peerConnections: {[ke
     delete peerConnections[userID];
 }
 
+
+/**
+ * Reads and applies the queued ICE candidates received before being ready to process them
+ * @param peerConnections
+ * @param iceCandidateQueue
+ * @param id
+ */
 export async function useQueuedCandidates (peerConnections: { [p: string]: RTCPeerConnection }, iceCandidateQueue:any, id: string) {
     for (const cand of iceCandidateQueue[id]!.queue) {
         if (peerConnections[id]!.connectionState == "connected") {

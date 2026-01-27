@@ -6,10 +6,10 @@ import {ClientPositions, Position} from "./client-positions";
 
 
 /**
- * The class handling the communication with the signalling server (for supported devices
+ * The class handling the communication with the signaling server (for supported devices
  * through a shared worker to offload work)
  */
-export class Signalling{
+export class Signaling {
     IceServers: RTCIceServer[];
     communicator: Socket | MessagePort;
     IceCandidateQueue: {
@@ -33,7 +33,7 @@ export class Signalling{
     }
 
     /**
-     * Sends the message to the signalling server
+     * Sends the message to the signaling server
      * @param message
      * @constructor
      */
@@ -52,7 +52,7 @@ export class Signalling{
      * @param IceCandidateQueue
      * @param peerConnections
      * @param peerPositions
-     * @param positionsSocket
+     * @param clientPositions
      * @constructor
      */
     BindEvents(IceCandidateQueue: {
@@ -75,6 +75,8 @@ export class Signalling{
         } else if ("addEventListener" in this.communicator){
             this.communicator.removeEventListener("message", this.onMessageHandler);
             this.communicator.addEventListener("message", this.onMessageHandler);
+        } else {
+            console.error("Invalid signaling communicator")
         }
     }
 
@@ -125,6 +127,7 @@ export class Signalling{
                 break;
             case "listRooms":
                 console.log("listRooms: ", eventData);
+                // TODO: Move this logic away from the Signaling Object
                 document.getElementById("rooms-list")?.replaceChildren(...eventData.roomsList.map(
                     (room: {roomID : string, numberOfUsers: number}) => {
                         let div = document.createElement("div");
@@ -144,6 +147,7 @@ export class Signalling{
                 console.log("SharedWorker says: " + eventData.message);
                 break;
             case "getCandidate":
+                // TODO: This logic is a bit weird and should be probably rewritten from the ground up
                 if (!eventData.candidate.candidate) {
                     console.log("!candidate")
                     return;
@@ -168,6 +172,7 @@ export class Signalling{
                 break;
             case "listUsers":
                 console.log("listUsers: ", eventData);
+                // Reconnect to users in the room when there isn't a connection between them already (crashed/failed)
                 for (let userID of eventData.userIDs){
                     if ((userID !in this.peerConnections && userID > eventData.selfID)) {
                         console.log("reestablishing peer connection");
@@ -217,7 +222,6 @@ export class Signalling{
                     console.log("peer already connected");
                     return;
                 }
-
                 await InitPeerConnection(this, eventData.id, this.peerConnections, this.peerPositions!, this.clientPositions!, true, eventData.username);
                 await this.peerConnections[eventData.id].CreateOffer(this, eventData.id);
                 break;
@@ -232,7 +236,7 @@ export class Signalling{
     }
 
     /**
-     *
+     * Helper function for the addEventListener of the communicator
      * @param event
      */
     private onMessageHandler = async (event : any) => {

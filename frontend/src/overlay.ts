@@ -3,6 +3,10 @@ import {UIManager} from "./ui-manager";
 import {ClientPositions, Position} from "./client-positions";
 import {BindStreamAnimation} from "./visualization";
 
+
+/**
+ * Entry file for the overlay variant
+ */
 UIManager.Initialize();
 await navigator.mediaDevices
     .getUserMedia({

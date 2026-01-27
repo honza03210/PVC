@@ -4,13 +4,17 @@ import {GenerateTurnCredentials} from "./generate-turn-credentials.js";
 import {allowedOrigins} from "./allowed-origins.js";
 
 
+// Basic rate limiting - still not good enough
 const RATE_LIMIT = {
     join: 10,
     signal: 100
 }
-
 let socketBucketsCount = new Map<string, Record<string, number>>();
 
+/**
+ * Binds all the needed events for basic signaling
+ * @param server
+ */
 export function signalling(server : any) {
     const io = new Server(server, {
         cors: {
@@ -44,14 +48,13 @@ export function signalling(server : any) {
                 roomsList: Object.entries(rooms).map(([roomID, users]) =>
                     ({roomID, numberOfUsers: Object.keys(users).length}))
             });
-            if (repeat) {
+            if (repeat && usernames[socket.id]) {
                 setTimeout(() =>{ ListRooms(socket, true) }, 5000)
                             }
         } catch (err){
             console.log("Error: ", err);
         }
     }
-
     io.on("connection", socket => {
         socketBucketsCount.set(socket.id, {});
         socket.use((packet, next) => {
@@ -159,6 +162,10 @@ export function signalling(server : any) {
         });
     });
 
+    /**
+     * Cleans up after user disconnects
+     * @param socket
+     */
     function handleUserRoomDisconnected(socket: any) {
         delete usernames[socket.id];
 
@@ -184,16 +191,28 @@ export function signalling(server : any) {
         console.log(`[${socket.data.roomId}]: ${socket.id} exit`);
     }
 
+    /**
+     * Sends userIDs of others connected to a room
+     * @param socket
+     * @param roomID
+     */
     function listUserIDs(socket: any, roomID: string) {
         try {
             socket.emit("listUsers", { selfID: socket.id, userIDs: Object.keys(rooms[roomID]!)});
-            setTimeout(() => {
-                listUserIDs(socket, roomID)
-            }, 10000);
+            if (usernames[socket.id]) {
+                setTimeout(() => {
+                    listUserIDs(socket, roomID)
+                }, 10000);
+            }
         } catch(err) {
         }
     }
 
+    /**
+     * In the best case generates TURN credentials for the given user - if not possible will use hardcoded server-array backup
+     * @param socket
+     * @param user
+     */
     async function sendUserCredentials(socket: any, user: string){
         let response = await GenerateTurnCredentials(user);
         if (response != null){
