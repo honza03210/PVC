@@ -158,8 +158,8 @@ export class Signaling {
                         console.log("getCandidate ignored - connected");
                         return;
                     }
-                    if (eventData.candidate.candidate == "") return;
-                    this.peerConnections[eventData.id]!.addIceCandidate(new RTCIceCandidate(eventData.candidate.candidate)).then(() => {
+                    //if (eventData.candidate.candidate == "") return;
+                    this.peerConnections[eventData.id]!.addIceCandidate(new RTCIceCandidate(eventData.candidate)).then(() => {
                         console.log("candidate add success");
                     });
                     return;

@@ -119,11 +119,7 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
                 console.log("candidate: " + e.candidate);
                 signaling.Send({
                     payload: {
-                        dest: id, candidate: {
-                            candidate: e.candidate.candidate, sdpMid: e.candidate.sdpMid,
-                            sdpMLineIndex: e.candidate.sdpMLineIndex,
-                            usernameFragment: (e.candidate as any).usernameFragment,
-                        }
+                        dest: id, candidate: e.candidate
                     }, type: "candidate"
                 })
             } else {
