@@ -152,11 +152,11 @@ export class Signaling {
                 //     console.log("!candidate")
                 //     return;
                 // }
-                if (!eventData.candidate) {
-                    console.log("end-of-candidates");
-                    await this.peerConnections[eventData.id]!.addIceCandidate(null);
-                    return;
-                }
+                // if (!eventData.candidate) {
+                //     console.log("end-of-candidates");
+                //     await this.peerConnections[eventData.id]!.addIceCandidate(null);
+                //     return;
+                // }
                 if (this.IceCandidateQueue[eventData.id] && this.IceCandidateQueue[eventData.id]!.popped) {
                     console.log("getCandidate", eventData.candidate.candidate);
                     if (this.peerConnections[eventData.id]!.connectionState == "connected") {
