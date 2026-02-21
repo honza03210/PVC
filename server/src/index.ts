@@ -18,9 +18,7 @@ app.use(rateLimit({
     limit: 120,
 }));
 
-app.use(cors({
-    origin: allowedOrigins,
-}));
+app.use(cors());
 
 app.get('/overlay/', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/dist/overlay.html'));
@@ -31,7 +29,7 @@ app.get('/game/', (req, res) => {
 
 app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
-const server = app.listen(3001, "0.0.0.0", () => {
+const server = app.listen(3001, () => {
     console.log('server is running on http://localhost:3001')
 })
 

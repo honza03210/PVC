@@ -172,6 +172,7 @@ export class Signaling {
                 break;
             case "listUsers":
                 console.log("listUsers: ", eventData);
+		break;
                 // Reconnect to users in the room when there isn't a connection between them already (crashed/failed)
                 for (let userID of eventData.userIDs){
                     if ((userID !in this.peerConnections && userID > eventData.selfID)) {
