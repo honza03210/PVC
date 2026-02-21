@@ -116,12 +116,12 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         peerConnection.onicecandidate = e => {
             console.log("onicecandidate");
             //if (e.candidate) {
-                console.log("candidate: " + e.candidate);
-                signaling.Send({
-                    payload: {
-                        dest: id, candidate: e.candidate
-                    }, type: "candidate"
-                })
+            console.log("candidate: " + e.candidate);
+            signaling.Send({
+                payload: {
+                    dest: id, candidate: e.candidate
+                }, type: "candidate"
+            })
             //} else {
             //    console.log("no candidate")
             //}

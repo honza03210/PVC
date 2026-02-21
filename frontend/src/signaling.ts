@@ -148,8 +148,13 @@ export class Signaling {
                 break;
             case "getCandidate":
                 // TODO: This logic is a bit weird and should be probably rewritten from the ground up
-                if (!eventData.candidate.candidate) {
-                    console.log("!candidate")
+                // if (!eventData.candidate.candidate) {
+                //     console.log("!candidate")
+                //     return;
+                // }
+                if (!eventData.candidate) {
+                    console.log("end-of-candidates");
+                    await this.peerConnections[eventData.id]!.addIceCandidate(null);
                     return;
                 }
                 if (this.IceCandidateQueue[eventData.id] && this.IceCandidateQueue[eventData.id]!.popped) {
