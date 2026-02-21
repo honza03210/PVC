@@ -60,6 +60,7 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         return;
     }
 
+    console.log("PeerConn init with ", signaling.IceServers);
     let peerConnection: PeerConnection = new PeerConnection({...signaling.IceServers, iceTransportPolicy: "all"});
     clientPositions.SendServerEvent(`PLAYER_JOIN;${username};${id}`);
     console.log("render videos");
