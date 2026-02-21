@@ -172,15 +172,15 @@ export class Signaling {
                 break;
             case "listUsers":
                 console.log("listUsers: ", eventData);
-		break;
+                break;
                 // Reconnect to users in the room when there isn't a connection between them already (crashed/failed)
-                for (let userID of eventData.userIDs){
-                    if ((userID !in this.peerConnections && userID > eventData.selfID)) {
-                        console.log("reestablishing peer connection");
-                        await InitPeerConnection(this, userID, this.peerConnections, this.peerPositions!, this.clientPositions!, true, userID);
-                        await this.peerConnections[userID].CreateOffer(this, userID);
-                    }
-                }
+                // for (let userID of eventData.userIDs){
+                //     if ((userID !in this.peerConnections && userID > eventData.selfID)) {
+                //         console.log("reestablishing peer connection");
+                //         await InitPeerConnection(this, userID, this.peerConnections, this.peerPositions!, this.clientPositions!, true, userID);
+                //         await this.peerConnections[userID].CreateOffer(this, userID);
+                //     }
+                // }
                 console.log("listUsers check finished", this.peerConnections);
                 break;
             case "getAnswerAck":
