@@ -164,7 +164,7 @@ export class Signaling {
                         return;
                     }
                     //if (eventData.candidate.candidate == "") return;
-                    this.peerConnections[eventData.id]!.addIceCandidate(new RTCIceCandidate(eventData.candidate)).then(() => {
+                    this.peerConnections[eventData.id]!.addIceCandidate(new RTCIceCandidate(eventData.candidate.candidate)).then(() => {
                         console.log("candidate add success");
                     });
                     return;
