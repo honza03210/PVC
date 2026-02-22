@@ -1,3 +1,4 @@
+import {UIManager} from "./ui-manager";
 /**
  * Base class representing the position object
  *
@@ -127,6 +128,11 @@ export class ClientPositions extends Position {
                 if (Number.isNaN(this.pitch)) this.pitch = 0;
                 if (Number.isNaN(this.yaw)) this.yaw = 0;
                 this.heading = getHeadingVector(this.pitch, this.yaw);
+                let listener = UIManager.appUI.audioCtx.listener;
+
+                listener.forwardX.setValueAtTime(this.heading.x, 0.05);
+                listener.forwardY.setValueAtTime(this.heading.y, 0.05);
+                listener.forwardZ.setValueAtTime(this.heading.z, 0.05);
             } catch (e) {
                 // The websocket doesn't need to send all positions (2d games, games with no rotation,...)
                 // console.error(e);
