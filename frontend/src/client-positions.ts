@@ -25,6 +25,17 @@ function getHeadingVector(pitch: number, yaw: number) {
     return {x, y, z};
 }
 
+function getMinecraftHeadingVector(pitch: number, yaw: number) {
+    const pitchRad = pitch * Math.PI / 180;
+    const yawRad = yaw * Math.PI / 180;
+
+    const x = -Math.sin(yawRad) * Math.cos(pitchRad);
+    const y = -Math.sin(pitchRad);
+    const z =  Math.cos(yawRad) * Math.cos(pitchRad);
+
+    return { x, y, z };
+}
+
 /**
  * Connects to specified websocket (or window), binds onopen, onmessage, onclose, onerror
  * @param communicator websocket | window to connect
@@ -114,25 +125,48 @@ export class ClientPositions extends Position {
             this.RawPositions = data.slice(1, data.length).join(";");
             try {
                 this.PositionFormat = data[0];
-                this.x = parseFloat(data[1]);
-                this.y = parseFloat(data[2]);
-                this.z = parseFloat(data[3]);
-                if (Number.isNaN(this.x)) this.x = 0;
-                if (Number.isNaN(this.y)) this.y = 0;
-                if (Number.isNaN(this.z)) this.z = 0;
+                if (this.PositionFormat == "mc"){
+                    this.x = parseFloat(data[1]);
+                    this.y = parseFloat(data[2]);
+                    this.z = -parseFloat(data[3]);
+                    if (Number.isNaN(this.x)) this.x = 0;
+                    if (Number.isNaN(this.y)) this.y = 0;
+                    if (Number.isNaN(this.z)) this.z = 0;
 
-                // clamp the pitch and yaw
-                this.pitch = Math.max(Math.min(90, parseFloat(data[4])), -90);
-                // TODO: Some engines use -180 to 180, some 0 to 360 - add this to the format?
-                this.yaw = Math.max(Math.min(360, parseFloat(data[5])), -180);
-                if (Number.isNaN(this.pitch)) this.pitch = 0;
-                if (Number.isNaN(this.yaw)) this.yaw = 0;
-                this.heading = getHeadingVector(this.pitch, this.yaw);
-                let listener = UIManager.appUI.audioCtx.listener;
+                    // clamp the pitch and yaw
+                    this.pitch = Math.max(Math.min(90, parseFloat(data[4])), -90);
+                    // TODO: Some engines use -180 to 180, some 0 to 360 - add this to the format?
+                    this.yaw = Math.max(Math.min(360, parseFloat(data[5])), -180);
+                    if (Number.isNaN(this.pitch)) this.pitch = 0;
+                    if (Number.isNaN(this.yaw)) this.yaw = 0;
+                    this.heading = getMinecraftHeadingVector(this.pitch, this.yaw);
+                    let listener = UIManager.appUI.audioCtx.listener;
 
-                listener.forwardX.setValueAtTime(this.heading.x, 0.05);
-                listener.forwardY.setValueAtTime(this.heading.y, 0.05);
-                listener.forwardZ.setValueAtTime(this.heading.z, 0.05);
+                    listener.forwardX.setValueAtTime(this.heading.x, UIManager.appUI.audioCtx.currentTime);
+                    listener.forwardY.setValueAtTime(this.heading.y, UIManager.appUI.audioCtx.currentTime);
+                    listener.forwardZ.setValueAtTime(-this.heading.z, UIManager.appUI.audioCtx.currentTime);
+                }
+                else {
+                    this.x = parseFloat(data[1]);
+                    this.y = parseFloat(data[2]);
+                    this.z = parseFloat(data[3]);
+                    if (Number.isNaN(this.x)) this.x = 0;
+                    if (Number.isNaN(this.y)) this.y = 0;
+                    if (Number.isNaN(this.z)) this.z = 0;
+
+                    // clamp the pitch and yaw
+                    this.pitch = Math.max(Math.min(90, parseFloat(data[4])), -90);
+                    // TODO: Some engines use -180 to 180, some 0 to 360 - add this to the format?
+                    this.yaw = Math.max(Math.min(360, parseFloat(data[5])), -180);
+                    if (Number.isNaN(this.pitch)) this.pitch = 0;
+                    if (Number.isNaN(this.yaw)) this.yaw = 0;
+                    this.heading = getHeadingVector(this.pitch, this.yaw);
+                    let listener = UIManager.appUI.audioCtx.listener;
+
+                    listener.forwardX.setValueAtTime(this.heading.x, 0.05);
+                    listener.forwardY.setValueAtTime(this.heading.y, 0.05);
+                    listener.forwardZ.setValueAtTime(this.heading.z, 0.05);
+                }
             } catch (e) {
                 // The websocket doesn't need to send all positions (2d games, games with no rotation,...)
                 // console.error(e);

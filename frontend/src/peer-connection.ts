@@ -196,18 +196,33 @@ export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions 
         peerPositions[id].PositionFormat = format;
         peerPositions[id].RawPositions = data.slice(1).join(";");
         try {
-            peerPositions[id].x = parseFloat(data[1]);
-            peerPositions[id].y = parseFloat(data[2]);
-            peerPositions[id].z = parseFloat(data[3]);
-            if (Number.isNaN(peerPositions[id].x)) peerPositions[id].x = 0;
-            if (Number.isNaN(peerPositions[id].y)) peerPositions[id].y = 0;
-            if (Number.isNaN(peerPositions[id].z)) peerPositions[id].z = 0;
+            if (format == "mc"){
+                peerPositions[id].x = parseFloat(data[1]);
+                peerPositions[id].y = parseFloat(data[2]);
+                peerPositions[id].z = -parseFloat(data[3]);
+                if (Number.isNaN(peerPositions[id].x)) peerPositions[id].x = 0;
+                if (Number.isNaN(peerPositions[id].y)) peerPositions[id].y = 0;
+                if (Number.isNaN(peerPositions[id].z)) peerPositions[id].z = 0;
 
 
-            peerPositions[id].pitch = parseFloat(data[4]);
-            peerPositions[id].yaw = parseFloat(data[5]);
-            if (Number.isNaN(peerPositions[id].pitch)) peerPositions[id].pitch = 0;
-            if (Number.isNaN(peerPositions[id].yaw)) peerPositions[id].yaw = 0;
+                peerPositions[id].pitch = parseFloat(data[4]);
+                peerPositions[id].yaw = parseFloat(data[5]);
+                if (Number.isNaN(peerPositions[id].pitch)) peerPositions[id].pitch = 0;
+                if (Number.isNaN(peerPositions[id].yaw)) peerPositions[id].yaw = 0;
+            } else {
+                peerPositions[id].x = parseFloat(data[1]);
+                peerPositions[id].y = parseFloat(data[2]);
+                peerPositions[id].z = parseFloat(data[3]);
+                if (Number.isNaN(peerPositions[id].x)) peerPositions[id].x = 0;
+                if (Number.isNaN(peerPositions[id].y)) peerPositions[id].y = 0;
+                if (Number.isNaN(peerPositions[id].z)) peerPositions[id].z = 0;
+
+
+                peerPositions[id].pitch = parseFloat(data[4]);
+                peerPositions[id].yaw = parseFloat(data[5]);
+                if (Number.isNaN(peerPositions[id].pitch)) peerPositions[id].pitch = 0;
+                if (Number.isNaN(peerPositions[id].yaw)) peerPositions[id].yaw = 0;
+            }
         } catch (e) {
             // not all positions sent
             console.error(e);
