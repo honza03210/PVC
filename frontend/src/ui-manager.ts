@@ -5,6 +5,7 @@ import {io} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
 import {Signaling} from "./signaling";
 import {ClientPositions, Position} from "./client-positions";
+import {BindStreamAnimation} from "./visualization";
 
 
 // TODO: This whole class should be rewritten, it doesn't make much sense to do it like this
@@ -25,7 +26,7 @@ export class UIManager {
             videoContainer: document.getElementById("videoContainer") as HTMLDivElement,
             manualPositions: document.getElementById("manualPositions") as HTMLInputElement,
             distanceFalloff: document.getElementById("distanceFalloff") as HTMLInputElement,
-            audioCtx: new AudioContext(),
+            audioCtx: undefined,
         }
     }
 
@@ -39,13 +40,15 @@ export class UIManager {
         // }
     }
 
-    static EnableInitButton(peerConnections: { [p: string]: PeerConnection }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
+    static async EnableInitButton(peerConnections: { [p: string]: PeerConnection }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
         // let initButton = document.createElement("button");
         // initButton.innerText = "Initialize"
         // initButton.classList.add("menu-button");
         // initButton.style.fontSize = "32";
 
         let initButton = document.getElementById("initButton") as HTMLButtonElement;
+
+
 
         let supportsSharedWorkers: boolean
         try {
@@ -79,7 +82,15 @@ export class UIManager {
         signalling.BindEvents({}, peerConnections, {}, positionsSocket);
 
         if (!this.buttonsBound) {
-            initButton.addEventListener('click', e => {
+            initButton.addEventListener('click', async e => {
+                this.appUI.audioCtx = new AudioContext();
+                await navigator.mediaDevices
+                    .getUserMedia({
+                        audio: true,
+                    })
+                    .then(stream => {
+                        BindStreamAnimation(stream);
+                    });
                 this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signalling);
                 initButton.style.display = "none";
             })

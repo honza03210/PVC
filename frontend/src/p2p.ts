@@ -54,9 +54,9 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
         remoteAudio.srcObject = stream;
     }
     let audioCtx = UIManager.appUI.audioCtx;
-    let microphone = audioCtx.createMediaStreamSource(stream);
-    let analyser = audioCtx.createAnalyser();
-    let panNode = audioCtx.createPanner();
+    let microphone = audioCtx!.createMediaStreamSource(stream);
+    let analyser = audioCtx!.createAnalyser();
+    let panNode = audioCtx!.createPanner();
 
     SetPanNodeParams(panNode);
 
@@ -68,7 +68,7 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
 
     microphone.connect(panNode);
     panNode.connect(analyser);
-    analyser.connect(audioCtx.destination);
+    analyser.connect(audioCtx!.destination);
 
     let remoteVideoColor: string = "rgba(141,141,141, 0.05)";
     let remoteVideoStroke: string = StringToColor(id);
@@ -80,12 +80,12 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
             console.log("unmuted");
             remoteVideoColor = "rgba(141,141,141, 0.05)";
             muted = false;
-            analyser.connect(audioCtx.destination);
+            analyser.connect(audioCtx!.destination);
         } else {
             console.log("muted");
             remoteVideoColor = "rgba(255,0,0,0.28)";
             muted = true;
-            analyser.disconnect(audioCtx.destination);
+            analyser.disconnect(audioCtx!.destination);
         }
     }
 

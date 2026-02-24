@@ -8,8 +8,8 @@ import {UIManager} from "./ui-manager";
  */
 export function BindStreamAnimation(stream: MediaStream) {
     let audioCtx = UIManager.appUI.audioCtx;
-    let microphone = audioCtx.createMediaStreamSource(stream);
-    let analyser = audioCtx.createAnalyser();
+    let microphone = audioCtx!.createMediaStreamSource(stream);
+    let analyser = audioCtx!.createAnalyser();
     microphone.connect(analyser);
 
     // Audio visualization from https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
