@@ -24,29 +24,6 @@
     <table id="main-menu-table">
         <tr>
             <td>
-                <div id="audio-menu" class="menu menu-padding center-div flex-column">
-                    <canvas id="localVideo"></canvas>
-                    <audio id="localAudio" autoplay muted></audio>
-                </div>
-            </td>
-            <td>
-                <div id="main-menu" class="menu menu-padding center-div flex-column">
-                    <label for="name">Username</label><input type="text" id="name"/>
-                    <label for="roomID">Room Name</label><input type="text" id="roomID"/>
-                    <label for="password">Password</label><input type="password" id="password"/>
-                    <label for="manualPositions">Set Positions Manually</label>
-                    <input type="checkbox" id="manualPositions" name="manualPositions" class="checkbox"/>
-                    <label for="distanceFalloff">Distance Falloff:</label>
-                    <input type="number" id="distanceFalloff" name="distanceFalloff" min="0" max="8000" value="10"/>
-                    <button id="3DInitButton" class="menu-button hidden">3D View</button>
-                    <button id="initButton" class="menu-button hidden">Initialize</button>
-                    <button id="joinRoomButton" class="menu-button hidden">Join</button>
-                    <button id="leaveRoomButton" class="menu-button hidden">Leave</button>
-                </div>
-                <div id="videoContainer" class="center-div flex-row" style="width: 100%"></div>
-
-            </td>
-            <td>
                 <div id="rooms-list-menu" class="menu menu-padding flex-column">
 <!--                    <div class="flex-row fill-width">-->
 <!--                        <table class="menu-table menu"></table>-->
@@ -62,6 +39,32 @@
 
                     </div>
                 </div>
+            </td>
+            <td>
+
+                    <div id="main-menu" class="menu menu-padding center-div flex-column">
+                    <div id="audio-menu" class="menu menu-padding center-div flex-column rounded" style="display: none">
+                        <canvas id="localVideo"></canvas>
+                        <audio id="localAudio" autoplay muted></audio>
+                    </div>
+                <div style="display: flex; flex-direction: column">
+                        <label for="name">Username</label><input type="text" id="name"/>
+                        <label for="roomID">Room Name</label><input type="text" id="roomID"/>
+                        <label for="password">Password</label><input type="password" id="password"/>
+                        <label for="manualPositions">Set Positions Manually</label>
+                        <input type="checkbox" id="manualPositions" name="manualPositions" class="checkbox"/>
+                        <label for="distanceFalloff">Distance Falloff:</label>
+                        <input type="number" id="distanceFalloff" name="distanceFalloff" min="0" max="8000" value="10"/>
+                        <button id="3DInitButton" class="menu-button hidden">3D View</button>
+                        <button id="initButton" class="menu-button hidden">Initialize</button>
+                        <button id="joinRoomButton" class="menu-button hidden">Join</button>
+                        <button id="leaveRoomButton" class="menu-button hidden">Leave</button>
+                </div>
+                    <div id="videoContainer" class="center-div flex-row" style="width: 100%"></div>
+                </div>
+
+            </td>
+            <td>
             </td>
         </tr>
     </table>

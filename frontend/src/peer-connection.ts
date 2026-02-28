@@ -78,9 +78,9 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
             })
         // TODO: abstract this into another functions
         const remoteVideo = document.createElement("canvas");
-        remoteVideo.width = 256;
+        remoteVideo.width = 128;
         remoteVideo.height = 128;
-        remoteVideo.style.margin = "50px";
+        // remoteVideo.style.margin = "50px";
 
         const remoteAudio: HTMLAudioElement = document.createElement("audio");
 

@@ -89,14 +89,14 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
         }
     }
 
-    analyser.fftSize = 512;
+    analyser.fftSize = 256;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     let canvasCtx = remoteVideo.getContext("2d")!;
     const WIDTH = remoteVideo.width;
     const HEIGHT = remoteVideo.height;
     function draw() {
-        if (DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoColor, remoteVideoStroke, bufferLength)){
+        if (DrawSoundVisualization(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoColor, remoteVideoStroke, bufferLength, id)){
             requestAnimationFrame(draw);
         }
     }

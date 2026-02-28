@@ -18,6 +18,7 @@ export class UIManager {
         UIManager.appUI = {
             localVideo: document.getElementById('localVideo') as HTMLCanvasElement,
             localAudio: document.getElementById('localAudio') as HTMLAudioElement,
+            audioMenu: document.getElementById('audio-menu') as HTMLDivElement,
             nameInput: document.getElementById('name') as HTMLInputElement,
             passwordInput: document.getElementById("password") as HTMLInputElement,
             roomIDInput: document.getElementById("roomID") as HTMLInputElement,
@@ -50,36 +51,37 @@ export class UIManager {
 
 
 
-        let supportsSharedWorkers: boolean
-        try {
-            new SharedWorker(
-                URL.createObjectURL(new Blob([""], {type: "text/javascript"}))
-            );
-            supportsSharedWorkers = true;
-        } catch (e) {
-            supportsSharedWorkers = false;
-        }
-        console.log("Shared worker: ", supportsSharedWorkers);
+        // let supportsSharedWorkers: boolean
+        // try {
+        //     new SharedWorker(
+        //         URL.createObjectURL(new Blob([""], {type: "text/javascript"}))
+        //     );
+        //     supportsSharedWorkers = true;
+        // } catch (e) {
+        //     supportsSharedWorkers = false;
+        // }
+        // console.log("Shared worker: ", supportsSharedWorkers);
 
 
         let comm;
 
-        if (supportsSharedWorkers) {
-            comm = io(ServerConfig.url, {
-                transports: ['websocket', 'polling'],
-                withCredentials: true,
-            });
-        } else {
-            const worker = new SharedWorker(new URL('/src/shared-signaling-worker.ts', import.meta.url), {type: "module"});
-            console.log("worker " + worker);
-            comm = worker.port;
-
-            comm.start();
-            console.log("port " + comm + " ; ");
-        }
+        // if (!supportsSharedWorkers) {
+        comm = io(ServerConfig.url, {
+            transports: ['websocket', 'polling'],
+            withCredentials: true,
+        });
+        // } else {
+        //     const worker = new SharedWorker(new URL('/src/shared-signaling-worker.ts', import.meta.url), {type: "module"});
+        //     console.log("worker " + worker);
+        //     comm = worker.port;
+        //
+        //     comm.start();
+        //     console.log("port " + comm + " ; ");
+        // }
         let signalling: Signaling = new Signaling(comm);
         signalling.Send({type: "listRooms", payload: {}});
         signalling.BindEvents({}, peerConnections, {}, positionsSocket);
+        console.log("LOL");
 
         if (!this.buttonsBound) {
             initButton.addEventListener('click', async e => {

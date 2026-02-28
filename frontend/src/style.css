@@ -71,6 +71,10 @@ input:checked {
     background-color: var(--primary-color-light);
 }
 
+.rounded {
+    border-radius: 100%;
+}
+
 .menu-padding {
     padding: 2vh;
 }
