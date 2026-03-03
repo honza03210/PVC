@@ -27,6 +27,15 @@ if (urlParams.get("user_token") != null && clientPositions.communicator instance
     console.log("token not sent");
 }
 
+if (urlParams.get("pfp_url") != null) {
+    const pfp = document.createElement("img");
+    pfp.classList.add("pfp");
+    pfp.height = 64;
+    pfp.width = 64;
+    pfp.src = urlParams.get("pfp_url")!;
+    UIManager.appUI.audioMenu.append(pfp);
+}
+
 await Startup();
 
 async function Startup() {

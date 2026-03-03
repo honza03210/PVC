@@ -165,6 +165,21 @@ input:checked {
 }
 
 #audio-menu {
+    position: relative;
     width: fit-content;
     margin: 0;
+}
+
+.pfp {
+    position: absolute;
+    border-radius: 50%;
+    image-rendering: pixelated;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.visualization-canvas {
+    display: block;
 }

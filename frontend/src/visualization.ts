@@ -23,6 +23,7 @@ export function BindStreamAnimation(stream: MediaStream) {
     let canvasCtx = UIManager.appUI.localVideo.getContext("2d")!;
     UIManager.appUI.localVideo.width = 128;
     UIManager.appUI.localVideo.height = 128;
+    UIManager.appUI.localVideo.classList.add("visualization-canvas")
     // UIManager.appUI.localVideo.style.margin = "50px";
     UIManager.appUI.localVideo.style.borderRadius = "50%";
     UIManager.appUI.audioMenu.style.display = "block";
@@ -50,29 +51,42 @@ export function BindStreamAnimation(stream: MediaStream) {
  * @param remoteVideoColor
  * @param remoteVideoStroke
  * @param bufferLength
+ * @param name
+ * @param complex
  * @constructor
  */
 
 // (not anymore) code from https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
 // with minor changes
-export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoColor: string, remoteVideoStroke: string, bufferLength: number, name: string | null) : boolean{
+export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoColor: string, remoteVideoStroke: string, bufferLength: number, name: string | null, complex: boolean = true) : boolean{
     if (!CanvasRenderingContext2D) {
         return false;
     }
-    analyser.getByteFrequencyData(dataArray);
+    if (complex) {
+        visualizationComplex(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoStroke, name);
+    }
+    return true;
+}
+
+function visualizationSimple(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoStroke: string, name: string | null){
+    // analyser.getBy
+}
+
+function visualizationComplex(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoStroke: string, name: string | null){
+    analyser.getByteTimeDomainData(dataArray);
 
     canvasCtx.clearRect(0, 0, WIDTH, WIDTH);
-    let color = StringToColor(name??"o");
+    let color = remoteVideoStroke;
     const cx = WIDTH / 2;
     const cy = HEIGHT / 2;
     const baseRadius = HEIGHT / 3;
     const barCount = dataArray.length;
 
     for (let i = 0; i < barCount; i++) {
-        const angle = (i / barCount) * Math.PI * 2;
+        const angle = -(i / barCount) * Math.PI * 2 - Math.PI * 0.5;
         let cos = Math.cos(angle);
         if (name && cos > Math.PI / 4 && cos < Math.PI * 3 / 4) continue;
-        const value = 0.1 + convolutionAverageAroundIndex(dataArray, i, 1);
+        const value = 0.1 + 10 * Math.abs(0.5 - convolutionAverageAroundIndex(dataArray, i, 6));
 
         const barHeight = value * 32;
 
@@ -98,7 +112,6 @@ export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDT
 
         canvasCtx.fillText(name.slice(0, 10), cx - 20, cy);
     }
-    return true;
 }
 
 /**

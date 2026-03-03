@@ -64,12 +64,12 @@ export class UIManager {
 
 
         let comm;
-
+        //
         // if (!supportsSharedWorkers) {
-        comm = io(ServerConfig.url, {
-            transports: ['websocket', 'polling'],
-            withCredentials: true,
-        });
+            comm = io(ServerConfig.url, {
+                transports: ['websocket', 'polling'],
+                withCredentials: true,
+            });
         // } else {
         //     const worker = new SharedWorker(new URL('/src/shared-signaling-worker.ts', import.meta.url), {type: "module"});
         //     console.log("worker " + worker);

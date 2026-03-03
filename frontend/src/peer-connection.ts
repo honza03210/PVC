@@ -77,6 +77,8 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
                 }
             })
         // TODO: abstract this into another functions
+        const peerContainer = document.createElement("div");
+        peerContainer.style.position = "relative";
         const remoteVideo = document.createElement("canvas");
         remoteVideo.width = 128;
         remoteVideo.height = 128;
@@ -92,9 +94,16 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         remoteAudio.muted = false;
         remoteAudio.classList.add("roomBound");
 
+        // const pfp = document.createElement("img");
+        // pfp.classList.add("pfp");
+        // pfp.height = 64;
+        // pfp.width = 64;
+        // pfp.src = `https://mc-heads.net/avatar/${username}/64`
+
         if (UIManager.appUI.videoContainer) {
-            UIManager.appUI.videoContainer.appendChild(remoteAudio);
-            UIManager.appUI.videoContainer.appendChild(remoteVideo);
+            peerContainer.append(remoteAudio, remoteVideo);
+            // peerContainer.append(pfp);
+            UIManager.appUI.videoContainer.appendChild(peerContainer);
         }
 
         stream.getTracks().forEach(track => {
