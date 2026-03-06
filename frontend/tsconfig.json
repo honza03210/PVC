@@ -1,24 +1,41 @@
+//{
+//  "compilerOptions": {
+//    "target": "ES2022",
+//    "useDefineForClassFields": true,
+//    "module": "ESNext",
+//    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+//    "types": ["vite/client"],
+//    "skipLibCheck": true,
+//    "outDir": "dist",             // compiled JS goes here
+//    "rootDir": "src",
+//
+//    /* Bundler mode */
+//    "moduleResolution": "node",
+//    "moduleDetection": "force",
+//    "noEmit": false,
+//
+//    /* Linting */
+//    "strict": true,
+//    "noUnusedLocals": false,
+//    "noUnusedParameters": false,
+//    "noFallthroughCasesInSwitch": true
+//  },
+//  "include": ["./src/**/*"]
+//}
+
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
-    "skipLibCheck": true,
-    "outDir": "dist",             // compiled JS goes here
-    "rootDir": "src",
-
-    /* Bundler mode */
-    "moduleResolution": "node",
-    "moduleDetection": "force",
-    "noEmit": false,
-
-    /* Linting */
+    "target": "esnext",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "strict": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
-  "include": ["./src/**/*"]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,4 +1,4 @@
-import {Create2DPlayerCharacter} from "./player-char-movement.js";
+import {Create2DPlayerCharacter} from "@/services/player-char-movement.ts";
 
 /**
  * Sends the current player position to the voice chat iframe if it differs from the last sent

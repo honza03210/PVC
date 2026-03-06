@@ -1,10 +1,8 @@
-"use client";
-
-import {PeerConnection} from "./peer-connection.js";
-import {Signaling} from "./signaling.js";
-import {UIManager} from "./ui-manager.js";
-import {DrawSoundVisualization, StringToColor} from "./visualization.js";
-import {ClientPositions, Position} from "./client-positions.js";
+import {PeerConnection} from "@/services/peer-connection.ts";
+import {Signaling} from "@/services/signaling.ts";
+import {UIManager} from "@/services/ui-manager.ts";
+import {DrawSoundVisualization, StringToColor} from "@/services/visualization.ts";
+import {ClientPositions, Position} from "@/services/client-positions.ts";
 
 
 /**
@@ -16,8 +14,8 @@ import {ClientPositions, Position} from "./client-positions.js";
  * @constructor
  */
 export function RoomJoin(signalling: Signaling, peerConnections: {
-    [p: string]: PeerConnection
-}, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
+    [id: string]: PeerConnection
+}, peerPositions: {[id: string]: Position}, positionsSocket: ClientPositions) {
     console.log("roomJoin");
 
     let IceCandidateQueue: {

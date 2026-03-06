@@ -1,8 +1,8 @@
 import {Socket} from "socket.io-client";
-import {InitPeerConnection, PeerConnection} from "./peer-connection.js";
-import {HandleUserDisconnect, useQueuedCandidates} from "./p2p.js";
-import {UIManager} from "./ui-manager.js";
-import {ClientPositions, Position} from "./client-positions.js";
+import {InitPeerConnection, PeerConnection} from "@/services/peer-connection.ts";
+import {HandleUserDisconnect, useQueuedCandidates} from "@/services/p2p.ts";
+import {UIManager} from "@/services/ui-manager.ts";
+import {ClientPositions, Position} from "@/services/client-positions.ts";
 
 
 /**

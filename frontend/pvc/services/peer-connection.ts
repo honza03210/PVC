@@ -1,7 +1,7 @@
-import {Signaling} from "./signaling.js";
-import {HandleNewReceivedStream} from "./p2p.js";
-import {UIManager} from "./ui-manager.js";
-import {ClientPositions, Position} from "./client-positions.js";
+import {Signaling} from "@/services/signaling.ts";
+import {HandleNewReceivedStream} from "@/services/p2p.ts";
+import {UIManager} from "@/services/ui-manager.ts";
+import {ClientPositions, Position} from "@/services/client-positions.ts";
 
 /**
  * Class taking care of the connection between the peers - used to abstract Offer/Answer exchange

@@ -1,12 +1,12 @@
 import {PeerConnection} from "./peer-connection.js";
-import {UIManager} from "./ui-manager";
-import {ClientPositions, Position} from "./client-positions";
-import {BindStreamAnimation} from "./visualization";
+import {UIManager} from "./ui-manager.js";
+import {ClientPositions, Position} from "./client-positions.js";
+import {BindStreamAnimation} from "./visualization.js";
 
 /**
- * Entry file for the main voice chat client page
- * TODO: Cluttered mess -> Rewrite
- */
+* Entry file for the main voice chat client page
+* TODO: Cluttered mess -> Rewrite
+*/
 
 UIManager.Initialize();
 
@@ -28,22 +28,19 @@ if (urlParams.get("user_token") != null && clientPositions.communicator instance
 }
 
 if (urlParams.get("pfp_url") != null) {
+    UIManager.pfpUrl = urlParams.get("pfp_url")!;
     const pfp = document.createElement("img");
     pfp.classList.add("pfp");
     pfp.height = 64;
     pfp.width = 64;
-    pfp.src = urlParams.get("pfp_url")!;
+    pfp.src = UIManager.pfpUrl;
     UIManager.appUI.audioMenu.append(pfp);
 }
 
-await Startup();
+const peerConnections: { [key: string]: PeerConnection } = {};
+const peerPositions: { [key: string]: Position } = {};
 
-async function Startup() {
+await UIManager.EnableInitButton(peerConnections, peerPositions, clientPositions);
+//document.getElementById("initButton")?.click();
+UIManager.PrefillFieldsFromUrl();
 
-    const peerConnections: { [key: string]: PeerConnection } = {};
-    const peerPositions: { [key: string]: Position } = {};
-
-    await UIManager.EnableInitButton(peerConnections, peerPositions, clientPositions);
-    //document.getElementById("initButton")?.click();
-    UIManager.PrefillFieldsFromUrl();
-}

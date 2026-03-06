@@ -1,7 +1,7 @@
-import {PeerConnection} from "./peer-connection.js";
-import {UIManager} from "./ui-manager.js";
-import {ClientPositions, Position} from "./client-positions.js";
-import {BindStreamAnimation} from "./visualization.js";
+import {PeerConnection} from "@/services/peer-connection.ts";
+import {UIManager} from "@/services/ui-manager.ts";
+import {ClientPositions, Position} from "@/services/client-positions.ts";
+import {BindStreamAnimation} from "@/services/visualization.ts";
 
 
 /**

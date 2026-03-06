@@ -1,4 +1,4 @@
-import {UIManager} from "./ui-manager.js";
+import {UIManager} from "@/services/ui-manager.ts";
 
 
 /**

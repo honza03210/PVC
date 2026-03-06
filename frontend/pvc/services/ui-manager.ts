@@ -1,11 +1,11 @@
-import type {AppUI} from "./interaces/app-ui.js";
-import {PeerConnection} from "./peer-connection.js";
-import {RoomJoin} from "./p2p.js";
+import type {AppUI} from "@/services/interaces/app-ui.ts";
+import {PeerConnection} from "@/services/peer-connection.ts";
+import {RoomJoin} from "@/services/p2p.ts";
 import {io} from "socket.io-client";
-import {ServerConfig} from "./configs/server-config.js";
-import {Signaling} from "./signaling.js";
-import {ClientPositions, Position} from "./client-positions.js";
-import {BindStreamAnimation} from "./visualization.js";
+import {ServerConfig} from "@/services/configs/server-config.ts";
+import {Signaling} from "@/services/signaling.ts";
+import {ClientPositions, Position} from "@/services/client-positions.ts";
+import {BindStreamAnimation} from "@/services/visualization.ts";
 
 
 // TODO: This whole class should be rewritten, it doesn't make much sense to do it like this
@@ -37,48 +37,15 @@ export class UIManager {
         UIManager.appUI.nameInput.value = urlParams.get("username") ?? "";
         UIManager.appUI.roomIDInput.value = urlParams.get("room_id") ?? "";
         UIManager.appUI.passwordInput.value = urlParams.get("password-INSECURE") ?? "";
-        // if (urlParams.get("autojoin") && !this.buttonsBound) {
-        //     document.getElementById("joinRoomButton")?.click();
-        // }
     }
 
     static async EnableInitButton(peerConnections: { [p: string]: PeerConnection }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
-        // let initButton = document.createElement("button");
-        // initButton.innerText = "Initialize"
-        // initButton.classList.add("menu-button");
-        // initButton.style.fontSize = "32";
-
         let initButton = document.getElementById("initButton") as HTMLButtonElement;
+        let comm = io(ServerConfig.url, {
+            transports: ['websocket', 'polling'],
+            withCredentials: true,
+        });
 
-
-
-        // let supportsSharedWorkers: boolean
-        // try {
-        //     new SharedWorker(
-        //         URL.createObjectURL(new Blob([""], {type: "text/javascript"}))
-        //     );
-        //     supportsSharedWorkers = true;
-        // } catch (e) {
-        //     supportsSharedWorkers = false;
-        // }
-        // console.log("Shared worker: ", supportsSharedWorkers);
-
-
-        let comm;
-        //
-        // if (!supportsSharedWorkers) {
-            comm = io(ServerConfig.url, {
-                transports: ['websocket', 'polling'],
-                withCredentials: true,
-            });
-        // } else {
-        //     const worker = new SharedWorker(new URL('/src/shared-signaling-worker.ts', import.meta.url), {type: "module"});
-        //     console.log("worker " + worker);
-        //     comm = worker.port;
-        //
-        //     comm.start();
-        //     console.log("port " + comm + " ; ");
-        // }
         let signalling: Signaling = new Signaling(comm);
         signalling.Send({type: "listRooms", payload: {}});
         signalling.BindEvents({}, peerConnections, {}, positionsSocket);

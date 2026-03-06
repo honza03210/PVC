@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 import {io} from "socket.io-client";
-import {ServerConfig} from "./configs/server-config.js";
+import {ServerConfig} from "@/services/configs/server-config.ts";
 
 /**
  * Shared worker running on another thread used to offload network communication from the main JavaScript thread

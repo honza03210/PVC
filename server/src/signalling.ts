@@ -125,7 +125,7 @@ export function signalling(server : any) {
             console.log("[joined] room:" + roomId + " name: " + data.name);
             usernames[socket.id] = data.name;
             socket.emit("roomConnected", { selfID: socket.id, roomID: roomId });
-            socket.broadcast.to(socket.data.roomId).emit("PeerJoined", { id: socket.id, username: data.name });
+            socket.broadcast.to(socket.data.roomId).emit("PeerJoined", { id: socket.id, username: data.name, pfpUrl: data.pfpUrl });
             await sendUserCredentials(socket, data.name);
             setTimeout(() =>{ listUserIDs(socket, socket.data.roomId) }, 5000)
         });
@@ -134,8 +134,8 @@ export function signalling(server : any) {
             console.log("listRooms received");
         })
 
-        socket.on("offer", (payload: {dest: string, sdp: any}) => {
-            io.to(payload.dest).emit("getOffer", {id: socket.id, sdp: payload.sdp, username: usernames[socket.id]});
+        socket.on("offer", (payload: {dest: string, sdp: any, pfpUrl: string}) => {
+            io.to(payload.dest).emit("getOffer", {id: socket.id, sdp: payload.sdp, username: usernames[socket.id], pfpUrl: payload.pfpUrl});
             console.log("offer from " + socket.id + " to " + payload.dest);
         });
         socket.on("answerAck", (payload: {dest: string}) => {

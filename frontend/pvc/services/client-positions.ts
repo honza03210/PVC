@@ -1,5 +1,5 @@
-import {UIManager} from "./ui-manager.js";
-import {GetMinecraftHeadingVector} from "./position-format-converters.js";
+import {UIManager} from "@/services/ui-manager.ts";
+import {GetMinecraftHeadingVector} from "@/services/position-format-converters.ts";
 
 /**
  * Base class representing the position object
