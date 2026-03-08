@@ -59,7 +59,7 @@ export class UIManager {
                         audio: true,
                     })
                     .then(stream => {
-                        BindStreamAnimation(stream);
+                        BindStreamAnimation(stream, this.appUI.audioCtx!);
                     });
                 this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signalling);
                 initButton.style.display = "none";

@@ -1,11 +1,9 @@
-export default function JoinRoomButton() {
+import {useAppContext} from "@/components/app-context.tsx";
+import {RoomJoin} from "@/services/p2p.ts";
+import {ButtonHTMLAttributes, useState} from "react";
 
-    const handleJoinRoomButtonClick = () => {
-        joinButton.style.display = "none";
-        document.getElementById("3DInitButton")!.style.display = "none";
-        let appCtx = useAppContext();
-        RoomJoin(appCtx.signalling!, appCtx.peerConnections, appCtx.peerPositions!, appCtx.positionsSocket!);
-    }
-    return <button id="joinRoomButton" className="menu-button hidden">Join</button>
+
+export default function JoinRoomButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
+    return <button id="joinRoomButton" className="menu-button" {...props}>Join</button>
 }
 

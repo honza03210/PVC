@@ -1,9 +1,19 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+'use client';
+import {createContext, useContext, useState, ReactNode, useEffect} from "react";
 
 const AudioCtxContext = createContext<AudioContext | null>(null);
 
 export function AudioCtxProvider({ children }: { children: ReactNode }) {
-    const [audioCtx] = useState(() => new AudioContext());
+    const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
+
+    useEffect(() => {
+        const ctx = new AudioContext();
+        setAudioCtx(ctx);
+
+        return () => {
+            ctx.close();
+        };
+    }, []);
 
     return (
         <AudioCtxContext.Provider value={audioCtx}>
@@ -13,7 +23,5 @@ export function AudioCtxProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAudioCtx() {
-    const ctx = useContext(AudioCtxContext);
-    if (!ctx) throw new Error("AudioCtxProvider error");
-    return ctx;
+    return useContext(AudioCtxContext);
 }

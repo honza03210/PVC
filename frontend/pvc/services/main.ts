@@ -1,6 +1,8 @@
 import {PeerConnection} from "@/services/peer-connection.ts";
 import {UIManager} from "@/services/ui-manager.ts";
 import {ClientPositions, Position} from "@/services/client-positions.ts";
+import {AppContext} from "next/app";
+import {Signaling} from "@/services/signaling.ts";
 
 
 /**
@@ -8,7 +10,7 @@ import {ClientPositions, Position} from "@/services/client-positions.ts";
  * TODO: Cluttered mess -> Rewrite
  */
 
-export async function main() {
+export async function main(peerConnections: { [p: string]: PeerConnection }, peerPositions: { [key: string]: Position }, signaling: Signaling, positions: ClientPositions): Promise<void> {
 
     UIManager.Initialize();
 
@@ -39,8 +41,8 @@ export async function main() {
         UIManager.appUI.audioMenu.append(pfp);
     }
 
-    const peerConnections: { [key: string]: PeerConnection } = {};
-    const peerPositions: { [key: string]: Position } = {};
+    peerConnections = {};
+    peerPositions = {};
 
     await UIManager.EnableInitButton(peerConnections, peerPositions, clientPositions);
     //document.getElementById("initButton")?.click();

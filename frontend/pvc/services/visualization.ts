@@ -6,8 +6,7 @@ import {UIManager} from "@/services/ui-manager.ts";
  * @param stream
  * @constructor
  */
-export function BindStreamAnimation(stream: MediaStream) {
-    let audioCtx = UIManager.appUI.audioCtx;
+export function BindStreamAnimation(stream: MediaStream, audioCtx: AudioContext) {
     let microphone = audioCtx!.createMediaStreamSource(stream);
     let analyser = audioCtx!.createAnalyser();
     microphone.connect(analyser);

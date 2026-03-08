@@ -1,3 +1,4 @@
+'use client';
 import {PeerConnection} from "@/services/peer-connection.ts";
 import {Signaling} from "@/services/signaling.ts";
 import {UIManager} from "@/services/ui-manager.ts";

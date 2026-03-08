@@ -1,3 +1,4 @@
+'use client';
 import {Signaling} from "@/services/signaling.ts";
 import {HandleNewReceivedStream} from "@/services/p2p.ts";
 import {UIManager} from "@/services/ui-manager.ts";
