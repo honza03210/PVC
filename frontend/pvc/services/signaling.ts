@@ -1,3 +1,4 @@
+'use client';
 import {Socket} from "socket.io-client";
 import {InitPeerConnection, PeerConnection} from "@/services/peer-connection.ts";
 import {HandleUserDisconnect, useQueuedCandidates} from "@/services/p2p.ts";

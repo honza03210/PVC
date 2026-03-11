@@ -1,3 +1,4 @@
+'use client';
 import {UIManager} from "@/services/ui-manager.ts";
 
 

@@ -30,7 +30,7 @@ app.get('/game/', (req, res) => {
 app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
 const server = app.listen(3001, () => {
-    console.log('server is running on http://localhost:3001')
+    console.log('server is running on http://localhost:3001 + http://localhost:3001?pfp_url=https://mc-heads.net/avatar/Honza0321/32');
 })
 
 signalling(server);

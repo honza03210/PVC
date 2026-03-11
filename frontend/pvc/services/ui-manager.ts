@@ -1,3 +1,4 @@
+'use client';
 import type {AppUI} from "@/services/interaces/app-ui.ts";
 import {PeerConnection} from "@/services/peer-connection.ts";
 import {RoomJoin} from "@/services/p2p.ts";

@@ -3,7 +3,7 @@ import {PeerConnection} from "@/services/peer-connection.ts";
 import {Position} from "@/services/client-positions.ts";
 import {Signaling} from "@/services/signaling.ts";
 import {ClientPositions} from "@/services/client-positions.ts";
-import React, {useContext, useRef, useState} from "react";
+import React, {useCallback, useContext, useRef, useState} from "react";
 
 
 interface AppContextType {

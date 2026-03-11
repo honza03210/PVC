@@ -1,3 +1,4 @@
+'use client';
 import VisualizationCanvas from "@/components/visualization-canvas.tsx";
 import {useAppContext} from "@/components/app-context.tsx";
 import {useAudioCtx} from "@/components/audio-ctx.tsx";
