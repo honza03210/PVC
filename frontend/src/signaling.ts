@@ -199,8 +199,8 @@ export class Signaling {
                 this.IceCandidateQueue[eventData.id]!.popped = true;
                 break;
             case "getOffer":
-                console.log("get offer:" + eventData.sdp);
-                await InitPeerConnection(this, eventData.id, this.peerConnections, this.peerPositions!, this.clientPositions!, false, eventData.username);
+                console.log("get offer:" + eventData.sdp, eventData.pfpUrl);
+                await InitPeerConnection(this, eventData.id, this.peerConnections, this.peerPositions!, this.clientPositions!, false, eventData.username, eventData.pfpUrl);
                 console.log("Initiated connection", this.peerConnections[eventData.id]!);
                 await this.peerConnections[eventData.id].CreateAnswer(this, eventData.sdp, eventData.id);
                 console.log("Created answer", this.peerConnections[eventData.id]!);
@@ -228,7 +228,7 @@ export class Signaling {
                     console.log("peer already connected");
                     return;
                 }
-                await InitPeerConnection(this, eventData.id, this.peerConnections, this.peerPositions!, this.clientPositions!, true, eventData.username);
+                await InitPeerConnection(this, eventData.id, this.peerConnections, this.peerPositions!, this.clientPositions!, true, eventData.username, eventData.pfpUrl);
                 await this.peerConnections[eventData.id].CreateOffer(this, eventData.id);
                 break;
             case "userCredentials":

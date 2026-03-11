@@ -13,7 +13,7 @@ export class PeerConnection extends RTCPeerConnection {
             .createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true})
             .then(async sdp => {
                 await this.setLocalDescription(sdp);
-                signalling.Send({type: "offer", payload: {dest: destID, sdp: sdp}})
+                signalling.Send({type: "offer", payload: {dest: destID, sdp: sdp, pfpUrl: UIManager.pfpUrl}});
             })
             .catch(error => {
                 console.log(error);
@@ -50,11 +50,12 @@ export class PeerConnection extends RTCPeerConnection {
  * @param clientPositions
  * @param offer
  * @param username
+ * @param pfpUrl
  * @constructor
  */
 export async function InitPeerConnection(signaling: Signaling, id: string, peerConnections: {
     [p: string]: PeerConnection
-}, peerPositions: {[p: string]: Position}, clientPositions: ClientPositions, offer: boolean, username: string) {
+}, peerPositions: {[p: string]: Position}, clientPositions: ClientPositions, offer: boolean, username: string, pfpUrl: string) {
     if (id in peerConnections) {
         console.log("id already in peer connections")
         return;
@@ -79,9 +80,11 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         // TODO: abstract this into another functions
         const peerContainer = document.createElement("div");
         peerContainer.style.position = "relative";
+        peerContainer.id = "peerContainer-" + id;
         const remoteVideo = document.createElement("canvas");
         remoteVideo.width = 128;
         remoteVideo.height = 128;
+        remoteVideo.style.display = "block";
         // remoteVideo.style.margin = "50px";
 
         const remoteAudio: HTMLAudioElement = document.createElement("audio");
@@ -94,15 +97,15 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         remoteAudio.muted = false;
         remoteAudio.classList.add("roomBound");
 
-        // const pfp = document.createElement("img");
-        // pfp.classList.add("pfp");
-        // pfp.height = 64;
-        // pfp.width = 64;
-        // pfp.src = `https://mc-heads.net/avatar/${username}/64`
+        const pfp = document.createElement("img");
+        pfp.classList.add("pfp");
+        pfp.height = 64;
+        pfp.width = 64;
+        pfp.src = pfpUrl;
 
         if (UIManager.appUI.videoContainer) {
             peerContainer.append(remoteAudio, remoteVideo);
-            // peerContainer.append(pfp);
+            peerContainer.append(pfp);
             UIManager.appUI.videoContainer.appendChild(peerContainer);
         }
 

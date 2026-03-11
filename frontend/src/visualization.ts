@@ -4,10 +4,10 @@ import {UIManager} from "./ui-manager";
 /**
  * Binds the sound visualization for the local user
  * @param stream
+ * @param audioCtx
  * @constructor
  */
-export function BindStreamAnimation(stream: MediaStream) {
-    let audioCtx = UIManager.appUI.audioCtx;
+export function BindStreamAnimation(stream: MediaStream, audioCtx: AudioContext) {
     let microphone = audioCtx!.createMediaStreamSource(stream);
     let analyser = audioCtx!.createAnalyser();
     microphone.connect(analyser);
@@ -85,8 +85,8 @@ function visualizationComplex(canvasCtx: CanvasRenderingContext2D, WIDTH: number
     for (let i = 0; i < barCount; i++) {
         const angle = -(i / barCount) * Math.PI * 2 - Math.PI * 0.5;
         let cos = Math.cos(angle);
-        if (name && cos > Math.PI / 4 && cos < Math.PI * 3 / 4) continue;
-        const value = 0.1 + 10 * Math.abs(0.5 - convolutionAverageAroundIndex(dataArray, i, 6));
+        // if (name && cos > Math.PI / 4 && cos < Math.PI * 3 / 4) continue;
+        const value = 0.1 + 10 * Math.abs(0.5 - convolutionAverageAroundIndex(dataArray, i, 0));
 
         const barHeight = value * 32;
 
@@ -104,14 +104,14 @@ function visualizationComplex(canvasCtx: CanvasRenderingContext2D, WIDTH: number
         canvasCtx.stroke();
     }
 
-    if (name) {
-        canvasCtx.fillStyle = color;
-        canvasCtx.font = "bold 20px sans-serif";
-        canvasCtx.textAlign = "left";
-        canvasCtx.textBaseline = "middle";
-
-        canvasCtx.fillText(name.slice(0, 10), cx - 20, cy);
-    }
+    // if (name) {
+    //     canvasCtx.fillStyle = color;
+    //     canvasCtx.font = "bold 20px sans-serif";
+    //     canvasCtx.textAlign = "left";
+    //     canvasCtx.textBaseline = "middle";
+    //
+    //     canvasCtx.fillText(name.slice(0, 10), cx - 20, cy);
+    // }
 }
 
 /**

@@ -14,8 +14,8 @@ import {ClientPositions, Position} from "./client-positions";
  * @constructor
  */
 export function RoomJoin(signalling: Signaling, peerConnections: {
-    [p: string]: PeerConnection
-}, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
+    [id: string]: PeerConnection
+}, peerPositions: {[id: string]: Position}, positionsSocket: ClientPositions) {
     console.log("roomJoin");
 
     let IceCandidateQueue: {
@@ -31,7 +31,8 @@ export function RoomJoin(signalling: Signaling, peerConnections: {
         payload: {
             roomId: UIManager.appUI.roomIDInput.value,
             name: UIManager.appUI.nameInput.value != "" ? UIManager.appUI.nameInput.value : `user-${Math.random().toString(36).substring(2, 10)}`,
-            password: UIManager.appUI.passwordInput.value
+            password: UIManager.appUI.passwordInput.value,
+            pfpUrl: UIManager.pfpUrl
         }, type: "join"
     });
 
@@ -158,6 +159,7 @@ export function SetPanNodeParams(panNode: PannerNode) {
  * @constructor
  */
 export async function HandleUserDisconnect(userID: string, peerConnections: {[key: string] : PeerConnection}, clientPositions: ClientPositions | null) {
+    document.getElementById("peerContainer-" + userID)?.remove();
     document.getElementById("remoteVideo-" + userID)?.remove();
     document.getElementById("remoteAudio-" + userID)?.remove();
     peerConnections[userID].close();
