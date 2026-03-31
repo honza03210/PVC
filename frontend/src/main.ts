@@ -1,6 +1,7 @@
 import {PeerConnection} from "./peer-connection.js";
 import {UIManager} from "./ui-manager";
 import {ClientPositions, Position} from "./client-positions";
+import * as jdenticon from "jdenticon"
 import {Signaling} from "./signaling";
 import {BindStreamAnimation} from "./visualization";
 
@@ -37,6 +38,26 @@ if (urlParams.get("pfp_url") != null) {
     pfp.width = 64;
     pfp.src = UIManager.pfpUrl;
     UIManager.appUI.audioMenu.append(pfp);
+} else {
+    const pfp: SVGSVGElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "svg"
+    );
+
+    pfp.classList.add("pfp");
+    pfp.setAttribute("width", "70");
+    pfp.setAttribute("height", "70");
+
+    pfp.style.borderRadius = "50%";
+    pfp.style.overflow = "hidden";
+
+    UIManager.appUI.audioMenu.append(pfp);
+
+    jdenticon.update(pfp, UIManager.appUI.nameInput.value);
+
+    UIManager.appUI.nameInput.onchange = (e) => {
+        jdenticon.update(pfp, UIManager.appUI.nameInput.value);
+    }
 }
 
 let peerConnections = {};

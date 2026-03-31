@@ -2,6 +2,8 @@ import {Signaling} from "./signaling";
 import {HandleNewReceivedStream} from "./p2p";
 import {UIManager} from "./ui-manager";
 import {ClientPositions, Position} from "./client-positions";
+import * as jdenticon from "jdenticon";
+import {BindLatencyChannel, BindPositionsChannel} from "./data-channels";
 
 /**
  * Class taking care of the connection between the peers - used to abstract Offer/Answer exchange
@@ -81,6 +83,8 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         const peerContainer = document.createElement("div");
         peerContainer.style.position = "relative";
         peerContainer.id = "peerContainer-" + id;
+        const peerVisualizationContainer = document.createElement("div");
+        peerVisualizationContainer.style.position = "relative";
         const remoteVideo = document.createElement("canvas");
         remoteVideo.width = 128;
         remoteVideo.height = 128;
@@ -97,15 +101,41 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         remoteAudio.muted = false;
         remoteAudio.classList.add("roomBound");
 
-        const pfp = document.createElement("img");
-        pfp.classList.add("pfp");
-        pfp.height = 64;
-        pfp.width = 64;
-        pfp.src = pfpUrl;
+        let pfp: HTMLImageElement | SVGSVGElement;
+        console.log("pfp url: ", pfpUrl);
+        if (pfpUrl != "" && pfpUrl != undefined) {
+            pfp = document.createElement("img");
+            pfp.classList.add("pfp");
+            pfp.height = 64;
+            pfp.width = 64;
+            pfp.src = pfpUrl;
+        } else {
+            pfp = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "svg"
+            );
+
+            pfp.classList.add("pfp");
+            pfp.setAttribute("width", "70");
+            pfp.setAttribute("height", "70");
+
+            pfp.style.borderRadius = "50%";
+            pfp.style.overflow = "hidden";
+        }
+
+        const latency = document.createElement("div");
+        latency.id = "latency-" + id;
+        latency.innerText = "-"
+        latency.style.textAlign = "center";
+        latency.classList.add("latency");
+
 
         if (UIManager.appUI.videoContainer) {
-            peerContainer.append(remoteAudio, remoteVideo);
-            peerContainer.append(pfp);
+            peerVisualizationContainer.append(remoteAudio, remoteVideo);
+            if (pfpUrl == "" || pfpUrl == undefined) jdenticon.update(pfp, username);
+            peerVisualizationContainer.append(pfp);
+            peerContainer.append(peerVisualizationContainer);
+            peerContainer.append(latency);
             UIManager.appUI.videoContainer.appendChild(peerContainer);
         }
 
@@ -116,13 +146,20 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         // Positions data stream init.
         if (offer) {
             console.log("creating data channel");
+            let pingChannel = peerConnection.createDataChannel("latency", {ordered: true});
+            BindLatencyChannel(pingChannel, id);
             let dc = peerConnection.createDataChannel("positions", {ordered: true});
-            BindDataChannel(dc, id, clientPositions, peerPositions);
+            BindPositionsChannel(dc, id, clientPositions, peerPositions);
         } else {
             peerConnection.ondatachannel = (e) => {
                 console.log("got data channel");
-                let dc = e.channel;
-                BindDataChannel(dc, id, clientPositions, peerPositions);
+                if (e.channel.label == "latency"){
+                    let pingChannel = e.channel;
+                    BindLatencyChannel(pingChannel, id);
+                } else if (e.channel.label == "positions"){
+                    let dc = e.channel;
+                    BindPositionsChannel(dc, id, clientPositions, peerPositions);
+                }
             };
         }
 
@@ -135,9 +172,6 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
                     dest: id, candidate: e.candidate
                 }, type: "candidate"
             })
-            //} else {
-            //    console.log("no candidate")
-            //}
         };
 
         peerConnection.oniceconnectionstatechange = e => {
@@ -153,106 +187,4 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
     }
     console.log("set new peerConnection");
     peerConnections[id] = peerConnection;
-}
-
-/**
- * Binding positions data stream to actual position objects to read from
- * @param dc
- * @param id
- * @param clientPositions
- * @param peerPositions
- * @constructor
- */
-export function BindDataChannel(dc: RTCDataChannel, id: string, clientPositions : ClientPositions, peerPositions: {[p: string]: Position}) {
-    if (clientPositions.communicator) {
-        clientPositions.communicator!.addEventListener("message", (event: any) => {
-            if (!event.data) {
-                return;
-            }
-            console.log("Received:", event.data);
-            let data = event.data.split(";");
-            if (data[0] == "GAME_EVENT" && dc.readyState == "open") {
-                console.log("Sent GAME_EVENT message: ", event.data);
-                dc.send(event.data);
-                return;
-            }
-        });
-    }
-    dc.onopen = () => {
-        console.log("DataChannel open");
-        peerPositions[id] = new Position();
-        console.log("peerPositions:", id, peerPositions[id]);
-        let lastPosition = "";
-        function sendPos() {
-            setTimeout(() => {
-                if (lastPosition != clientPositions.RawPositions){
-                    dc.send(clientPositions.PositionFormat + ";" + clientPositions.RawPositions);
-                    lastPosition = clientPositions.RawPositions;
-                }
-
-                sendPos()
-            }, 10)
-        }
-        sendPos();
-    };
-    dc.onmessage = (event: { data: string }) => {
-        // TODO: decompose
-        if (UIManager.appUI.manualPositions.checked) return;
-        let data = event.data.split(";");
-        let format = data[0];
-        if (format == "GAME_EVENT" && clientPositions.communicator) {
-            console.log("Received GAME_EVENT message: ", event.data);
-            clientPositions.Send(event.data);
-            return;
-        }
-        peerPositions[id].PositionFormat = format;
-        peerPositions[id].RawPositions = data.slice(1).join(";");
-        try {
-            if (format == "mc"){
-                peerPositions[id].x = parseFloat(data[1]);
-                peerPositions[id].y = parseFloat(data[2]);
-                peerPositions[id].z = -parseFloat(data[3]);
-                if (Number.isNaN(peerPositions[id].x)) peerPositions[id].x = 0;
-                if (Number.isNaN(peerPositions[id].y)) peerPositions[id].y = 0;
-                if (Number.isNaN(peerPositions[id].z)) peerPositions[id].z = 0;
-
-
-                peerPositions[id].pitch = parseFloat(data[4]);
-                peerPositions[id].yaw = parseFloat(data[5]);
-                if (Number.isNaN(peerPositions[id].pitch)) peerPositions[id].pitch = 0;
-                if (Number.isNaN(peerPositions[id].yaw)) peerPositions[id].yaw = 0;
-            } else {
-                peerPositions[id].x = parseFloat(data[1]);
-                peerPositions[id].y = parseFloat(data[2]);
-                peerPositions[id].z = parseFloat(data[3]);
-                if (Number.isNaN(peerPositions[id].x)) peerPositions[id].x = 0;
-                if (Number.isNaN(peerPositions[id].y)) peerPositions[id].y = 0;
-                if (Number.isNaN(peerPositions[id].z)) peerPositions[id].z = 0;
-
-
-                peerPositions[id].pitch = parseFloat(data[4]);
-                peerPositions[id].yaw = parseFloat(data[5]);
-                if (Number.isNaN(peerPositions[id].pitch)) peerPositions[id].pitch = 0;
-                if (Number.isNaN(peerPositions[id].yaw)) peerPositions[id].yaw = 0;
-            }
-        } catch (e) {
-            // not all positions sent
-            console.error(e);
-        }
-        if (clientPositions.sendPeerPositionsBack) {
-            clientPositions.SendServerEvent(`POSITION;${id};${peerPositions[id].RawPositions}`);
-        }
-        console.log("Position object of the peer: ", peerPositions[id]);
-        console.log("Received positions from ", id, format, data);
-        // if (format == "2DDemo" || format == "3DDemo") {
-        //     let positionData : string = data.slice(1).join(";");
-        //     console.log("setting position in 2D");
-        //     let char = document.getElementById("remotePlayerCharacter-" + id);
-        //     let dataParsed = Object.fromEntries(new URLSearchParams(positionData));
-        //     char!.style.top = dataParsed.y!;
-        //     char!.style.left = dataParsed.x!;
-        // } else {
-        //     console.log(`Received position in format: ${format}, data: ${data.slice(1).join(";")}`);
-        // }
-    }
 }

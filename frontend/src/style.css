@@ -66,7 +66,7 @@ input:checked {
 }
 
 .menu {
-    width: auto;
+    min-width: 30%;
     border-radius: 2vw;
     background-color: var(--primary-color-light);
 }
@@ -99,16 +99,6 @@ input:checked {
     vertical-align: center;
 }
 
-.menu-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.menu-table td {
-    width: 33%;
-    vertical-align: top;
-}
-
 .hidden {
     display: none;
 }
@@ -122,13 +112,29 @@ input:checked {
     font-size: 2vh;
 }
 
-#main-menu-table {
+.video-container-table {
+    margin-top: 1vh;
+    width: 100%;
+    min-width: 33%;
+    border-collapse: collapse;
+}
+
+.video-container-table td {
+    width: 30%;
+    max-width: 30%;
+    min-width: 30%;
+    height: 100%;
+    padding: 2vh 2vw;
+    vertical-align: top;
+}
+
+.main-menu-table {
     margin-top: 1vh;
     width: 100%;
     border-collapse: collapse;
 }
 
-#main-menu-table td {
+.main-menu-table td {
     width: 33%;
     height: 100%;
     padding: 2vh 2vw;

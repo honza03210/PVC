@@ -21,7 +21,7 @@
 </dialog>
 
 <div id="container">
-    <table id="main-menu-table">
+    <table class="main-menu-table">
         <tr>
             <td>
                 <div id="rooms-list-menu" class="menu menu-padding flex-column">
@@ -59,13 +59,23 @@
                         <button id="initButton" class="menu-button">Initialize</button>
                         <button id="joinRoomButton" class="menu-button hidden">Join</button>
                         <button id="leaveRoomButton" class="menu-button hidden">Leave</button>
-                </div>
-                    <div id="videoContainer" class="center-div flex-row" style="width: 100%"></div>
+                    </div>
                 </div>
 
             </td>
             <td>
             </td>
+        </tr>
+    </table>
+    <table class="video-container-table">
+        <tr>
+            <td></td>
+            <td>
+                <div id="videoContainerMenu" class="menu menu-padding center-div flex-column">
+                    <div id="videoContainer" class="center-div flex-row" style="width: 100%"></div>
+                </div>
+            </td>
+            <td></td>
         </tr>
     </table>
 
