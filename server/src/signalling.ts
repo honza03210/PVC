@@ -48,7 +48,7 @@ export function signalling(server : any) {
                 roomsList: Object.entries(rooms).map(([roomID, users]) =>
                     ({roomID, numberOfUsers: Object.keys(users).length}))
             });
-            if (repeat && usernames[socket.id]) {
+            if (repeat) {
                 setTimeout(() =>{ ListRooms(socket, true) }, 5000)
                             }
         } catch (err){
@@ -129,11 +129,6 @@ export function signalling(server : any) {
             await sendUserCredentials(socket, data.name);
             setTimeout(() =>{ listUserIDs(socket, socket.data.roomId) }, 5000)
         });
-
-        socket.on("listRooms", (data) => {
-            console.log("listRooms received");
-        })
-
         socket.on("offer", (payload: {dest: string, sdp: any}) => {
             io.to(payload.dest).emit("getOffer", {id: socket.id, sdp: payload.sdp, username: usernames[socket.id]});
             console.log("offer from " + socket.id + " to " + payload.dest);

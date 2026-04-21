@@ -48,7 +48,7 @@ export class UIManager {
 
         let signalling: Signaling = new Signaling(comm);
         signalling.Send({type: "listRooms", payload: {}});
-        signalling.BindEvents({}, peerConnections, {}, positionsSocket);
+        signalling.BindEvents({}, peerConnections, {}, positionsSocket, {});
         console.log("LOL");
 
         if (!this.buttonsBound) {

@@ -149,7 +149,7 @@ export function BindLatencyChannel(dc: RTCDataChannel, userID: string) {
 
         if (msg.type === "pong") {
             const rtt = Date.now() - msg.t;
-            latencyView!.innerText = "" + rtt.toString() + " ms";
+            // latencyView!.innerText = "" + rtt.toString() + " ms";
             console.log("Ping:", rtt, "ms");
         }
     }

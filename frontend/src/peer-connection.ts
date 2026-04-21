@@ -4,6 +4,7 @@ import {UIManager} from "./ui-manager";
 import {ClientPositions, Position} from "./client-positions";
 import * as jdenticon from "jdenticon";
 import {BindLatencyChannel, BindPositionsChannel} from "./data-channels";
+import {StatSample} from "./statSample";
 
 /**
  * Class taking care of the connection between the peers - used to abstract Offer/Answer exchange
@@ -12,7 +13,7 @@ export class PeerConnection extends RTCPeerConnection {
     async CreateOffer(signalling: Signaling, destID: string) {
         console.log("create offer");
         this
-            .createOffer({offerToReceiveAudio: true, offerToReceiveVideo: true})
+            .createOffer({offerToReceiveAudio: true, offerToReceiveVideo: false})
             .then(async sdp => {
                 await this.setLocalDescription(sdp);
                 signalling.Send({type: "offer", payload: {dest: destID, sdp: sdp, pfpUrl: UIManager.pfpUrl}});
@@ -28,9 +29,8 @@ export class PeerConnection extends RTCPeerConnection {
             console.log("answer set remote description success");
             this
                 .createAnswer({
-                    offerToReceiveVideo: true,
+                    offerToReceiveVideo: false,
                     offerToReceiveAudio: true,
-                    offerToReceivePositions: true,
                 })
                 .then(async sdp1 => {
                     await this.setLocalDescription(sdp1);
@@ -125,7 +125,7 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
 
         const latency = document.createElement("div");
         latency.id = "latency-" + id;
-        latency.innerText = "-"
+        latency.innerText = username;
         latency.style.textAlign = "center";
         latency.classList.add("latency");
 
@@ -182,6 +182,57 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         peerConnection.ontrack = async ev => {
             HandleNewReceivedStream(ev.streams[0], remoteAudio, remoteVideo, id, clientPositions, peerPositions);
         };
+        // directly from https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/getStats
+        setInterval(async () => {
+            return;
+            const stats = await peerConnection.getStats();
+
+            let sample: StatSample = {
+                timestamp: Date.now(),
+            };
+
+            stats.forEach(report => {
+                if (report.type === "inbound-rtp" && report.kind === "audio") {
+                    sample.packetsLost = report.packetsLost;
+                    sample.packetsReceived = report.packetsReceived;
+                    sample.jitter = report.jitter;
+                }
+                if (report.type === "outbound-rtp" && report.kind === "audio") {
+                    sample.packetsSent = report.packetsSent;
+                    sample.bytesSent = report.bytesSent;
+                }
+                if (report.type === "candidate-pair" && report.state === "succeeded") {
+                    sample.rtt = report.currentRoundTripTime;
+                    sample.availableOutgoingBitrate = report.availableOutgoingBitrate;
+                }
+            });
+
+            //signaling.peerStats![id].push(sample);
+            peerConnection.getStats(null).then((stats) => {
+                let statsOutput = "";
+
+                stats.forEach((report) => {
+                    statsOutput +=
+                        `<h2>Report: ${report.type}</h2>\n<strong>ID:</strong> ${report.id}<br>\n` +
+                        `<strong>Timestamp:</strong> ${report.timestamp}<br>\n`;
+
+                    // Now the statistics for this report; we intentionally drop the ones we
+                    // sorted to the top above
+
+                    Object.keys(report).forEach((statName) => {
+                        if (
+                            statName !== "id" &&
+                            statName !== "timestamp" &&
+                            statName !== "type"
+                        ) {
+                            statsOutput += `<strong>${statName}:</strong> ${report[statName]}<br>\n`;
+                        }
+                    });
+                });
+
+                document.querySelector("#latency-" + id)!.innerHTML = statsOutput;
+            });
+        }, 1000);
     } catch (e) {
         console.log(e);
     }

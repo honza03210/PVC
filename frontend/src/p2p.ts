@@ -3,6 +3,7 @@ import {Signaling} from "./signaling";
 import {UIManager} from "./ui-manager";
 import {DrawSoundVisualization, StringToColor} from "./visualization";
 import {ClientPositions, Position} from "./client-positions";
+import {StatSample} from "./statSample";
 
 
 /**
@@ -25,7 +26,9 @@ export function RoomJoin(signalling: Signaling, peerConnections: {
         }
     } = {};
 
-    signalling.BindEvents(IceCandidateQueue, peerConnections, peerPositions, positionsSocket);
+    let peerStats: {[key: string] : [StatSample]} = {}
+
+    signalling.BindEvents(IceCandidateQueue, peerConnections, peerPositions, positionsSocket, peerStats);
 
     signalling.Send({
         payload: {
@@ -61,11 +64,11 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
 
     SetPanNodeParams(panNode);
 
-    UIManager.appUI.distanceFalloff.addEventListener("change", () => {
-        panNode.refDistance = UIManager.appUI.distanceFalloff.valueAsNumber;
-        panNode.maxDistance = UIManager.appUI.distanceFalloff.valueAsNumber * 10;
-        console.log("changed distance to:", panNode.refDistance, panNode.maxDistance);
-    });
+    // UIManager.appUI.distanceFalloff.addEventListener("change", () => {
+    //     panNode.refDistance = UIManager.appUI.distanceFalloff.valueAsNumber;
+    //     panNode.maxDistance = UIManager.appUI.distanceFalloff.valueAsNumber * 10;
+    //     console.log("changed distance to:", panNode.refDistance, panNode.maxDistance);
+    // });
 
     microphone.connect(panNode);
     panNode.connect(analyser);
@@ -94,6 +97,7 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     let canvasCtx = remoteVideo.getContext("2d")!;
+    remoteVideo.style.margin = "auto";
     const WIDTH = remoteVideo.width;
     const HEIGHT = remoteVideo.height;
     function draw() {

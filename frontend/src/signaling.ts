@@ -3,7 +3,7 @@ import {InitPeerConnection, PeerConnection} from "./peer-connection";
 import {HandleUserDisconnect, useQueuedCandidates} from "./p2p";
 import {UIManager} from "./ui-manager";
 import {ClientPositions, Position} from "./client-positions";
-
+import {StatSample} from "./statSample"
 
 /**
  * The class handling the communication with the signaling server (for supported devices
@@ -25,6 +25,7 @@ export class Signaling {
     peerConnections: {[key: string] : PeerConnection} | null = null;
     peerPositions: {[p: string]: Position} | null = null;
     clientPositions: ClientPositions | null = null;
+    peerStats: {[p: string]: [StatSample]} | null = null;
 
 
     constructor(communicator: Socket | MessagePort) {
@@ -53,6 +54,7 @@ export class Signaling {
      * @param peerConnections
      * @param peerPositions
      * @param clientPositions
+     * @param peerStats
      * @constructor
      */
     BindEvents(IceCandidateQueue: {
@@ -60,11 +62,13 @@ export class Signaling {
                },
                peerConnections: { [p: string]: PeerConnection },
                peerPositions: {[p: string]: Position},
-               clientPositions: ClientPositions) {
+               clientPositions: ClientPositions,
+               peerStats: {[p: string]: [StatSample]}) {
         this.IceCandidateQueue = IceCandidateQueue;
         this.clientPositions = clientPositions;
         this.peerConnections = peerConnections;
         this.peerPositions = peerPositions;
+        this.peerStats = peerStats;
 
 
         if ("onAny" in this.communicator){

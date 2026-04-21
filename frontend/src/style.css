@@ -33,6 +33,7 @@ label {
     width: 150px;
     padding: 10px;
     border-radius: 0.3vw;
+    margin: auto;
 }
 
 .checkbox {
