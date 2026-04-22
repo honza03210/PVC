@@ -25,12 +25,13 @@ export class Signaling {
     peerConnections: {[key: string] : PeerConnection} | null = null;
     peerPositions: {[p: string]: Position} | null = null;
     clientPositions: ClientPositions | null = null;
-    peerStats: {[p: string]: [StatSample]} | null = null;
+    peerStats: {[p: string]: StatSample[]} | null = null;
 
 
     constructor(communicator: Socket | MessagePort) {
         this.communicator = communicator;
         this.IceServers = [];
+        this.peerStats = {};
     }
 
     /**
@@ -68,7 +69,6 @@ export class Signaling {
         this.clientPositions = clientPositions;
         this.peerConnections = peerConnections;
         this.peerPositions = peerPositions;
-        this.peerStats = peerStats;
 
 
         if ("onAny" in this.communicator){

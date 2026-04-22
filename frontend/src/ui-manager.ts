@@ -40,17 +40,32 @@ export class UIManager {
     }
 
     static async EnableInitButton(peerConnections: { [p: string]: PeerConnection }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions) {
-        let initButton = document.getElementById("initButton") as HTMLButtonElement;
         let comm = io(ServerConfig.url, {
             transports: ['websocket', 'polling'],
             withCredentials: true,
         });
 
-        let signalling: Signaling = new Signaling(comm);
-        signalling.Send({type: "listRooms", payload: {}});
-        signalling.BindEvents({}, peerConnections, {}, positionsSocket, {});
-        console.log("LOL");
+        let signaling: Signaling = new Signaling(comm);
+        signaling.Send({type: "listRooms", payload: {}});
+        signaling.BindEvents({}, peerConnections, {}, positionsSocket, {});
 
+        let downloadStatsButton = document.getElementById("downloadStatsButton") as HTMLButtonElement;
+        downloadStatsButton.addEventListener('click', async e => {
+            const jsonString = JSON.stringify(signaling.peerStats, null, 2);
+            const blob = new Blob([jsonString], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `yappr-session-stats-${Date.now()}.json`;
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        let initButton = document.getElementById("initButton") as HTMLButtonElement;
         if (!this.buttonsBound) {
             initButton.addEventListener('click', async e => {
                 this.appUI.audioCtx = new AudioContext();
@@ -61,7 +76,7 @@ export class UIManager {
                     .then(stream => {
                         BindStreamAnimation(stream, this.appUI.audioCtx!);
                     });
-                this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signalling);
+                this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signaling);
                 initButton.style.display = "none";
             })
         }
