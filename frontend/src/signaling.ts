@@ -151,6 +151,7 @@ export class Signaling {
                 console.log("SharedWorker says: " + eventData.message);
                 break;
             case "getCandidate":
+                console.log("ICECANDIDATE:", eventData)
                 // TODO: This logic is a bit weird and should be probably rewritten from the ground up
                 // if (!eventData.candidate.candidate) {
                 //     console.log("!candidate")
@@ -203,6 +204,7 @@ export class Signaling {
                 this.IceCandidateQueue[eventData.id]!.popped = true;
                 break;
             case "getOffer":
+                console.log("OFFER:", eventData);
                 console.log("get offer:" + eventData.sdp, eventData.pfpUrl);
                 await InitPeerConnection(this, eventData.id, this.peerConnections, this.peerPositions!, this.clientPositions!, false, eventData.username, eventData.pfpUrl);
                 console.log("Initiated connection", this.peerConnections[eventData.id]!);
@@ -210,6 +212,7 @@ export class Signaling {
                 console.log("Created answer", this.peerConnections[eventData.id]!);
                 break;
             case "getAnswer":
+                console.log("ANSWER:", eventData);
                 console.log("get answer:" + eventData.sdp);
                 if (!this.peerConnections[eventData.id]!.remoteDescription || !this.peerConnections[eventData.id]!.remoteDescription!.type) {
                     console.log("setting remote desc after getting an answer");
