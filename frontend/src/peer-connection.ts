@@ -1,10 +1,10 @@
 import {Signaling} from "./signaling";
-import {HandleNewReceivedStream} from "./p2p";
 import {UIManager} from "./ui-manager";
 import {ClientPositions, Position} from "./client-positions";
 import * as jdenticon from "jdenticon";
-import {BindLatencyChannel, BindPositionsChannel} from "./data-channels";
-import {StatSample} from "./statSample";
+import {BindPositionsChannel} from "./data-channels";
+import {StatSample} from "./stat-sample";
+import {HandleNewReceivedStream} from "./stream-handling";
 
 /**
  * Class taking care of the connection between the peers - used to abstract Offer/Answer exchange
@@ -81,52 +81,9 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
                     sampleSize: 16,
                 }
             })
-        const audioContext = UIManager.appUI.audioCtx!;
-//         const source = audioContext.createMediaStreamSource(stream);
-//
-// // 1. High-pass filter (remove low-frequency rumble)
-//         const highpass = audioContext.createBiquadFilter();
-//         highpass.type = "highpass";
-//         highpass.frequency.value = 80; // Hz
-//
-// // 2. Low-pass filter (remove high-frequency noise)
-//         const lowpass = audioContext.createBiquadFilter();
-//         lowpass.type = "lowpass";
-//         lowpass.frequency.value = 12000; // Hz
-//
-// // 3. Noise gate (simple noise reduction)
-//         const gate = audioContext.createDynamicsCompressor();
-//         gate.threshold.value = -50;
-//         gate.knee.value = 40;
-//         gate.ratio.value = 12;
-//         gate.attack.value = 0;
-//         gate.release.value = 0.25;
-//
-// // 4. Compressor (smooth volume)
-//         const compressor = audioContext.createDynamicsCompressor();
-//         compressor.threshold.value = -24;
-//         compressor.knee.value = 30;
-//         compressor.ratio.value = 3;
-//         compressor.attack.value = 0.003;
-//         compressor.release.value = 0.25;
-//
-// // 5. Gain (final volume control)
-//         const gain = audioContext.createGain();
-//         gain.gain.value = 1.2;
-//
-// // 6. Destination (output stream)
-//         const destination = audioContext.createMediaStreamDestination();
-//
-// // 🔗 Connect everything
-//         source.connect(highpass);
-//         highpass.connect(lowpass);
-//         lowpass.connect(gate);
-//         gate.connect(compressor);
-//         compressor.connect(gain);
-//         gain.connect(destination);
 
-        // TODO: abstract this into another functions
         const peerContainer = document.createElement("div");
+        peerContainer.classList.add("roomBound");
         peerContainer.style.position = "relative";
         peerContainer.id = "peerContainer-" + id;
         const peerVisualizationContainer = document.createElement("div");
@@ -135,7 +92,6 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         remoteVideo.width = 128;
         remoteVideo.height = 128;
         remoteVideo.style.display = "block";
-        // remoteVideo.style.margin = "50px";
 
         const remoteAudio: HTMLAudioElement = document.createElement("audio");
 
@@ -192,17 +148,12 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         // Positions data stream init.
         if (offer) {
             console.log("creating data channel");
-            let pingChannel = peerConnection.createDataChannel("latency", {ordered: true});
-            BindLatencyChannel(pingChannel, id);
             let dc = peerConnection.createDataChannel("positions", {ordered: true});
             BindPositionsChannel(dc, id, clientPositions, peerPositions);
         } else {
             peerConnection.ondatachannel = (e) => {
                 console.log("got data channel");
-                if (e.channel.label == "latency"){
-                    let pingChannel = e.channel;
-                    BindLatencyChannel(pingChannel, id);
-                } else if (e.channel.label == "positions"){
+                if (e.channel.label == "positions"){
                     let dc = e.channel;
                     BindPositionsChannel(dc, id, clientPositions, peerPositions);
                 }
@@ -228,7 +179,7 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         peerConnection.ontrack = async ev => {
             HandleNewReceivedStream(ev.streams[0], remoteAudio, remoteVideo, id, clientPositions, peerPositions);
         };
-        // directly from https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/getStats
+
         setInterval(async () => {
             const stats = await peerConnection.getStats();
 
@@ -255,31 +206,9 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
             if (!signaling.peerStats![id]){
                 signaling.peerStats![id] = [];
             }
+
             signaling.peerStats![id].push(sample);
-            // peerConnection.getStats(null).then((stats) => {
-            //     let statsOutput = "";
-            //
-            //     stats.forEach((report) => {
-            //         statsOutput +=
-            //             `<h2>Report: ${report.type}</h2>\n<strong>ID:</strong> ${report.id}<br>\n` +
-            //             `<strong>Timestamp:</strong> ${report.timestamp}<br>\n`;
-            //
-            //         // Now the statistics for this report; we intentionally drop the ones we
-            //         // sorted to the top above
-            //
-            //         Object.keys(report).forEach((statName) => {
-            //             if (
-            //                 statName !== "id" &&
-            //                 statName !== "timestamp" &&
-            //                 statName !== "type"
-            //             ) {
-            //                 statsOutput += `<strong>${statName}:</strong> ${report[statName]}<br>\n`;
-            //             }
-            //         });
-            //     });
-            //
-            //     document.querySelector("#latency-" + id)!.innerHTML = statsOutput;
-            // });
+
         }, 1000);
     } catch (e) {
         console.log(e);

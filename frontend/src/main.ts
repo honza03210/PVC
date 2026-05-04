@@ -64,5 +64,4 @@ let peerConnections = {};
 let peerPositions = {};
 
 await UIManager.EnableInitButton(peerConnections, peerPositions, clientPositions);
-//document.getElementById("initButton")?.click();
 UIManager.PrefillFieldsFromUrl();

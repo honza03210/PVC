@@ -1,9 +1,9 @@
 import {Socket} from "socket.io-client";
 import {InitPeerConnection, PeerConnection} from "./peer-connection";
-import {HandleUserDisconnect, useQueuedCandidates} from "./p2p";
+import {HandleUserDisconnect, useQueuedCandidates} from "./signaling-handlers";
 import {UIManager} from "./ui-manager";
 import {ClientPositions, Position} from "./client-positions";
-import {StatSample} from "./statSample"
+import {StatSample} from "./stat-sample"
 
 /**
  * The class handling the communication with the signaling server (for supported devices
@@ -152,23 +152,12 @@ export class Signaling {
                 break;
             case "getCandidate":
                 console.log("ICECANDIDATE:", eventData)
-                // TODO: This logic is a bit weird and should be probably rewritten from the ground up
-                // if (!eventData.candidate.candidate) {
-                //     console.log("!candidate")
-                //     return;
-                // }
-                // if (!eventData.candidate) {
-                //     console.log("end-of-candidates");
-                //     await this.peerConnections[eventData.id]!.addIceCandidate(null);
-                //     return;
-                // }
                 if (this.IceCandidateQueue[eventData.id] && this.IceCandidateQueue[eventData.id]!.popped) {
                     console.log("getCandidate", eventData.candidate.candidate);
-                    if (this.peerConnections[eventData.id]!.connectionState == "connected") {
-                        console.log("getCandidate ignored - connected");
-                        return;
-                    }
-                    //if (eventData.candidate.candidate == "") return;
+                    // if (this.peerConnections[eventData.id]!.connectionState == "connected") {
+                    //     console.log("getCandidate ignored - connected");
+                    //     return;
+                    // }
                     this.peerConnections[eventData.id]!.addIceCandidate(new RTCIceCandidate(eventData.candidate.candidate)).then(() => {
                         console.log("candidate add success");
                     });

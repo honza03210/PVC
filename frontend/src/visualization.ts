@@ -56,23 +56,17 @@ export function BindStreamAnimation(stream: MediaStream, audioCtx: AudioContext)
  * @constructor
  */
 
-// (not anymore) code from https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
-// with minor changes
 export function DrawSoundVisualization(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoColor: string, remoteVideoStroke: string, bufferLength: number, name: string | null, complex: boolean = true) : boolean{
     if (!CanvasRenderingContext2D) {
         return false;
     }
     if (complex) {
-        visualizationComplex(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoStroke, name);
+        visualizationCircular(canvasCtx, WIDTH, HEIGHT, analyser, dataArray, remoteVideoStroke, name);
     }
     return true;
 }
 
-function visualizationSimple(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoStroke: string, name: string | null){
-    // analyser.getBy
-}
-
-function visualizationComplex(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoStroke: string, name: string | null){
+function visualizationCircular(canvasCtx: CanvasRenderingContext2D, WIDTH: number, HEIGHT: number, analyser: AnalyserNode, dataArray: Uint8Array<ArrayBuffer>, remoteVideoStroke: string, name: string | null){
     analyser.getByteTimeDomainData(dataArray);
 
     canvasCtx.clearRect(0, 0, WIDTH, WIDTH);
@@ -103,15 +97,6 @@ function visualizationComplex(canvasCtx: CanvasRenderingContext2D, WIDTH: number
         canvasCtx.lineWidth = 2;
         canvasCtx.stroke();
     }
-
-    // if (name) {
-    //     canvasCtx.fillStyle = color;
-    //     canvasCtx.font = "bold 20px sans-serif";
-    //     canvasCtx.textAlign = "left";
-    //     canvasCtx.textBaseline = "middle";
-    //
-    //     canvasCtx.fillText(name.slice(0, 10), cx - 20, cy);
-    // }
 }
 
 /**

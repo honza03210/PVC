@@ -1,6 +1,6 @@
 import type {AppUI} from "./interaces/app-ui";
 import {PeerConnection} from "./peer-connection";
-import {RoomJoin} from "./p2p";
+import {RoomJoin} from "./signaling-handlers";
 import {io} from "socket.io-client";
 import {ServerConfig} from "./configs/server-config";
 import {Signaling} from "./signaling";
@@ -51,35 +51,23 @@ export class UIManager {
 
         let downloadStatsButton = document.getElementById("downloadStatsButton") as HTMLButtonElement;
         downloadStatsButton.addEventListener('click', async e => {
-            const jsonString = JSON.stringify(signaling.peerStats, null, 2);
-            const blob = new Blob([jsonString], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `yappr-session-stats-${Date.now()}.json`;
-
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            DownloadStats(signaling);
         });
 
         let initButton = document.getElementById("initButton") as HTMLButtonElement;
-        if (!this.buttonsBound) {
-            initButton.addEventListener('click', async e => {
-                this.appUI.audioCtx = new AudioContext();
-                await navigator.mediaDevices
-                    .getUserMedia({
-                        audio: true,
-                    })
-                    .then(stream => {
-                        BindStreamAnimation(stream, this.appUI.audioCtx!);
-                    });
-                this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signaling);
-                initButton.style.display = "none";
-            })
-        }
+        initButton.addEventListener('click', async e => {
+            this.appUI.audioCtx = new AudioContext();
+            await navigator.mediaDevices
+                .getUserMedia({
+                    audio: true,
+                })
+                .then(stream => {
+                    BindStreamAnimation(stream, this.appUI.audioCtx!);
+                });
+            this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signaling);
+            initButton.style.display = "none";
+        })
+
 
         initButton.style.display = "block";
     }
@@ -91,8 +79,6 @@ export class UIManager {
         if (!this.buttonsBound) {
             console.log("join button bound");
             joinButton.addEventListener('click', e => {
-                let passwordDialogue = document.getElementById("passwordDialogue")! as HTMLDialogElement;
-                // passwordDialogue.showModal();
                 joinButton.style.display = "none";
                 document.getElementById("3DInitButton")!.style.display = "none";
                 RoomJoin(signalling, peerConnections, peerPositions, positionsSocket);
@@ -104,31 +90,27 @@ export class UIManager {
     static EnableDisconnectButton(signalling: Signaling) {
         let disconnectButton = document.getElementById("leaveRoomButton") as HTMLButtonElement;
 
-        if (!this.buttonsBound) {
-            disconnectButton.addEventListener('click', async e => {
-                this.buttonsBound = true;
-                //signalling.Close();
-                document.querySelectorAll(".roomBound").forEach((elem) => {elem.remove()})
-                signalling.Send({type: "roomLeave"});
-                this.CleanButtonsForStartup();
-                //await Startup();
-            })
-        }
+        disconnectButton.addEventListener('click', async e => {
+            signalling.Send({type: "roomLeave"});
+            window.location.reload();
+        })
+
         disconnectButton.style.display = "block";
     }
+}
 
 
-    static CleanButtonsForStartup(){
-        document.getElementById("leaveRoomButton")!.style.display = "none";
-        document.getElementById("sampleSoundButton")!.remove();
-    }
+function DownloadStats(signaling: Signaling) {
+    const jsonString = JSON.stringify(signaling.peerStats, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
 
-    // TODO: Create a password popup for better autojoin handling
-    static ShowPasswordDialogue() {
-        let popUp = document.createElement("div");
-        let passwordField = document.createElement("input");
-        passwordField.setAttribute("type", "text");
-        popUp.append(passwordField);
-        document.body.append()
-    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `yappr-session-stats-${Date.now()}.json`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
