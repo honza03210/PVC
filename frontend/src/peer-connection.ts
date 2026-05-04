@@ -73,9 +73,9 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         const stream = await navigator.mediaDevices
             .getUserMedia({
                 audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false,
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
                     channelCount: 2,
                     sampleRate: 48000,
                     sampleSize: 16,
