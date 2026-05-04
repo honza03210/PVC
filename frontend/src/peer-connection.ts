@@ -73,12 +73,58 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
         const stream = await navigator.mediaDevices
             .getUserMedia({
                 audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true,
-                    channelCount: 1,
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                    channelCount: 2,
+                    sampleRate: 48000,
+                    sampleSize: 16,
                 }
             })
+        const audioContext = UIManager.appUI.audioCtx!;
+//         const source = audioContext.createMediaStreamSource(stream);
+//
+// // 1. High-pass filter (remove low-frequency rumble)
+//         const highpass = audioContext.createBiquadFilter();
+//         highpass.type = "highpass";
+//         highpass.frequency.value = 80; // Hz
+//
+// // 2. Low-pass filter (remove high-frequency noise)
+//         const lowpass = audioContext.createBiquadFilter();
+//         lowpass.type = "lowpass";
+//         lowpass.frequency.value = 12000; // Hz
+//
+// // 3. Noise gate (simple noise reduction)
+//         const gate = audioContext.createDynamicsCompressor();
+//         gate.threshold.value = -50;
+//         gate.knee.value = 40;
+//         gate.ratio.value = 12;
+//         gate.attack.value = 0;
+//         gate.release.value = 0.25;
+//
+// // 4. Compressor (smooth volume)
+//         const compressor = audioContext.createDynamicsCompressor();
+//         compressor.threshold.value = -24;
+//         compressor.knee.value = 30;
+//         compressor.ratio.value = 3;
+//         compressor.attack.value = 0.003;
+//         compressor.release.value = 0.25;
+//
+// // 5. Gain (final volume control)
+//         const gain = audioContext.createGain();
+//         gain.gain.value = 1.2;
+//
+// // 6. Destination (output stream)
+//         const destination = audioContext.createMediaStreamDestination();
+//
+// // 🔗 Connect everything
+//         source.connect(highpass);
+//         highpass.connect(lowpass);
+//         lowpass.connect(gate);
+//         gate.connect(compressor);
+//         compressor.connect(gain);
+//         gain.connect(destination);
+
         // TODO: abstract this into another functions
         const peerContainer = document.createElement("div");
         peerContainer.style.position = "relative";
