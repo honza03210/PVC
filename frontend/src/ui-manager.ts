@@ -27,6 +27,7 @@ export class UIManager {
             errorMsgLabel: document.getElementById("errorMsg") as HTMLDivElement,
             videoContainer: document.getElementById("videoContainer") as HTMLDivElement,
             audioCtx: undefined,
+            localAudioStream: undefined,
         }
     }
 
@@ -55,13 +56,26 @@ export class UIManager {
         let initButton = document.getElementById("initButton") as HTMLButtonElement;
         initButton.addEventListener('click', async e => {
             this.appUI.audioCtx = new AudioContext();
-            await navigator.mediaDevices
+            const stream = await navigator.mediaDevices
                 .getUserMedia({
-                    audio: true,
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        channelCount: 2,
+                        sampleRate: 48000,
+                        sampleSize: 16,
+                    }
                 })
-                .then(stream => {
-                    BindStreamAnimation(stream, this.appUI.audioCtx!);
-                });
+            BindStreamAnimation(stream, this.appUI.audioCtx!);
+            this.appUI.localAudioStream = stream;
+
+            // await navigator.mediaDevices
+            //     .getUserMedia({
+            //         audio: true,
+            //     })
+            //     .then(stream => {
+            //     });
             this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signaling);
             initButton.style.display = "none";
         })

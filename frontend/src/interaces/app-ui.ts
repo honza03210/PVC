@@ -9,5 +9,6 @@ export interface AppUI {
     errorMsgLabel: HTMLDivElement;
     videoContainer: HTMLDivElement;
     audioCtx: AudioContext | undefined;
+    localAudioStream: MediaStream | undefined;
 
 }

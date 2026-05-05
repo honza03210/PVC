@@ -70,17 +70,7 @@ export async function InitPeerConnection(signaling: Signaling, id: string, peerC
     try {
         // Getting the local audio stream
         // TODO: get it just once and then reuse it
-        const stream = await navigator.mediaDevices
-            .getUserMedia({
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true,
-                    channelCount: 2,
-                    sampleRate: 48000,
-                    sampleSize: 16,
-                }
-            })
+        let stream = UIManager.appUI.localAudioStream!
 
         const peerContainer = document.createElement("div");
         peerContainer.classList.add("roomBound");
