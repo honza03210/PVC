@@ -1,9 +1,6 @@
-import {PeerConnection} from "./peer-connection.js";
 import {UIManager} from "./ui-manager";
 import {ClientPositions, Position} from "./client-positions";
 import * as jdenticon from "jdenticon"
-import {Signaling} from "./signaling";
-import {BindStreamAnimation} from "./visualization";
 
 /**
  * Entry file for the main voice chat client page

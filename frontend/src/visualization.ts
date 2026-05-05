@@ -78,8 +78,6 @@ function visualizationCircular(canvasCtx: CanvasRenderingContext2D, WIDTH: numbe
 
     for (let i = 0; i < barCount; i++) {
         const angle = -(i / barCount) * Math.PI * 2 - Math.PI * 0.5;
-        let cos = Math.cos(angle);
-        // if (name && cos > Math.PI / 4 && cos < Math.PI * 3 / 4) continue;
         const value = 0.1 + 10 * Math.abs(0.5 - convolutionAverageAroundIndex(dataArray, i, 0));
 
         const barHeight = value * 32;

@@ -55,7 +55,6 @@ export class Signaling {
      * @param peerConnections
      * @param peerPositions
      * @param clientPositions
-     * @param peerStats
      * @constructor
      */
     BindEvents(IceCandidateQueue: {
@@ -63,8 +62,7 @@ export class Signaling {
                },
                peerConnections: { [p: string]: PeerConnection },
                peerPositions: {[p: string]: Position},
-               clientPositions: ClientPositions,
-               peerStats: {[p: string]: [StatSample]}) {
+               clientPositions: ClientPositions) {
         this.IceCandidateQueue = IceCandidateQueue;
         this.clientPositions = clientPositions;
         this.peerConnections = peerConnections;
@@ -127,7 +125,7 @@ export class Signaling {
                 break;
             case "error":
                 console.log("Error: " + eventData.message);
-                UIManager.appUI.errorMsgLabel.innerHTML = "Error" + eventData.message;
+                UIManager.appUI.errorMsgLabel.innerHTML = eventData.message;
                 break;
             case "listRooms":
                 console.log("listRooms: ", eventData);
