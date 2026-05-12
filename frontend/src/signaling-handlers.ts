@@ -64,12 +64,7 @@ export async function HandleUserDisconnect(userID: string, peerConnections: {[ke
  */
 export async function useQueuedCandidates (peerConnections: { [p: string]: RTCPeerConnection }, iceCandidateQueue:any, id: string) {
     for (const cand of iceCandidateQueue[id]!.queue) {
-        if (peerConnections[id]!.connectionState == "connected") {
-            console.log("getCandidate ignored - connected");
-            return;
-        }
         console.log("popped from queue");
-        if (cand.candidate.candidate == "") return;
         await peerConnections[id]!.addIceCandidate(new RTCIceCandidate(cand.candidate));
     }
     iceCandidateQueue[id]!.popped = true;
