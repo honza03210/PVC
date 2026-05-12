@@ -3,14 +3,6 @@ import argon2id from "argon2";
 import {GenerateTurnCredentials} from "./generate-turn-credentials.js";
 import {allowedOrigins} from "./allowed-origins.js";
 
-
-// Basic rate limiting - still not good enough
-const RATE_LIMIT = {
-    join: 10,
-    signal: 100
-}
-let socketBucketsCount = new Map<string, Record<string, number>>();
-
 /**
  * Binds all the needed events for basic signaling
  * @param server
@@ -48,7 +40,7 @@ export function signalling(server : any) {
                 roomsList: Object.entries(rooms).map(([roomID, users]) =>
                     ({roomID, numberOfUsers: Object.keys(users).length}))
             });
-            if (repeat) {
+            if (repeat && socket.connected) {
                 setTimeout(() =>{ ListRooms(socket, true) }, 5000)
                             }
         } catch (err){
@@ -56,23 +48,6 @@ export function signalling(server : any) {
         }
     }
     io.on("connection", socket => {
-        socketBucketsCount.set(socket.id, {});
-        socket.use((packet, next) => {
-            const event = packet[0];
-            const counts = socketBucketsCount.get(socket.id)!;
-
-            counts[event] = (counts[event] ?? 0) + 1;
-
-            if (
-                (event === "join" && counts[event] > RATE_LIMIT.join) ||
-                (["offer","answer","candidate"].includes(event) &&
-                    counts[event] > RATE_LIMIT.signal)
-            ) {
-                return next(new Error("Rate limit exceeded"));
-            }
-            next();
-        });
-
         socket.emit("connected");
         console.log("new socket connected: " + socket.id);
         ListRooms(socket, true);
@@ -85,6 +60,7 @@ export function signalling(server : any) {
         });
 
         socket.on("join", async data => {
+            if (!data) return;
             console.log("got join from " + socket.id);
             if (socket.rooms.size > 1) {
                 console.log([socket.rooms.values()]);
@@ -130,29 +106,36 @@ export function signalling(server : any) {
             setTimeout(() =>{ listUserIDs(socket, socket.data.roomId) }, 5000)
         });
         socket.on("offer", (payload: {dest: string, sdp: any}) => {
+            if (!payload || !payload.dest || !payload.sdp) return;
             io.to(payload.dest).emit("getOffer", {id: socket.id, sdp: payload.sdp, username: usernames[socket.id]});
             console.log("offer from " + socket.id + " to " + payload.dest);
         });
         socket.on("answerAck", (payload: {dest: string}) => {
+            if (!payload || !payload.dest) return;
             io.to(payload.dest).emit("getAnswerAck", {id: socket.id});
             console.log("answer ack from " + socket.id + " to " + payload.dest);
         });
 
         socket.on("answer", (payload: {dest: string, sdp: any}) => {
+            if (!payload || !payload.dest || !payload.sdp) return;
             io.to(payload.dest).emit("getAnswer", {id: socket.id, sdp: payload.sdp});
             console.log("answer from " + socket.id + " to " + payload.dest);
         });
 
         socket.on("candidate", (payload:  { dest: string, candidate: RTCIceCandidate }) => {
+            if (!payload || !payload.dest || !payload.candidate) return;
             io.to(payload.dest).emit("getCandidate", {id: socket.id, candidate: payload});
             console.log("candidate from " + socket.id + payload.candidate);
         });
+
         socket.on("roomLeave", () => {
-            socket.leave(socket.rooms.values().next().value!);
-            handleUserRoomDisconnected(socket);
+            if (socket.data.roomId) {
+                socket.leave(socket.data.roomId);
+                handleUserRoomDisconnected(socket);
+                socket.data.roomId = undefined; // Clear the data
+            }
         });
         socket.on("disconnect", () => {
-            socket.leave(socket.rooms.values().next().value!);
             handleUserRoomDisconnected(socket);
         });
     });
@@ -174,6 +157,7 @@ export function signalling(server : any) {
             delete rooms[socket.data.roomId]![socket.id];
             if (Object.keys(rooms[socket.data.roomId]!).length === 0) {
                 delete rooms[socket.data.roomId];
+                delete roomsPasswords[socket.data.roomId];
                 console.log(socket.data.roomId + "deleted");
                 return;
             }
@@ -182,7 +166,7 @@ export function signalling(server : any) {
             return;
         }
         console.log("userDisconnected broadcast")
-        socket.broadcast.to(Object.keys(rooms[socket.data.roomId]!)).emit("userDisconnected", {id: socket.id});
+        socket.broadcast.to(socket.data.roomId).emit("userDisconnected", {id: socket.id});
         console.log(`[${socket.data.roomId}]: ${socket.id} exit`);
     }
 
@@ -193,18 +177,21 @@ export function signalling(server : any) {
      */
     function listUserIDs(socket: any, roomID: string) {
         try {
-            socket.emit("listUsers", { selfID: socket.id, userIDs: Object.keys(rooms[roomID]!)});
+            const room = rooms[roomID];
+            if (!room || !socket.connected) return;
+            socket.emit("listUsers", { selfID: socket.id, userIDs: Object.keys(room) });
             if (usernames[socket.id]) {
                 setTimeout(() => {
-                    listUserIDs(socket, roomID)
+                    listUserIDs(socket, roomID);
                 }, 10000);
             }
         } catch(err) {
+            console.error("listUserIDs error:", err);
         }
     }
 
     /**
-     * In the best case generates TURN credentials for the given user - if not possible will use hardcoded server-array backup
+     * In the best case generates TURN credentials for the given user - if not possible will use hardcoded server-array backup (metered.ca doesnt support dynamic generation for free tier)
      * @param socket
      * @param user
      */
@@ -215,6 +202,7 @@ export function signalling(server : any) {
             socket.emit("userCredentials", { selfID: socket.id, credentials: response });
         } else {
             console.log("GenerateTurnCredentials returned null", response);
+            if (!socket.connected) return;
             setTimeout(() => {
                 console.log("failed to fetch user credentials");
                 sendUserCredentials(socket, user);
