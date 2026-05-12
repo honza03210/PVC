@@ -78,9 +78,9 @@ export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPosition
     if (!peerPositions[id]){
         return;
     }
-    panner.positionX.setTargetAtTime(peerPositions[id].x - clientPositions.x, UIManager.appUI.audioCtx!.currentTime, 0.05);
-    panner.positionY.setTargetAtTime(peerPositions[id].y - clientPositions.y, UIManager.appUI.audioCtx!.currentTime, 0.05);
-    panner.positionZ.setTargetAtTime(-(peerPositions[id].z - clientPositions.z), UIManager.appUI.audioCtx!.currentTime, 0.05);
+    panner.positionX.setTargetAtTime(peerPositions[id].x - clientPositions.x, UIManager.appUI.audioCtx!.currentTime, 0.25);
+    panner.positionY.setTargetAtTime(peerPositions[id].y - clientPositions.y, UIManager.appUI.audioCtx!.currentTime, 0.25);
+    panner.positionZ.setTargetAtTime(-(peerPositions[id].z - clientPositions.z), UIManager.appUI.audioCtx!.currentTime, 0.25);
 
     // panner.positionX.value = (!Number.isNaN(peerPositions[id].x - clientPositions.x)) ? (peerPositions[id].x - clientPositions.x) : 0;
     // panner.positionY.value = (!Number.isNaN(peerPositions[id].y - clientPositions.y)) ? (peerPositions[id].y - clientPositions.y) : 0;
