@@ -129,9 +129,9 @@ export class ClientPositions extends Position {
                     this.heading = GetMinecraftHeadingVector(this.pitch, this.yaw);
                     console.log("setting forward vector");
                     if (listener.forwardX) {
-                        listener.forwardX.value = this.heading.x;
-                        listener.forwardY.value = this.heading.y;
-                        listener.forwardZ.value = this.heading.z;
+                        listener.forwardX.setTargetAtTime(this.heading.x, UIManager.appUI.audioCtx!.currentTime, 0.05);
+                        listener.forwardY.setTargetAtTime(this.heading.y, UIManager.appUI.audioCtx!.currentTime, 0.05);
+                        listener.forwardZ.setTargetAtTime(this.heading.z, UIManager.appUI.audioCtx!.currentTime, 0.05);
                     } else {
                         // deprecated, but firefox needs this
                         listener.setOrientation(this.heading.x, this.heading.y, this.heading.z, 0, 1, 0);
@@ -155,9 +155,9 @@ export class ClientPositions extends Position {
                     this.heading = getHeadingVector(this.pitch, this.yaw);
                     let listener = UIManager.appUI.audioCtx!.listener;
 
-                    listener.forwardX.setValueAtTime(this.heading.x, UIManager.appUI.audioCtx!.currentTime);
-                    listener.forwardY.setValueAtTime(this.heading.y, UIManager.appUI.audioCtx!.currentTime);
-                    listener.forwardZ.setValueAtTime(this.heading.z, UIManager.appUI.audioCtx!.currentTime);
+                    listener.forwardX.setTargetAtTime(this.heading.x, UIManager.appUI.audioCtx!.currentTime, 0.05);
+                    listener.forwardY.setTargetAtTime(this.heading.y, UIManager.appUI.audioCtx!.currentTime, 0.05);
+                    listener.forwardZ.setTargetAtTime(this.heading.z, UIManager.appUI.audioCtx!.currentTime, 0.05);
                 }
             } catch (e) {
                 // The websocket doesn't need to send all positions (2d games, games with no rotation,...)
