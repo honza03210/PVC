@@ -92,17 +92,25 @@ export function UpdatePannerNodeFromPositions(panner: PannerNode, clientPosition
     // cancelAndHoldAtTime freezes any in-progress automation at the current
     // value, preventing accumulated curves from causing pops on direction change
     function smooth(param: AudioParam, value: number) {
-        param.cancelAndHoldAtTime(t);
+        param.cancelAndHoldAtTime?.(t);
         param.setTargetAtTime(value, t, 0.08);
     }
 
-    smooth(listener.positionX, clientPositions.x);
-    smooth(listener.positionY, clientPositions.y);
-    smooth(listener.positionZ, clientPositions.z * zSign);
+    if (listener.positionX) {
+        smooth(listener.positionX, clientPositions.x);
+        smooth(listener.positionY, clientPositions.y);
+        smooth(listener.positionZ, clientPositions.z * zSign);
+    } else {
+        (listener as any).setPosition?.(clientPositions.x, clientPositions.y, clientPositions.z * zSign);
+    }
 
-    smooth(listener.forwardX, clientPositions.heading.x);
-    smooth(listener.forwardY, clientPositions.heading.y);
-    smooth(listener.forwardZ, clientPositions.heading.z);
+    if (listener.forwardX) {
+        smooth(listener.forwardX, clientPositions.heading.x);
+        smooth(listener.forwardY, clientPositions.heading.y);
+        smooth(listener.forwardZ, clientPositions.heading.z);
+    } else {
+        (listener as any).setOrientation?.(clientPositions.heading.x, clientPositions.heading.y, clientPositions.heading.z, 0, 1, 0);
+    }
 
     smooth(panner.positionX, peerPositions[id].x);
     smooth(panner.positionY, peerPositions[id].y);
