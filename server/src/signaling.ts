@@ -2,12 +2,14 @@ import {Server} from "socket.io";
 import argon2id from "argon2";
 import {GenerateTurnCredentials} from "./generate-turn-credentials.js";
 import {allowedOrigins} from "./allowed-origins.js";
+import {IceServers} from "./backup-ice-server-array.js";
+
 
 /**
  * Binds all the needed events for basic signaling
  * @param server
  */
-export function signalling(server : any) {
+export function signaling(server : any) {
     const io = new Server(server, {
         cors: {
             origin: allowedOrigins,
@@ -71,7 +73,6 @@ export function signalling(server : any) {
             const roomId: string = data.roomId
             // room exists -> try to join with received password
             if (rooms[roomId]) {
-                // if for some reason no room password hash is stored
                 if (!roomsPasswords[roomId]) {
                     socket.emit("error", {message: "Room not found"} );
                     return;
@@ -107,7 +108,6 @@ export function signalling(server : any) {
             });
             console.log("pfp: ", data.pfpUrl);
             socket.emit("roomConnected", { selfID: socket.id, roomID: roomId });
-            socket.broadcast.to(socket.data.roomId).emit("PeerJoined", { id: socket.id, username: data.name });
             await sendUserCredentials(socket, data.name);
             setTimeout(() =>{ listUserIDs(socket, socket.data.roomId) }, 5000)
         });
@@ -208,18 +208,22 @@ export function signalling(server : any) {
      * @param user
      */
     async function sendUserCredentials(socket: any, user: string){
-        let response = await GenerateTurnCredentials(user);
-        if (response != null){
-            console.log("user credentials response: ", response);
-            socket.emit("userCredentials", { selfID: socket.id, credentials: response });
-        } else {
-            console.log("GenerateTurnCredentials returned null", response);
-            if (!socket.connected) return;
-            setTimeout(() => {
-                console.log("failed to fetch user credentials");
-                sendUserCredentials(socket, user);
-            }, 100000);
-        }
+        socket.emit("userCredentials", { selfID: socket.id, credentials: IceServers });
+        return;
+
+        // This may be used for dynamic credential generation in the future if the TURN server supports it
+        // let response = await GenerateTurnCredentials(user);
+        // if (response != null){
+        //     console.log("user credentials response: ", response);
+        //     socket.emit("userCredentials", { selfID: socket.id, credentials: response });
+        // } else {
+        //     console.log("GenerateTurnCredentials returned null", response);
+        //     if (!socket.connected) return;
+        //     setTimeout(() => {
+        //         console.log("failed to fetch user credentials");
+        //         sendUserCredentials(socket, user);
+        //     }, 100000);
+        // }
     }
 
 }

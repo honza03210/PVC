@@ -9,7 +9,7 @@ import {ServerConfig} from "./configs/server-config";
 (self as unknown as SharedWorkerGlobalScope).onconnect = (event: MessageEvent) => {
     const port = event.ports[0];
 
-    const signallingSocket = io(ServerConfig.url, {
+    const signalingSocket = io(ServerConfig.url, {
         transports: ['websocket', 'polling'],
         withCredentials: true,
     });
@@ -17,17 +17,17 @@ import {ServerConfig} from "./configs/server-config";
     console.log("[SharedWorker] New tab connected");
 
     port!.onmessage = (msgEvent) => {
-        signallingSocket.emit(msgEvent.data.type, msgEvent.data.message);
+        signalingSocket.emit(msgEvent.data.type, msgEvent.data.message);
     };
 
     const events: string[] = ["connect", "disconnect", "error", "listRooms", "getCandidate", "listUsers", "getAnswerAck", "getOffer", "getAnswer", "PeerJoined",];
 
     events.forEach((eventName) => {
-        signallingSocket.on(eventName, (data: any) => {
+        signalingSocket.on(eventName, (data: any) => {
             port!.postMessage(Object.assign(data, {type: eventName})); // ads event type to the payload
         });
     });
 
     port!.start();
-    port!.postMessage({type: "sharedWorkerMessage", message: "Connected: " + signallingSocket.connected});
+    port!.postMessage({type: "sharedWorkerMessage", message: "Connected: " + signalingSocket.connected});
 };

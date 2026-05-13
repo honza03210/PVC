@@ -1,4 +1,4 @@
-import type {AppUI} from "./interaces/app-ui";
+import type {AppUI} from "./interfaces/app-ui";
 import {PeerConnection} from "./peer-connection";
 import {RoomJoin} from "./signaling-handlers";
 import {io} from "socket.io-client";
@@ -6,6 +6,7 @@ import {ServerConfig} from "./configs/server-config";
 import {Signaling} from "./signaling";
 import {ClientPositions, Position} from "./client-positions";
 import {BindStreamAnimation} from "./visualization";
+import * as jdenticon from "jdenticon";
 
 
 // TODO: This whole class should be rewritten, it doesn't make much sense to do it like this
@@ -28,6 +29,41 @@ export class UIManager {
             videoContainer: document.getElementById("videoContainer") as HTMLDivElement,
             audioCtx: undefined,
             localAudioStream: undefined,
+        }
+        this.setPfp();
+    }
+
+    static setPfp(){
+        const urlParams = new URLSearchParams(window.location.search);
+
+        UIManager.pfpUrl = urlParams.get("pfp_url") ?? "";
+        if (UIManager.pfpUrl.length > 6) {
+            const pfp = document.createElement("img");
+            pfp.classList.add("pfp");
+            pfp.height = 64;
+            pfp.width = 64;
+            pfp.src = UIManager.pfpUrl;
+            UIManager.appUI.audioMenu.append(pfp);
+        } else {
+            const pfp: SVGSVGElement = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "svg"
+            );
+
+            pfp.classList.add("pfp");
+            pfp.setAttribute("width", "70");
+            pfp.setAttribute("height", "70");
+
+            pfp.style.borderRadius = "50%";
+            pfp.style.overflow = "hidden";
+
+            UIManager.appUI.audioMenu.append(pfp);
+
+            jdenticon.update(pfp, UIManager.appUI.nameInput.value);
+
+            UIManager.appUI.nameInput.onchange = (e) => {
+                jdenticon.update(pfp, UIManager.appUI.nameInput.value);
+            }
         }
     }
 
@@ -55,33 +91,31 @@ export class UIManager {
 
         let initButton = document.getElementById("initButton") as HTMLButtonElement;
         initButton.addEventListener('click', async e => {
-            this.appUI.audioCtx = new AudioContext();
-            const stream = await navigator.mediaDevices
-                .getUserMedia({
-                    audio: {
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false,
-                        channelCount: 2,
-                        sampleRate: 48000,
-                        sampleSize: 16,
-                    }
-                })
-            BindStreamAnimation(stream, this.appUI.audioCtx!);
-            this.appUI.localAudioStream = stream;
+            await this.initAudio();
 
-            // await navigator.mediaDevices
-            //     .getUserMedia({
-            //         audio: true,
-            //     })
-            //     .then(stream => {
-            //     });
             this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signaling);
             initButton.style.display = "none";
         })
 
 
         initButton.style.display = "block";
+    }
+
+    static async initAudio(){
+        this.appUI.audioCtx = new AudioContext();
+        const stream = await navigator.mediaDevices
+            .getUserMedia({
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                    channelCount: 2,
+                    sampleRate: 48000,
+                    sampleSize: 16,
+                }
+            })
+        BindStreamAnimation(stream, this.appUI.audioCtx!);
+        this.appUI.localAudioStream = stream;
     }
 
     static updateRoomsList(roomsList: any){
@@ -101,7 +135,7 @@ export class UIManager {
     }
 
     static EnableJoinButton(peerConnections: { [p: string]: PeerConnection }, peerPositions: {[p: string]: Position}, positionsSocket: ClientPositions,
-                            signalling: Signaling) {
+                            signaling: Signaling) {
         let joinButton = document.getElementById("joinRoomButton") as HTMLButtonElement;
 
         if (!this.buttonsBound) {
@@ -109,17 +143,17 @@ export class UIManager {
             joinButton.addEventListener('click', e => {
                 joinButton.style.display = "none";
                 document.getElementById("3DInitButton")!.style.display = "none";
-                RoomJoin(signalling, peerConnections, peerPositions, positionsSocket);
+                RoomJoin(signaling, peerConnections, peerPositions, positionsSocket);
             });
         }
         joinButton.style.display = "block";
     }
 
-    static EnableDisconnectButton(signalling: Signaling) {
+    static EnableDisconnectButton(signaling: Signaling) {
         let disconnectButton = document.getElementById("leaveRoomButton") as HTMLButtonElement;
 
         disconnectButton.addEventListener('click', async e => {
-            signalling.Send({type: "roomLeave"});
+            signaling.Send({type: "roomLeave"});
             window.location.reload();
         })
 

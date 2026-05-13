@@ -6,13 +6,13 @@ import {ClientPositions, Position} from "./client-positions";
 
 /**
  * Called upon user requesting a room join
- * @param signalling
+ * @param signaling
  * @param peerConnections
  * @param peerPositions
  * @param positionsSocket
  * @constructor
  */
-export function RoomJoin(signalling: Signaling, peerConnections: {
+export function RoomJoin(signaling: Signaling, peerConnections: {
     [id: string]: PeerConnection
 }, peerPositions: {[id: string]: Position}, positionsSocket: ClientPositions) {
     console.log("roomJoin");
@@ -24,9 +24,9 @@ export function RoomJoin(signalling: Signaling, peerConnections: {
         }
     } = {};
 
-    signalling.BindEvents(IceCandidateQueue, peerConnections, peerPositions, positionsSocket);
+    signaling.BindEvents(IceCandidateQueue, peerConnections, peerPositions, positionsSocket);
 
-    signalling.Send({
+    signaling.Send({
         payload: {
             roomId: UIManager.appUI.roomIDInput.value,
             name: UIManager.appUI.nameInput.value != "" ? UIManager.appUI.nameInput.value : `user-${Math.random().toString(36).substring(2, 10)}`,
@@ -44,15 +44,28 @@ export function RoomJoin(signalling: Signaling, peerConnections: {
  * @param userID
  * @param peerConnections
  * @param clientPositions
+ * @param signaling
  * @constructor
  */
-export async function HandleUserDisconnect(userID: string, peerConnections: {[key: string] : PeerConnection}, clientPositions: ClientPositions | null) {
+export async function HandleUserDisconnect(userID: string, peerConnections: {[key: string] : PeerConnection}, clientPositions: ClientPositions | null, signaling: Signaling) {
     document.getElementById("peerContainer-" + userID)?.remove();
     document.getElementById("remoteVideo-" + userID)?.remove();
     document.getElementById("remoteAudio-" + userID)?.remove();
-    peerConnections[userID].close();
+    if (peerConnections[userID]) {
+        peerConnections[userID].close();
+        delete peerConnections[userID];
+    }
+    for (const interval of signaling.peerRunningIntervals[userID]) {
+        clearInterval(interval);
+    }
+    delete signaling.peerRunningIntervals[userID];
     clientPositions?.SendServerEvent(`PLAYER_LEFT;${userID}`);
-    delete peerConnections[userID];
+    setTimeout(() => {
+      if (!peerConnections[userID]) {
+          delete signaling.peerStats![userID];
+          delete signaling.peerPositions![userID];
+      }
+    }, 180);
 }
 
 
@@ -62,7 +75,7 @@ export async function HandleUserDisconnect(userID: string, peerConnections: {[ke
  * @param iceCandidateQueue
  * @param id
  */
-export async function useQueuedCandidates (peerConnections: { [p: string]: RTCPeerConnection }, iceCandidateQueue:any, id: string) {
+export async function useQueuedCandidates (peerConnections: { [p: string]: PeerConnection }, iceCandidateQueue:any, id: string) {
     if (!iceCandidateQueue[id]) {
         iceCandidateQueue[id] = {popped: true, queue: []};
     }
@@ -70,5 +83,5 @@ export async function useQueuedCandidates (peerConnections: { [p: string]: RTCPe
         console.log("popped from queue");
         await peerConnections[id]!.addIceCandidate(new RTCIceCandidate(cand.candidate));
     }
-    iceCandidateQueue[id]!.popped = true;
+    iceCandidateQueue[id] = {popped: true, queue: []};
 }

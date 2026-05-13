@@ -2,6 +2,7 @@ import {PeerConnection} from "./peer-connection";
 import {ClientPositions, Position} from "./client-positions";
 import {UIManager} from "./ui-manager";
 import {DrawSoundVisualization, StringToColor} from "./visualization";
+import {Signaling} from "./signaling";
 
 /**
  * Handles new audio stream - visualization and spatial audio updates
@@ -11,9 +12,10 @@ import {DrawSoundVisualization, StringToColor} from "./visualization";
  * @param id
  * @param clientPositions
  * @param peerPositions
+ * @param signaling
  * @constructor
  */
-export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, id: string, clientPositions: ClientPositions, peerPositions: {[p: string]: Position}) {
+export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAudioElement, remoteVideo: HTMLCanvasElement, id: string, clientPositions: ClientPositions, peerPositions: {[p: string]: Position}, signaling: Signaling) {
     if (remoteAudio) {
         remoteAudio.muted = true;
         remoteAudio.srcObject = stream;
@@ -62,6 +64,7 @@ export function HandleNewReceivedStream(stream: MediaStream, remoteAudio: HTMLAu
     }
 
     const pannerInterval = setInterval(UpdatePannerNodeFromPositions, 50, panNode, clientPositions, peerPositions, id);
+    signaling.peerRunningIntervals[id].push(pannerInterval);
     requestAnimationFrame(draw);
     return pannerInterval;
 }
