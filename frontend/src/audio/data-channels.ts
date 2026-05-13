@@ -1,5 +1,5 @@
-import {ClientPositions, Position} from "./client-positions";
-import {UIManager} from "./ui-manager";
+import {ClientPositions, Position} from "../position/client-positions";
+import {UIManager} from "../ui/ui-manager";
 
 /**
  * Binding positions data stream to actual position objects to read from

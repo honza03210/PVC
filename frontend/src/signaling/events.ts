@@ -1,7 +1,7 @@
 import type {Signaling} from "./signaling";
-import {UIManager} from "./ui-manager";
-import {HandleUserDisconnect, useQueuedCandidates} from "./signaling-handlers";
-import {InitPeerConnection} from "./peer-connection";
+import {UIManager} from "../ui/ui-manager";
+import {HandleUserDisconnect, useQueuedCandidates} from "./handlers";
+import {InitPeerConnection} from "../audio/peer-connection";
 
 type EventHandler = (signaling: Signaling, data: any) => void | Promise<void>;
 

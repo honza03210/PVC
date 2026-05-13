@@ -1,8 +1,8 @@
 import {PeerConnection} from "./peer-connection";
-import {ClientPositions, Position} from "./client-positions";
-import {UIManager} from "./ui-manager";
-import {DrawSoundVisualization, StringToColor} from "./visualization";
-import {Signaling} from "./signaling";
+import {ClientPositions, Position} from "../position/client-positions";
+import {UIManager} from "../ui/ui-manager";
+import {DrawSoundVisualization, StringToColor} from "../ui/visualization";
+import {Signaling} from "../signaling/signaling";
 
 /**
  * Handles new audio stream - visualization and spatial audio updates

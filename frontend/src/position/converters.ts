@@ -1,4 +1,4 @@
-import {Format} from "./position-formats";
+import {Format} from "./formats";
 
 
 export function GetMinecraftHeadingVector(pitch: number, yaw: number) {

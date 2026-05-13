@@ -1,5 +1,5 @@
-import {UIManager} from "./ui-manager";
-import {GetMinecraftHeadingVector} from "./position-format-converters";
+import {UIManager} from "../ui/ui-manager";
+import {GetMinecraftHeadingVector} from "./converters";
 
 /**
  * Base class representing the position object

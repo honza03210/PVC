@@ -1,10 +1,10 @@
-import type {AppUI} from "./interfaces/app-ui";
-import {PeerConnection} from "./peer-connection";
-import {RoomJoin} from "./signaling-handlers";
+import type {AppUI} from "../interfaces/app-ui";
+import {PeerConnection} from "../audio/peer-connection";
+import {RoomJoin} from "../signaling/handlers";
 import {io} from "socket.io-client";
-import {ServerConfig} from "./configs/server-config";
-import {Signaling} from "./signaling";
-import {ClientPositions, Position} from "./client-positions";
+import {ServerConfig} from "../configs/server-config";
+import {Signaling} from "../signaling/signaling";
+import {ClientPositions, Position} from "../position/client-positions";
 import {BindStreamAnimation} from "./visualization";
 import * as jdenticon from "jdenticon";
 

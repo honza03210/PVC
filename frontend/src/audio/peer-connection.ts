@@ -1,6 +1,6 @@
-import {Signaling} from "./signaling";
-import {UIManager} from "./ui-manager";
-import {ClientPositions, Position} from "./client-positions";
+import {Signaling} from "../signaling/signaling";
+import {UIManager} from "../ui/ui-manager";
+import {ClientPositions, Position} from "../position/client-positions";
 import * as jdenticon from "jdenticon";
 import {BindPositionsChannel} from "./data-channels";
 import {StatSample} from "./stat-sample";

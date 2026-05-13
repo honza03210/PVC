@@ -36,6 +36,23 @@ export function signaling(server : any) {
     // argon2 hashed
     let roomsPasswords: {[key: string]: string} = {};
 
+    function inSameRoom(socket: any, destId: string): boolean {
+        const roomId = socket.data.roomId;
+        const room = rooms[roomId];
+        const result = roomId !== undefined && room !== undefined && destId in room;
+        if (!result) {
+            console.log("[inSameRoom] FAIL", {
+                senderId: socket.id,
+                senderRoomId: roomId,
+                destId,
+                roomExists: room !== undefined,
+                destInRoom: room !== undefined && destId in room,
+                allRooms: Object.fromEntries(Object.entries(rooms).map(([rid, r]) => [rid, Object.keys(r)])),
+            });
+        }
+        return result;
+    }
+
     function ListRooms(socket: any, repeat: boolean) : void {
         try {
             socket.emit("listRooms", {
@@ -113,29 +130,35 @@ export function signaling(server : any) {
         });
         socket.on("offer", (payload: {dest: string, sdp: any, pfpUrl: any}) => {
             if (!payload || !payload.dest || !payload.sdp) return;
+            if (!inSameRoom(socket, payload.dest)) {
+                console.log("offer to a different room", socket.id);
+                return;
+            }
             io.to(payload.dest).emit("getOffer", {
                 id: socket.id,
                 sdp: payload.sdp,
                 username: usernames[socket.id], // Adjusted from object above
                 pfpUrl: payload.pfpUrl
             });
-            // io.to(payload.dest).emit("getOffer", {id: socket.id, sdp: payload.sdp, username: usernames[socket.id]});
             console.log("offer from " + socket.id + " to " + payload.dest);
         });
         socket.on("answerAck", (payload: {dest: string}) => {
             if (!payload || !payload.dest) return;
+            if (!inSameRoom(socket, payload.dest)) return;
             io.to(payload.dest).emit("getAnswerAck", {id: socket.id});
             console.log("answer ack from " + socket.id + " to " + payload.dest);
         });
 
         socket.on("answer", (payload: {dest: string, sdp: any}) => {
             if (!payload || !payload.dest || !payload.sdp) return;
+            if (!inSameRoom(socket, payload.dest)) return;
             io.to(payload.dest).emit("getAnswer", {id: socket.id, sdp: payload.sdp});
             console.log("answer from " + socket.id + " to " + payload.dest);
         });
 
         socket.on("candidate", (payload:  { dest: string, candidate: RTCIceCandidate }) => {
             if (!payload || !payload.dest || !payload.candidate) return;
+            if (!inSameRoom(socket, payload.dest)) return;
             io.to(payload.dest).emit("getCandidate", {id: socket.id, candidate: payload});
             console.log("candidate from " + socket.id + payload.candidate);
         });

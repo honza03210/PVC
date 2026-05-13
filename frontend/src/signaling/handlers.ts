@@ -1,7 +1,7 @@
-import {PeerConnection} from "./peer-connection.js";
+import {PeerConnection} from "../audio/peer-connection.js";
 import {Signaling} from "./signaling";
-import {UIManager} from "./ui-manager";
-import {ClientPositions, Position} from "./client-positions";
+import {UIManager} from "../ui/ui-manager";
+import {ClientPositions, Position} from "../position/client-positions";
 
 
 /**

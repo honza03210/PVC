@@ -1,9 +1,9 @@
 import {Socket} from "socket.io-client";
-import {PeerConnection} from "./peer-connection";
-import {ClientPositions, Position} from "./client-positions";
-import {StatSample} from "./stat-sample";
-import {SignalingMessage, SignalingTransport} from "./signaling-transport";
-import {dispatchSignalingEvent} from "./signaling-events";
+import {PeerConnection} from "../audio/peer-connection";
+import {ClientPositions, Position} from "../position/client-positions";
+import {StatSample} from "../audio/stat-sample";
+import {SignalingMessage, SignalingTransport} from "./transport";
+import {dispatchSignalingEvent} from "./events";
 
 /**
  * State container for the signaling layer. Transport details live in
