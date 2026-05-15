@@ -91,10 +91,13 @@ export class UIManager {
 
         let initButton = document.getElementById("initButton") as HTMLButtonElement;
         initButton.addEventListener('click', async e => {
-            await this.initAudio();
-
-            this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signaling);
-            initButton.style.display = "none";
+            try {
+                await this.initAudio();
+                this.EnableJoinButton(peerConnections, peerPositions, positionsSocket, signaling);
+                initButton.style.display = "none";
+            } catch (err) {
+                this.appUI.errorMsgLabel.innerText = `init failed: ${(err as Error)?.message ?? err}`;
+            }
         })
 
 
