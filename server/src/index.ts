@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import {fileURLToPath} from "url";
-import {signaling} from "./signaling.js"
+import {signaling} from "./signaling/index.js"
 import {allowedOrigins} from "./allowed-origins.js";
 import rateLimit from "express-rate-limit";
 
