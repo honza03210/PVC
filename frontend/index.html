@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PVC</title>
+    <title>Yappr</title>
     <script type="module" src="/src/main.ts"></script>
     <link rel="stylesheet" href="/src/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,15 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
-<dialog id="passwordDialogue">
-    <form method="dialog">
-        <label for="passwordInput">Password</label>
-        <input id="passwordInput" required type="password">
-        <button id="passwordInputCancel" value="cancel">Cancel</button>
-        <button id="submitPasswordButton" value="ok">OK</button>
-    </form>
-</dialog>
-
 <div id="container">
     <table class="main-menu-table">
         <tr>
@@ -31,12 +22,11 @@
                 </div>
             </td>
             <td>
-
-                    <div id="main-menu" class="menu menu-padding center-div flex-column">
-                    <div id="audio-menu" class="menu menu-padding center-div flex-column rounded" style="display: none">
-                        <canvas id="localVideo"></canvas>
-                        <audio id="localAudio" autoplay muted></audio>
-                    </div>
+                <div id="main-menu" class="menu menu-padding center-div flex-column">
+                <div id="audio-menu" class="menu menu-padding center-div flex-column rounded" style="display: none">
+                    <canvas id="localVisualization"></canvas>
+                    <audio id="localAudio" autoplay muted></audio>
+                </div>
                 <div style="display: flex; flex-direction: column">
                         <label for="name">Username</label><input type="text" id="name"/>
                         <label for="roomID">Room Name</label><input type="text" id="roomID"/>
@@ -49,18 +39,17 @@
                         <button id="leaveRoomButton" class="menu-button hidden">Leave</button>
                     </div>
                 </div>
-
             </td>
             <td>
             </td>
         </tr>
     </table>
-    <table class="video-container-table">
+    <table class="peer-container-table">
         <tr>
             <td></td>
             <td>
-                <div id="videoContainerMenu" class="menu menu-padding center-div flex-column">
-                    <div id="videoContainer" class="center-div flex-row" style="width: 100%"></div>
+                <div id="peerContainerMenu" class="menu menu-padding center-div flex-column">
+                    <div id="peerContainer" class="center-div flex-row" style="width: 100%"></div>
                 </div>
             </td>
             <td></td>

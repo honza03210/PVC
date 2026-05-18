@@ -94,13 +94,13 @@ function CreatePeerUI(id: string, pfpUrl: string, username: string) : [HTMLAudio
     latency.classList.add("latency");
 
 
-    if (UIManager.appUI.videoContainer) {
+    if (UIManager.appUI.peerContainer) {
         peerVisualizationContainer.append(remoteAudio, remoteVideo);
         if (pfpUrl == "" || pfpUrl == undefined) jdenticon.update(pfp, username);
         peerVisualizationContainer.append(pfp);
         peerContainer.append(peerVisualizationContainer);
         peerContainer.append(latency);
-        UIManager.appUI.videoContainer.appendChild(peerContainer);
+        UIManager.appUI.peerContainer.appendChild(peerContainer);
     }
 
     return [remoteAudio, remoteVideo];

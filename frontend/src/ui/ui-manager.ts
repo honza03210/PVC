@@ -17,7 +17,7 @@ export class UIManager {
 
     static Initialize() {
         UIManager.appUI = {
-            localVideo: document.getElementById('localVideo') as HTMLCanvasElement,
+            localVisualization: document.getElementById('localVisualization') as HTMLCanvasElement,
             localAudio: document.getElementById('localAudio') as HTMLAudioElement,
             audioMenu: document.getElementById('audio-menu') as HTMLDivElement,
             nameInput: document.getElementById('name') as HTMLInputElement,
@@ -25,7 +25,7 @@ export class UIManager {
             roomIDInput: document.getElementById("roomID") as HTMLInputElement,
             roomList: document.getElementById("roomList") as HTMLDivElement,
             errorMsgLabel: document.getElementById("errorMsg") as HTMLDivElement,
-            videoContainer: document.getElementById("videoContainer") as HTMLDivElement,
+            peerContainer: document.getElementById("peerContainer") as HTMLDivElement,
             audioCtx: undefined,
             localAudioStream: undefined,
         }

@@ -18,14 +18,14 @@ export function BindStreamAnimation(stream: MediaStream, audioCtx: AudioContext)
     if (UIManager.appUI.localAudio) {
         UIManager.appUI.localAudio.muted = true;
     }
-    let canvasCtx = UIManager.appUI.localVideo.getContext("2d")!;
-    UIManager.appUI.localVideo.width = 128;
-    UIManager.appUI.localVideo.height = 128;
-    UIManager.appUI.localVideo.classList.add("visualization-canvas")
-    UIManager.appUI.localVideo.style.borderRadius = "50%";
+    let canvasCtx = UIManager.appUI.localVisualization.getContext("2d")!;
+    UIManager.appUI.localVisualization.width = 128;
+    UIManager.appUI.localVisualization.height = 128;
+    UIManager.appUI.localVisualization.classList.add("visualization-canvas")
+    UIManager.appUI.localVisualization.style.borderRadius = "50%";
     UIManager.appUI.audioMenu.style.display = "block";
-    const WIDTH = UIManager.appUI.localVideo.width;
-    const HEIGHT = UIManager.appUI.localVideo.height;
+    const WIDTH = UIManager.appUI.localVisualization.width;
+    const HEIGHT = UIManager.appUI.localVisualization.height;
 
     let backgroundColor = 'rgba(255, 255, 255, 0.1)'
     let strokeColor = 'rgba(255, 255, 255, 0.8)'

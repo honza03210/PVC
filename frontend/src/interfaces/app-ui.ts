@@ -1,5 +1,5 @@
 export interface AppUI {
-    localVideo: HTMLCanvasElement;
+    localVisualization: HTMLCanvasElement;
     localAudio: HTMLAudioElement;
     audioMenu: HTMLDivElement;
     nameInput: HTMLInputElement;
@@ -7,7 +7,7 @@ export interface AppUI {
     roomIDInput: HTMLInputElement;
     roomList: HTMLDivElement;
     errorMsgLabel: HTMLDivElement;
-    videoContainer: HTMLDivElement;
+    peerContainer: HTMLDivElement;
     audioCtx: AudioContext | undefined;
     localAudioStream: MediaStream | undefined;
 
