@@ -1,5 +1,5 @@
 import type {Socket} from "socket.io";
-import {IceServers} from "../backup-ice-server-array.js";
+import {IceServers} from "../ice-server-array.js";
 
 
 /**
