@@ -51,8 +51,7 @@ export class RoomState {
         if (typeof room === "undefined") {
             return;
         }
-        console.log("userDisconnected broadcast");
         socket.broadcast.to(socket.data.roomId).emit("userDisconnected", {id: socket.id});
-        console.log(`[${socket.data.roomId}]: ${socket.id} exit`);
+        console.log(`[${socket.data.roomId}]: ${socket.id} disconnected`);
     }
 }

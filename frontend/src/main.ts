@@ -20,10 +20,6 @@ if (urlParams.get("user_token") != null && clientPositions.communicator instance
     } else {
         clientPositions.communicator.addEventListener("open", () => clientPositions.Send(JSON.stringify({token: urlParams.get("user_token")})), {once: true});
     }
-
-    console.log("token sent");
-} else {
-    console.log("token not sent");
 }
 
 let peerConnections = {};

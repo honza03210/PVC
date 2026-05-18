@@ -35,14 +35,8 @@ export function signaling(server: any) {
 
     io.on("connection", socket => {
         socket.emit("connected");
-        console.log("new socket connected: " + socket.id);
         listRooms(state, socket, true);
-        console.log("Began list rooms loop");
-
         socket.on("listRooms", () => {
-            console.log("LIST_ROOMS received", socket.id);
-            console.log("listRooms: ", Object.entries(state.rooms).map(([roomID, users]) =>
-                ({roomID, numberOfUsers: Object.keys(users).length})));
             listRooms(state, socket, false);
         });
 

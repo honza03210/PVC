@@ -40,9 +40,7 @@ export function listUserIDs(state: RoomState, socket: Socket, roomID: string): v
 
 export async function handleJoin(state: RoomState, socket: Socket, data: any): Promise<void> {
     if (!data) return;
-    console.log("got join from " + socket.id);
     if (socket.rooms.size > 1) {
-        console.log([socket.rooms.values()]);
         socket.emit("error", {message: "You are already connected to a room"});
         return;
     }
@@ -64,7 +62,6 @@ export async function handleJoin(state: RoomState, socket: Socket, data: any): P
     }
     socket.join(roomId);
     socket.data.roomId = roomId;
-    console.log("joined room: " + roomId);
 
     // add the user to the room
     if (state.rooms[roomId]) {
@@ -74,14 +71,12 @@ export async function handleJoin(state: RoomState, socket: Socket, data: any): P
         state.rooms[roomId][socket.id] = data.name;
     }
 
-    console.log("[joined] room:" + roomId + " name: " + data.name);
     state.usernames[socket.id] = data.name;
     socket.broadcast.to(socket.data.roomId).emit("PeerJoined", {
         id: socket.id,
         username: data.name,
         pfpUrl: data.pfpUrl ?? ""
     });
-    console.log("pfp: ", data.pfpUrl);
     socket.emit("roomConnected", {selfID: socket.id, roomID: roomId});
     await sendUserCredentials(socket, data.name);
     setTimeout(() => { listUserIDs(state, socket, socket.data.roomId); }, 5000);
@@ -90,7 +85,6 @@ export async function handleJoin(state: RoomState, socket: Socket, data: any): P
 export function handleOffer(state: RoomState, io: Server, socket: Socket, payload: {dest: string, sdp: any, pfpUrl: any}): void {
     if (!payload || !payload.dest || !payload.sdp) return;
     if (!state.inSameRoom(socket, payload.dest)) {
-        console.log("offer to a different room", socket.id);
         return;
     }
     io.to(payload.dest).emit("getOffer", {
@@ -99,28 +93,24 @@ export function handleOffer(state: RoomState, io: Server, socket: Socket, payloa
         username: state.usernames[socket.id],
         pfpUrl: payload.pfpUrl
     });
-    console.log("offer from " + socket.id + " to " + payload.dest);
 }
 
 export function handleAnswerAck(state: RoomState, io: Server, socket: Socket, payload: {dest: string}): void {
     if (!payload || !payload.dest) return;
     if (!state.inSameRoom(socket, payload.dest)) return;
     io.to(payload.dest).emit("getAnswerAck", {id: socket.id});
-    console.log("answer ack from " + socket.id + " to " + payload.dest);
 }
 
 export function handleAnswer(state: RoomState, io: Server, socket: Socket, payload: {dest: string, sdp: any}): void {
     if (!payload || !payload.dest || !payload.sdp) return;
     if (!state.inSameRoom(socket, payload.dest)) return;
     io.to(payload.dest).emit("getAnswer", {id: socket.id, sdp: payload.sdp});
-    console.log("answer from " + socket.id + " to " + payload.dest);
 }
 
 export function handleCandidate(state: RoomState, io: Server, socket: Socket, payload: {dest: string, candidate: RTCIceCandidate}): void {
     if (!payload || !payload.dest || !payload.candidate) return;
     if (!state.inSameRoom(socket, payload.dest)) return;
     io.to(payload.dest).emit("getCandidate", {id: socket.id, candidate: payload});
-    console.log("candidate from " + socket.id + payload.candidate);
 }
 
 export function handleRoomLeave(state: RoomState, socket: Socket): void {

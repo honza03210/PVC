@@ -16,13 +16,10 @@ export async function GenerateTurnCredentials(user: string): Promise<RTCIceServe
             return IceServers;
         }
 
-        console.log("TURN server credentials received:", response);
-        console.log("This might not work, as there is no way for me to check without a paid subscription");
         return await response.json();
 
     } catch (error) {
         console.error(error);
-        console.log("TURN server credentials not generated - sending the backup", IceServers);
         return IceServers;
     }
 }

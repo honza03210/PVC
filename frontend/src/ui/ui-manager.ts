@@ -9,7 +9,6 @@ import {BindStreamAnimation} from "./visualization";
 import * as jdenticon from "jdenticon";
 
 
-// TODO: This whole class should be rewritten, it doesn't make much sense to do it like this
 export class UIManager {
     static appUI: AppUI;
     static inRoom: boolean = false;

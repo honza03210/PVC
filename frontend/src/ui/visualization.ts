@@ -12,8 +12,6 @@ export function BindStreamAnimation(stream: MediaStream, audioCtx: AudioContext)
     let analyser = audioCtx!.createAnalyser();
     microphone.connect(analyser);
 
-    // Audio visualization from https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
-    // TODO: create a custom one
     analyser.fftSize = 256;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
@@ -24,7 +22,6 @@ export function BindStreamAnimation(stream: MediaStream, audioCtx: AudioContext)
     UIManager.appUI.localVideo.width = 128;
     UIManager.appUI.localVideo.height = 128;
     UIManager.appUI.localVideo.classList.add("visualization-canvas")
-    // UIManager.appUI.localVideo.style.margin = "50px";
     UIManager.appUI.localVideo.style.borderRadius = "50%";
     UIManager.appUI.audioMenu.style.display = "block";
     const WIDTH = UIManager.appUI.localVideo.width;

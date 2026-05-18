@@ -203,7 +203,7 @@ function InitStatsInterval(signaling: Signaling, peerConnection: PeerConnection,
                     sample.packetsSent = report.packetsSent;
                     sample.bytesSent = report.bytesSent;
                 }
-                if (report.type === "candidate-pair" && report.state === "succeeded") {
+                if (report.type === "candidate-pair" && report.nominated === true) {
                     sample.rtt = report.currentRoundTripTime;
                     sample.availableOutgoingBitrate = report.availableOutgoingBitrate;
                 }
